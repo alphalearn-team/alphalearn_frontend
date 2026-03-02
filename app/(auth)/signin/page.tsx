@@ -38,10 +38,6 @@ export default function SignInPage() {
               "radial-gradient(circle at center, black 40%, transparent 100%)",
           }}
         ></div>
-        <div
-          className="absolute w-[400px] h-[400px] bottom-[-50px] right-[-50px] bg-blue-500 rounded-full opacity-10 pointer-events-none"
-          style={{ filter: "blur(120px)" }}
-        ></div>
       </div>
 
       {/* Main content area */}
