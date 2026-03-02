@@ -38,12 +38,6 @@ export default function SignInPage() {
               "radial-gradient(circle at center, black 40%, transparent 100%)",
           }}
         ></div>
-        {/* Glowing purple blob - top left */}
-        <div
-          className="absolute w-[500px] h-[500px] top-[-100px] left-[-100px] rounded-full opacity-15 pointer-events-none"
-          style={{ filter: "blur(120px)", backgroundColor: "var(--color-primary)" }}
-        ></div>
-        {/* Glowing blue blob - bottom right */}
         <div
           className="absolute w-[400px] h-[400px] bottom-[-50px] right-[-50px] bg-blue-500 rounded-full opacity-10 pointer-events-none"
           style={{ filter: "blur(120px)" }}
@@ -235,8 +229,6 @@ export default function SignInPage() {
             {isSignUp && (
               <div className="hidden lg:flex w-[400px] bg-[var(--color-surface-elevated)] border-l border-[var(--color-border)] flex-col p-10 justify-center relative overflow-hidden">
                 {/* Background decorations */}
-                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" style={{ backgroundColor: 'var(--color-primary)', opacity: 0.2 }}></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -ml-32 -mb-32 pointer-events-none"></div>
 
                 <div className="relative z-10">
                   <h2 className="text-3xl font-black text-[var(--color-text)] mb-2">
@@ -302,16 +294,6 @@ export default function SignInPage() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Floating cultural tags at bottom */}
-          <div className="flex flex-wrap justify-center gap-2 opacity-50">
-            <span className="px-3 py-1 rounded-full bg-[var(--color-input)] border border-[var(--color-overlay)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">
-              #MemeEconomy
-            </span>
-            <span className="px-3 py-1 rounded-full bg-[var(--color-input)] border border-[var(--color-overlay)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">
-              #CreatorMode
-            </span>
           </div>
         </div>
       </main>
