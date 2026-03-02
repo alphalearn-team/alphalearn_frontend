@@ -69,9 +69,7 @@ export default function SignInPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={
-                        isSignUp ? "name@example.com" : "Enter your username or email"
-                      }
+                      placeholder={"Enter your username or email"}
                       className="w-full rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-border-focus)] focus:border-transparent transition-all h-12 pl-11 pr-4 text-base"
                     />
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-[20px]">
@@ -89,9 +87,7 @@ export default function SignInPage() {
                       minLength={6}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder={
-                        isSignUp ? "••••••••" : "Enter your password"
-                      }
+                      placeholder={"Enter your password"}
                       className="w-full rounded-lg bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-border-focus)] focus:border-transparent transition-all h-12 pl-11 pr-12 text-base"
                     />
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-[20px]">
