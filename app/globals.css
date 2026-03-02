@@ -20,7 +20,7 @@
   --color-background: #f6f4f1;
   --color-surface: #f6f4f1;
   --color-surface-elevated: #f6f4f1;
-  --color-input: ##f6f4f1;
+  --color-input: #f6f4f1;
   --color-text: #171717;
   --color-text-secondary: #6b6b80;
   --color-text-muted: #9a9aaa;
@@ -157,7 +157,7 @@ html {
 body {
   background: var(--color-background);
   color: var(--color-text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-nunito);
 }
 
 /* ── Navbar frosted glass ── */

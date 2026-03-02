@@ -22,7 +22,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="bg-[var(--color-surface)] text-[var(--color-text)] font-['Plus_Jakarta_Sans'] min-h-screen flex flex-col relative overflow-x-hidden selection:bg-[var(--color-primary)] selection:text-white">
+    <div className="bg-[var(--color-surface)] text-[var(--color-text)] min-h-screen flex flex-col relative overflow-x-hidden selection:bg-[var(--color-primary)] selection:text-white">
       {/* Background decorative elements */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {/* Grid pattern overlay */}
