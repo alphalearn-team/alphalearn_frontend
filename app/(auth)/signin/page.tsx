@@ -143,13 +143,6 @@ export default function SignInPage() {
                       ? "Join the Squad"
                       : "Resume Streak"}
                 </button>
-
-                {/* Terms text (signup only) */}
-                {isSignUp && (
-                  <p className="text-xs text-center text-[var(--color-text-muted)]">
-                    By joining, you agree to our Terms of Service (no cap).
-                  </p>
-                )}
               </form>
 
               {/* Divider */}
@@ -164,7 +157,7 @@ export default function SignInPage() {
               </div>
 
               {/* Social login buttons */}
-              <div className="grid grid-cols-1 gap-3 mb-6">
+              <div className="grid grid-cols-1 gap-3 mb-4">
                 <button
                   type="button"
                   onClick={() => signInWithGoogle()}
@@ -200,12 +193,12 @@ export default function SignInPage() {
 
 
               {/* Toggle between login/signup */}
-              <div className="text-center">
+              <div className="text-center mb-2">
                 <p className="text-[var(--color-text-secondary)]">
                   {isSignUp
                     ? "Already have an account?"
                     : "New here?"}
-                  <button
+                  <button   
                     type="button"
                     onClick={() => setIsSignUp(!isSignUp)}
                     className="text-[var(--color-primary)] hover:text-[var(--color-text)] font-bold ml-1 transition-colors hover:underline"
@@ -214,6 +207,15 @@ export default function SignInPage() {
                   </button>
                 </p>
               </div>
+
+            {/* Terms text (signup only) */}
+            {isSignUp && (
+                <p className="text-xs text-center text-[var(--color-text-muted)]">
+                By joining, you agree to our 
+                <br />
+                Terms of Service (no cap).
+                </p>
+            )}
             </div>
 
             {/* Right Panel: Value Proposition (visible on desktop when in signup mode) */}
