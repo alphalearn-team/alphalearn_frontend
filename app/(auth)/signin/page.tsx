@@ -48,18 +48,18 @@ export default function SignInPage() {
       <main className="flex-grow flex items-center justify-center p-4 relative z-10">
         <div className={`w-full ${isSignUp ? 'lg:max-w-[1100px]' : 'lg:max-w-[500px]'} flex flex-col gap-6`}>
           {/* Main card container */}
-          <div className="relative w-full bg-[var(--color-surface-elevated)] rounded-xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-[var(--color-border)]">
+          <div className="relative w-full overflow-hidden flex flex-col lg:flex-row">
             {/* Left Panel: Form Section */}
             <div className="flex-1 p-8 sm:p-12 lg:p-14 flex flex-col justify-center">
               {/* Header text */}
               <div className="mb-8">
                 <h1 className="text-4xl text-center font-black tracking-tight leading-tight mb-2 text-[var(--color-text)]">
-                  {isSignUp ? "Level Up Your Lore" : "Welcome"}
+                  {isSignUp ? "Level Up Your Lore!" : "Welcome Back!"}
                 </h1>
                 <p className="text-[var(--color-text-secondary)] text-center text-lg font-normal">
                   {isSignUp
                     ? "Master the memes. Decode the slang."
-                    : "Ready to learn with us?"}
+                    : "Ready to continue your streak?"}
                 </p>
               </div>
 
