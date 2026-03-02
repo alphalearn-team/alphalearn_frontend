@@ -17,10 +17,10 @@
   --color-accent: #3aa37c;
   --color-accent-hover: #19a071;
 
-  --color-background: #f6f4ff;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
-  --color-input: ##ffffff;
+  --color-background: #f6f4f1;
+  --color-surface: #f6f4f1;
+  --color-surface-elevated: #f6f4f1;
+  --color-input: ##f6f4f1;
   --color-text: #171717;
   --color-text-secondary: #6b6b80;
   --color-text-muted: #9a9aaa;
@@ -33,7 +33,7 @@
   --color-shadow-hover: rgba(124, 92, 255, 0.2);
 
   /* Card-specific */
-  --color-card-bg: #ffffff;
+  --color-card-bg: #f6f4f1;
   --color-card-border: #e2dff0;
   --color-card-border-hover: #19a071;
   --color-card-shadow-hover: rgba(100, 255, 92, 0.15);
