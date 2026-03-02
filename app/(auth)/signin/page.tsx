@@ -25,19 +25,6 @@ export default function SignInPage() {
     <div className="bg-[var(--color-surface)] text-[var(--color-text)] min-h-screen flex flex-col relative overflow-x-hidden selection:bg-[var(--color-primary)] selection:text-white">
       {/* Background decorative elements */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Grid pattern overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.15]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, var(--color-input) 1px, transparent 1px), linear-gradient(to bottom, var(--color-input) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-            maskImage:
-              "radial-gradient(circle at center, black 40%, transparent 100%)",
-            WebkitMaskImage:
-              "radial-gradient(circle at center, black 40%, transparent 100%)",
-          }}
-        ></div>
       </div>
 
       {/* Main content area */}
