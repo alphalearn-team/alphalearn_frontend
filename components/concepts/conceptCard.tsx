@@ -16,9 +16,9 @@ export default function ConceptCard({
   return (
     <ContentCardShell
       href={`/concepts/${publicId}`}
-      background="#1e1e2e"
-      borderColor="rgba(255,255,255,0.05)"
-      glow="radial-gradient(circle at top right, rgba(124, 58, 237, 0.15) 0%, transparent 70%)"
+      background="var(--color-card-bg)"
+      borderColor="var(--color-card-border)"
+      glow="radial-gradient(circle at top right, var(--color-card-shadow-hover) 0%, transparent 70%)"
     >
       <Stack gap="md" h="100%" justify="space-between" className="relative z-10">
         <Stack gap="xs">
@@ -27,7 +27,7 @@ export default function ConceptCard({
               Concept
             </Text>
             <Tooltip label="Explore concept" position="top" withArrow>
-              <span className="material-symbols-outlined text-white/20 group-hover:text-white/60 transition-colors text-lg">
+              <span className="material-symbols-outlined text-[var(--color-card-text-muted)] opacity-40 group-hover:opacity-80 transition-opacity text-lg">
                 arrow_outward
               </span>
             </Tooltip>
@@ -35,24 +35,24 @@ export default function ConceptCard({
 
           <Title
             order={3}
-            className="text-2xl font-extrabold tracking-tight leading-tight text-white group-hover:text-[var(--color-primary)] transition-colors"
+            className="text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-card-text)] group-hover:text-[var(--color-card-accent)] transition-colors"
           >
             {title}
           </Title>
 
-          <Text size="sm" className="text-white/60 line-clamp-3 font-light leading-relaxed">
+          <Text size="sm" className="text-[var(--color-card-text-muted)] line-clamp-3 font-light leading-relaxed">
             {description}
           </Text>
         </Stack>
 
-        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+        <div className="pt-4 border-t border-[var(--color-card-border)] flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-card-text-muted)] opacity-70">
             {formatShortDate(createdAt)}
           </span>
           <div className="flex gap-1">
-            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-30" />
-            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-50" />
-            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)]" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-30" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-50" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)]" />
           </div>
         </div>
       </Stack>

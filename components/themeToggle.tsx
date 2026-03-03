@@ -50,8 +50,9 @@ export default function ThemeToggle() {
       <input
         type="checkbox"
         checked={isDark}
-        onChange={toggleColorScheme}
+        onChange={() => toggleColorScheme()}
         className="opacity-0 w-0 h-0"
+        aria-label="Toggle color scheme"
       />
 
       {/* Slider Track */}

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar } from "@mantine/core";
 import { useAuth } from "@/context/AuthContext";
+import ThemeToggle from "@/components/themeToggle";
 
 export interface SidebarNavItem {
   label: string;
@@ -162,6 +163,10 @@ export default function AppSidebar({
         </nav>
 
         <div className="admin-sidebar-footer">
+          <div className="admin-sidebar-theme-section">
+            <ThemeToggle />
+          </div>
+
           <div className="admin-sidebar-user">
             <Avatar
               src={profilePicture}

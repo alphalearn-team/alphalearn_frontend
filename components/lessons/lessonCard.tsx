@@ -27,9 +27,9 @@ export default function LessonCard({
   return (
     <ContentCardShell
       href={`/lessons/${lessonPublicId}`}
-      background="#232338"
-      borderColor="rgba(255,255,255,0.06)"
-      glow="radial-gradient(circle at top right, rgba(99, 102, 241, 0.16) 0%, transparent 70%)"
+      background="var(--color-card-bg)"
+      borderColor="var(--color-card-border)"
+      glow="radial-gradient(circle at top right, var(--color-card-shadow-hover) 0%, transparent 70%)"
     >
       <Stack gap="md" h="100%" justify="space-between" className="relative z-10">
         <Stack gap="xs">
@@ -38,12 +38,12 @@ export default function LessonCard({
               <Text
                 size="xs"
                 fw={800}
-                className="uppercase tracking-[0.25em] text-blue-200/70"
+                className="uppercase tracking-[0.25em] text-[var(--color-card-accent)] opacity-70"
               >
                 Lesson
               </Text>
 
-              <Group gap={8} className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
+              <Group gap={8} className="text-[11px] font-bold text-[var(--color-card-text-muted)] opacity-70 uppercase tracking-widest">
                 <span>{author?.username || "Anonymous"}</span>
               </Group>
             </div>
@@ -66,7 +66,7 @@ export default function LessonCard({
               )}
 
               <Tooltip label="Open lesson" position="top" withArrow>
-                <span className="material-symbols-outlined text-white/20 group-hover:text-white/60 transition-colors text-lg">
+                <span className="material-symbols-outlined text-[var(--color-card-text-muted)] opacity-40 group-hover:opacity-80 transition-opacity text-lg">
                   arrow_outward
                 </span>
               </Tooltip>
@@ -75,7 +75,7 @@ export default function LessonCard({
 
           <Title
             order={3}
-            className="text-lg font-bold tracking-tight leading-snug text-white group-hover:text-blue-100 transition-colors"
+            className="text-lg font-bold tracking-tight leading-snug text-[var(--color-card-text)] group-hover:text-[var(--color-card-accent)] transition-colors"
           >
             {title}
           </Title>
@@ -85,7 +85,7 @@ export default function LessonCard({
               {conceptLabels.map((label) => (
                 <span
                   key={label}
-                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/70"
+                  className="rounded-full border border-[var(--color-card-border)] bg-[var(--color-overlay)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-card-text-muted)]"
                 >
                   {label}
                 </span>
@@ -94,14 +94,14 @@ export default function LessonCard({
           )}
         </Stack>
 
-        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+        <div className="pt-4 border-t border-[var(--color-card-border)] flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-card-text-muted)] opacity-70">
             {createdAt ? formatShortDate(createdAt) : "Recent"}
           </span>
           <div className="flex gap-1">
-            <div className="w-1 h-1 rounded-full bg-blue-300 opacity-30" />
-            <div className="w-1 h-1 rounded-full bg-blue-300 opacity-50" />
-            <div className="w-1 h-1 rounded-full bg-blue-300" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-30" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-50" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)]" />
           </div>
         </div>
       </Stack>

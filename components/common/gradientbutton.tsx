@@ -41,12 +41,11 @@ export default function GradientButton({
     >
       <div className="relative group w-fit">
         {/* 1. THE UNDER-GLOW 
-            Matches your purple/pink gradient but blurred out.
+            Uses the theme primary color so the glow follows light/dark mode.
         */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#7c3aed] to-[#e755f7] rounded-full blur-md opacity-0 group-hover:opacity-60 transition duration-500" />
+        <div className="absolute -inset-0.5 rounded-full blur-md opacity-0 group-hover:opacity-60 transition duration-500 bg-[var(--color-primary)]" />
 
         <Button
-          variant="gradient"
           size={size}
           radius="xl"
           leftSection={
@@ -56,14 +55,11 @@ export default function GradientButton({
               </span>
             ) : undefined
           }
-          gradient={{
-            from: "#7c3aed",
-            to: "#e755f7",
-            deg: 90,
-          }}
           className={`
-            relative overflow-hidden transition-all duration-300 
+            relative overflow-hidden transition-all duration-300
             hover:scale-[1.03] active:scale-95
+            !bg-[var(--color-primary)] hover:!bg-[var(--color-primary-hover)] active:!bg-[var(--color-primary-active)]
+            !text-white shadow-[0_0_20px_var(--color-shadow)] hover:shadow-[0_0_30px_var(--color-shadow-hover)]
             before:absolute before:top-0 before:-left-full before:w-full before:h-full 
             before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent 
             before:transition-all before:duration-500 hover:before:left-full
