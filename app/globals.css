@@ -35,8 +35,8 @@
   /* Card-specific */
   --color-card-bg: #f6f4f1;
   --color-card-border: #e2dff0;
-  --color-card-border-hover: #19a071;
-  --color-card-shadow-hover: rgba(100, 255, 92, 0.15);
+  --color-card-border-hover: var(--color-card-border);
+  --color-card-shadow-hover: transparent;
   --color-card-accent: #7c5cff;
   --color-card-text: #1a1a2e;
   --color-card-text-muted: #6b7280;
