@@ -9,6 +9,7 @@ export type LessonModerationMeta = {
   bg: string;
   border: string;
   description: string;
+  editorDescription: string;
 };
 
 const moderationMeta: Record<LessonModerationStatus, LessonModerationMeta> = {
@@ -21,6 +22,7 @@ const moderationMeta: Record<LessonModerationStatus, LessonModerationMeta> = {
     bg: "rgba(148, 163, 184, 0.10)",
     border: "rgba(148, 163, 184, 0.28)",
     description: "This lesson is still a draft and is not visible to learners.",
+    editorDescription: "Update your lesson content. Changes save directly.",
   },
   PENDING: {
     status: "PENDING",
@@ -31,6 +33,7 @@ const moderationMeta: Record<LessonModerationStatus, LessonModerationMeta> = {
     bg: "rgba(245, 158, 11, 0.10)",
     border: "rgba(245, 158, 11, 0.30)",
     description: "This lesson is pending manual review before it can be published.",
+    editorDescription: "This lesson is under review. You can still make edits.",
   },
   APPROVED: {
     status: "APPROVED",
@@ -41,6 +44,7 @@ const moderationMeta: Record<LessonModerationStatus, LessonModerationMeta> = {
     bg: "rgba(16, 185, 129, 0.10)",
     border: "rgba(16, 185, 129, 0.30)",
     description: "This lesson is approved and visible to learners.",
+    editorDescription: "This lesson is live. Edits will require re-approval.",
   },
   REJECTED: {
     status: "REJECTED",
@@ -51,6 +55,7 @@ const moderationMeta: Record<LessonModerationStatus, LessonModerationMeta> = {
     bg: "rgba(239, 68, 68, 0.10)",
     border: "rgba(239, 68, 68, 0.30)",
     description: "This lesson was rejected. Review the moderation feedback, update the content, and submit again.",
+    editorDescription: "This lesson was rejected. Revise your content and resubmit.",
   },
 };
 
