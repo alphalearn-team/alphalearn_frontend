@@ -3,31 +3,59 @@
 // server side logic that the client component can use
 
 import { apiFetch } from "../api";
-import { CreateLessonRequest } from "@/interfaces/interfaces";
+import { CreateLessonRequest, Lesson, LessonContent } from "@/interfaces/interfaces";
 import { revalidatePath } from "next/cache";
 
 const headers = { "Content-Type": "application/json" };
 
-type ActionResponse = {
+export type LessonActionResult<T = void> = {
   success: boolean;
   message: string;
+  data?: T;
 };
 
-async function handleRequest(url: string, options: RequestInit): Promise<ActionResponse> {
+type CreateLessonResponse = Partial<Lesson> & {
+  lessonPublicId?: string;
+};
+
+function getLessonPublicId(lesson: unknown): string | null {
+  if (!lesson || typeof lesson !== "object") {
+    return null;
+  }
+
+  const lessonPublicId = (lesson as { lessonPublicId?: unknown }).lessonPublicId;
+  return typeof lessonPublicId === "string" && lessonPublicId.length > 0
+    ? lessonPublicId
+    : null;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "Something went wrong";
+}
+
+async function handleRequest<T = void>(
+  url: string,
+  options: RequestInit,
+  message = "Successfully saved",
+): Promise<LessonActionResult<T>> {
   try {
-    await apiFetch(url, options);
-    return { success: true, message: "Successfully saved" };
-  } catch (err: any) {
-    return { success: false, message: err?.message || "Something went wrong" };
+    const data = await apiFetch<T>(url, options);
+    return { success: true, message, data };
+  } catch (error: unknown) {
+    return { success: false, message: getErrorMessage(error) };
   }
 }
 
-export async function saveLesson({ id, title, content }: { id: string; title: string; content: any; }): Promise<ActionResponse> {
+export async function saveLesson({ id, title, content }: { id: string; title: string; content: LessonContent; }): Promise<LessonActionResult> {
   const response = await handleRequest(`/lessons/${id}`, {
     method: "PUT",
     headers,
     body: JSON.stringify({ title, content }),
-  });
+  }, "Successfully saved");
 
   if (response.success) {
     revalidatePath("/lessons/mine");
@@ -38,65 +66,97 @@ export async function saveLesson({ id, title, content }: { id: string; title: st
   return response;
 }
 
-export async function createLesson(inputs: CreateLessonRequest): Promise<ActionResponse> {
-  const response = await handleRequest(`/lessons`, {
+export async function createLesson(inputs: CreateLessonRequest): Promise<LessonActionResult<CreateLessonResponse | Lesson>> {
+  const response = await handleRequest<CreateLessonResponse>(`/lessons`, {
     method: "POST",
     headers,
     body: JSON.stringify(inputs),
-  });
+  }, inputs.submit ? "Lesson submitted successfully" : "Draft saved successfully");
 
   if (response.success) {
     revalidatePath("/lessons");
     revalidatePath("/lessons/mine");
+
+    const lessonPublicId = getLessonPublicId(response.data);
+
+    if (lessonPublicId) {
+      revalidatePath(`/lessons/${lessonPublicId}`);
+      revalidatePath(`/lessons/${lessonPublicId}/edit`);
+    }
+
+    if (inputs.submit && lessonPublicId) {
+      try {
+        const lesson = await apiFetch<Lesson>(`/lessons/${lessonPublicId}`);
+        return {
+          success: true,
+          message: response.message,
+          data: lesson,
+        };
+      } catch {
+        return response;
+      }
+    }
   }
 
   return response;
 }
 
-export async function submitLesson(id: string): Promise<ActionResponse> {
+export async function submitLesson(id: string): Promise<LessonActionResult<Lesson>> {
   const response = await handleRequest(`/lessons/${id}/submit`, {
     method: "POST",
     headers,
-  });
-
-  if (response.success) {
-    revalidatePath("/lessons/mine");
-    revalidatePath(`/lessons/${id}`);
-    revalidatePath(`/lessons/${id}/edit`);
-    return { success: true, message: "Successfully submitted for review" };
-  }
-
-  return response;
-}
-
-export async function deleteLesson(id: string): Promise<ActionResponse> {
-  const response = await handleRequest(`/lessons/${id}`, {
-    method: "DELETE",
-    headers,
-  });
+  }, "Successfully submitted for review");
 
   if (response.success) {
     revalidatePath("/lessons");
     revalidatePath("/lessons/mine");
     revalidatePath(`/lessons/${id}`);
     revalidatePath(`/lessons/${id}/edit`);
-    return { success: true, message: "Lesson deleted successfully" };
+
+    try {
+      const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
+      return {
+        success: true,
+        message: response.message,
+        data: lesson,
+      };
+    } catch {
+      return response;
+    }
+  }
+
+  return response;
+}
+
+export async function deleteLesson(id: string): Promise<LessonActionResult> {
+  const response = await handleRequest(`/lessons/${id}`, {
+    method: "DELETE",
+    headers,
+  }, "Lesson deleted successfully");
+
+  if (response.success) {
+    revalidatePath("/lessons");
+    revalidatePath("/lessons/mine");
+    revalidatePath(`/lessons/${id}`);
+    revalidatePath(`/lessons/${id}/edit`);
+    return response;
   }
 
   return { success: false, message: "Unable to delete lesson, check that the lesson is unpublished first" };
 }
 
-export async function unpublishLesson(id: string): Promise<ActionResponse> {
+export async function unpublishLesson(id: string): Promise<LessonActionResult> {
   const response = await handleRequest(`/lessons/${id}/unpublish`, {
     method: "POST",
     headers,
-  });
+  }, "Lesson unpublished successfully");
 
   if (response.success) {
+    revalidatePath("/lessons");
     revalidatePath("/lessons/mine");
     revalidatePath(`/lessons/${id}`);
     revalidatePath(`/lessons/${id}/edit`);
-    return { success: true, message: "Lesson unpublished successfully" };
+    return response;
   }
 
   return response;

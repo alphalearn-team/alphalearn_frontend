@@ -15,15 +15,21 @@ export interface PublicAuthor {
   username: string;
 }
 
+export type LessonContent = unknown;
+export type LessonModerationStatus = "PENDING" | "APPROVED" | "REJECTED" | "UNPUBLISHED";
+
 export type Lesson = {
   lessonPublicId: string
   title: string
-  content: any
-  moderationStatus: string
+  content: LessonContent
+  moderationStatus: LessonModerationStatus
   author: PublicAuthor
   createdAt: string
   conceptPublicIds: string[]
   concepts?: LessonConceptSummary[]
+  latestModerationReasons?: string[]
+  latestModerationEventType?: string | null
+  latestModeratedAt?: string | null
 }
 
 export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" | "createdAt" | "moderationStatus"> & {
@@ -33,7 +39,7 @@ export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" |
 
 export interface CreateLessonRequest {
   title: string
-  content: any
+  content: LessonContent
   conceptPublicIds: string[]
   submit?: boolean
 }
@@ -61,9 +67,6 @@ export interface AdminUser {
 }
 
 export type AdminConcept = Concept;
-
-// Lesson moderation status types
-export type LessonModerationStatus = "PENDING" | "APPROVED" | "REJECTED" | "UNPUBLISHED";
 
 // Admin lesson interface for moderation
 export interface AdminLesson {
