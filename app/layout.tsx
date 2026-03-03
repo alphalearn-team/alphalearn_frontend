@@ -50,7 +50,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${nunito.variable} antialiased`}
       >
-        <MantineProvider defaultColorScheme="light">
+        <MantineProvider 
+            defaultColorScheme="light"
+            theme={{
+                fontFamily: "var(--font-nunito), sans-serif",
+                headings: {
+                fontFamily: "var(--font-nunito), sans-serif",
+                },
+            }}
+        >
           <AuthProvider>
             <Notifications position="bottom-right" />
             {children}
