@@ -81,6 +81,23 @@ export function getLessonModerationMeta(
   return moderationMeta[normalizeLessonModerationStatus(status)];
 }
 
+export function getLessonModerationSubmitToast(
+  status?: string | null,
+): string {
+  const normalizedStatus = status?.toUpperCase();
+
+  switch (normalizedStatus) {
+    case "APPROVED":
+      return "Lesson approved and published.";
+    case "PENDING":
+      return "Lesson submitted and pending manual review.";
+    case "REJECTED":
+      return "Lesson rejected. Review the moderation feedback.";
+    default:
+      return "Lesson submitted successfully.";
+  }
+}
+
 export function formatLessonModerationEventType(
   eventType?: string | null,
 ): string | null {
