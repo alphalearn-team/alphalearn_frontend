@@ -4,19 +4,28 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 const RichTextEditor = dynamic(() => import("@/components/texteditor/textEditor").then(m => m.RichTextEditor), { ssr: false });
-import { MultiSelect, Stack } from "@mantine/core";
+import { MultiSelect } from "@mantine/core";
 import { showSuccess, showError } from "@/lib/actions/notifications";
 import { createLesson, saveLesson, submitLesson, deleteLesson, unpublishLesson } from "@/lib/actions/lesson";
-import { Concept, CreateLessonRequest } from "@/interfaces/interfaces";
+import { Concept, CreateLessonRequest, LessonContent } from "@/interfaces/interfaces";
 import ConfirmModal from "@/components/common/confirmModal";
+import { getLessonModerationSubmitToast } from "@/lib/lessonModeration";
 
 export interface LessonEditorProps {
   id?: string;
   initialTitle: string;
-  initialContent: any;
+  initialContent: LessonContent;
   availableConcepts?: Concept[];
   initialConceptPublicIds?: string[];
   initialStatus?: string;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "Something went wrong";
 }
 
 export default function LessonEditor({
@@ -57,17 +66,20 @@ export default function LessonEditor({
       } satisfies CreateLessonRequest);
 
       if (response.success) {
-        showSuccess(
-          submitForReview
-            ? "Lesson submitted for review."
-            : "Draft saved successfully.",
-        );
-        router.replace("/lessons/mine");
+        if (submitForReview) {
+          showSuccess(getLessonModerationSubmitToast(response.data?.moderationStatus));
+
+          const lessonPublicId = response.data?.lessonPublicId;
+          router.replace(lessonPublicId ? `/lessons/${lessonPublicId}` : "/lessons/mine");
+        } else {
+          showSuccess("Draft saved successfully.");
+          router.replace("/lessons/mine");
+        }
       } else {
         showError(response.message || "Failed");
       }
-    } catch (e: any) {
-      showError(e.message);
+    } catch (error: unknown) {
+      showError(getErrorMessage(error));
     } finally {
       setLoading(false);
       setLoadingAction(null);
@@ -98,8 +110,8 @@ export default function LessonEditor({
         showError(response.message || "Failed");
       }
 
-    } catch (e: any) {
-      showError(e.message);
+    } catch (error: unknown) {
+      showError(getErrorMessage(error));
     } finally {
       setLoading(false);
       setLoadingAction(null);
@@ -119,8 +131,8 @@ export default function LessonEditor({
       } else {
         showError(response.message);
       }
-    } catch (e: any) {
-      showError(e.message);
+    } catch (error: unknown) {
+      showError(getErrorMessage(error));
     } finally {
       setLoading(false);
       setLoadingAction(null);
@@ -141,8 +153,8 @@ export default function LessonEditor({
       } else {
         showError(response.message);
       }
-    } catch (e: any) {
-      showError(e.message);
+    } catch (error: unknown) {
+      showError(getErrorMessage(error));
     } finally {
       setLoading(false);
       setLoadingAction(null);
@@ -152,20 +164,25 @@ export default function LessonEditor({
   const handleSubmitForReview = async () => {
     if (!id) return;
 
-    // Optional: Save changes first if the user has edited things. 
-    // For now, let's just submit as requested.
     setLoading(true);
     setLoadingAction("submit");
     try {
+      const saveResponse = await saveLesson({ id, title, content });
+
+      if (!saveResponse.success) {
+        showError(saveResponse.message || "Failed to save changes");
+        return;
+      }
+
       const response = await submitLesson(id);
       if (response.success) {
-        showSuccess(response.message);
-        router.refresh();
+        showSuccess(getLessonModerationSubmitToast(response.data?.moderationStatus));
+        router.replace(`/lessons/${id}`);
       } else {
         showError(response.message);
       }
-    } catch (e: any) {
-      showError(e.message);
+    } catch (error: unknown) {
+      showError(getErrorMessage(error));
     } finally {
       setLoading(false);
       setLoadingAction(null);
@@ -429,9 +446,11 @@ export default function LessonEditor({
               </span>
             )}
             {loading
-              ? loadingAction === "submit"
-                ? "Submitting..."
-                : "Saving..."
+              ? loadingAction === "save"
+                ? "Saving..."
+                : isCreateMode
+                  ? "Save Draft"
+                  : "Save Changes"
               : isCreateMode
                 ? "Save Draft"
                 : "Save Changes"}
