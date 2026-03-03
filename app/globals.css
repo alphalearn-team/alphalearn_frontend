@@ -93,9 +93,9 @@
   --color-card-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.7);
 
   /* Ambient glow */
-  --color-glow-1: rgba(139, 92, 246, 0.18);
-  --color-glow-2: rgba(168, 85, 247, 0.12);
-  --color-glow-3: rgba(192, 132, 252, 0.07);
+  --color-glow-1: transparent;
+  --color-glow-2: transparent;
+  --color-glow-3: transparent;
 
   /* Status Colors (slightly adjusted for dark) */
   --color-success: #10b981;
