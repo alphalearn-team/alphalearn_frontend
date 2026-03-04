@@ -3,11 +3,29 @@ import { redirect } from "next/navigation";
 import { Container, Stack, Title, Text, Card, Button } from "@mantine/core";
 import { getUserRole } from "@/lib/auth/rbac";
 import { apiFetch } from "@/lib/api";
-import type { ConceptSuggestionDraft } from "@/interfaces/interfaces";
+import type { ConceptSuggestion } from "@/interfaces/interfaces";
 import { formatDateTime } from "@/lib/formatDate";
 
-async function getDrafts(): Promise<ConceptSuggestionDraft[]> {
-  return apiFetch<ConceptSuggestionDraft[]>("/concept-suggestions/mine");
+async function getSuggestions(): Promise<ConceptSuggestion[]> {
+  return apiFetch<ConceptSuggestion[]>("/concept-suggestions/mine");
+}
+
+function getStatusBadgeClasses(status: ConceptSuggestion["status"]): string {
+  switch (status) {
+    case "SUBMITTED":
+      return "bg-blue-500/10 text-blue-300";
+    case "APPROVED":
+      return "bg-green-500/10 text-green-300";
+    case "REJECTED":
+      return "bg-red-500/10 text-red-300";
+    case "DRAFT":
+    default:
+      return "bg-white/5 text-white/70";
+  }
+}
+
+function getOpenLabel(status: ConceptSuggestion["status"]): string {
+  return status === "DRAFT" ? "Open Draft" : "View Suggestion";
 }
 
 export default async function ConceptSuggestionDraftsPage() {
@@ -17,7 +35,7 @@ export default async function ConceptSuggestionDraftsPage() {
     redirect("/admin/concepts");
   }
 
-  const drafts = await getDrafts();
+  const suggestions = await getSuggestions();
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
@@ -26,10 +44,10 @@ export default async function ConceptSuggestionDraftsPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="space-y-3">
               <Title order={1} className="text-[clamp(2rem,4vw,3rem)]">
-                My <span className="text-[var(--color-primary)]">Drafts</span>
+                My <span className="text-[var(--color-primary)]">Suggestions</span>
               </Title>
               <Text className="max-w-2xl text-[var(--color-text-secondary)]">
-                Reopen any concept suggestion draft that is still in DRAFT status.
+                Review your saved concept suggestions and reopen any draft that is still editable.
               </Text>
             </div>
 
@@ -40,43 +58,45 @@ export default async function ConceptSuggestionDraftsPage() {
             </Link>
           </div>
 
-          {drafts.length === 0 ? (
+          {suggestions.length === 0 ? (
             <Card className="admin-card">
               <Stack gap="sm" align="flex-start">
-                <Title order={3}>No drafts yet</Title>
+                <Title order={3}>No suggestions yet</Title>
                 <Text className="text-[var(--color-text-secondary)]">
-                  Create your first concept suggestion draft to save an idea for later.
+                  Create your first concept suggestion to save an idea for later review.
                 </Text>
                 <Link href="/concepts/suggest" className="no-underline">
                   <Button variant="default">
-                    Create Draft
+                    Create Suggestion
                   </Button>
                 </Link>
               </Stack>
             </Card>
           ) : (
             <div className="space-y-4">
-              {drafts.map((draft) => (
-                <Card key={draft.publicId} className="admin-card">
+              {suggestions.map((suggestion) => (
+                <Card key={suggestion.publicId} className="admin-card">
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/70">
-                          {draft.status}
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${getStatusBadgeClasses(suggestion.status)}`}
+                        >
+                          {suggestion.status}
                         </span>
                         <span className="text-xs text-[var(--color-text-muted)]">
-                          Updated {formatDateTime(draft.updatedAt)}
+                          Updated {formatDateTime(suggestion.updatedAt)}
                         </span>
                       </div>
-                      <Title order={3}>{draft.title}</Title>
+                      <Title order={3}>{suggestion.title}</Title>
                       <Text className="text-[var(--color-text-secondary)]">
-                        {draft.description}
+                        {suggestion.description}
                       </Text>
                     </div>
 
-                    <Link href={`/concepts/suggest/${draft.publicId}`} className="no-underline">
+                    <Link href={`/concepts/suggest/${suggestion.publicId}`} className="no-underline">
                       <Button variant="default">
-                        Open Draft
+                        {getOpenLabel(suggestion.status)}
                       </Button>
                     </Link>
                   </div>
