@@ -10,6 +10,7 @@ const labelOverrides: Record<string, string> = {
   mine: "My Lessons",
   create: "Create Lesson",
   edit: "Edit",
+  suggest: "Suggest Concept",
 };
 
 function formatSegment(segment: string) {
