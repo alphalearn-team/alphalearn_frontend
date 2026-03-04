@@ -8,6 +8,7 @@ import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
 import { TextDisplayer } from "@/components/texteditor/textDisplayer";
 import { apiFetch } from "@/lib/api";
 import { formatDateTime } from "@/lib/formatDate";
+import ReviewActions from "../reviewActions";
 
 function getReviewSummary(lesson: AdminLessonReviewDetail) {
   const automatedReasonCount = lesson.automatedModerationReasons.filter(Boolean).length;
@@ -117,6 +118,25 @@ export default async function AdminLessonDetailPage({
                 <p className="mt-3 text-sm leading-relaxed">{reviewSummary.description}</p>
               </div>
             </Card>
+
+            {lesson.lessonModerationStatus === "PENDING" && (
+              <Card className="admin-card">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <Text size="sm" className="font-semibold text-[var(--color-text)]">
+                      Review decision
+                    </Text>
+                    <Text size="sm" className="mt-1 text-[var(--color-text-secondary)]">
+                      Approve the lesson for publication or reject it with an admin reason.
+                    </Text>
+                  </div>
+                  <ReviewActions
+                    lessonPublicId={lesson.lessonPublicId}
+                    lessonTitle={lesson.title}
+                  />
+                </div>
+              </Card>
+            )}
 
             <Card className="admin-card">
               <div className="grid gap-5 md:grid-cols-2">
