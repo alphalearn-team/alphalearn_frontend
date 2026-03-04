@@ -88,7 +88,11 @@ export default function ConceptSuggestionDraftForm({
     title !== draftSnapshot.title || description !== draftSnapshot.description
   );
   const isEditMode = hasDraft;
+  const isSubmitted = draftSnapshot.status === "SUBMITTED";
   const canSubmitForReview = hasDraft && draftSnapshot.status === "DRAFT";
+  const persistentBanner = isSubmitted
+    ? "This suggestion is under review and cannot be edited."
+    : null;
 
   useEffect(() => {
     if (!hasUnsavedChanges) {
@@ -147,7 +151,7 @@ export default function ConceptSuggestionDraftForm({
   };
 
   const handleSaveDraft = async () => {
-    if (isSaving || isSubmitting) {
+    if (isSubmitted || isSaving || isSubmitting) {
       return;
     }
 
@@ -163,9 +167,15 @@ export default function ConceptSuggestionDraftForm({
       if (!result.success || !result.data) {
         if (result.statusCode === 400 || result.statusCode === 409) {
           setFormMessage({
-            tone: "error",
+            tone: result.statusCode === 409 ? "info" : "error",
             text: result.message || "Unable to save draft",
           });
+        }
+
+        if (result.statusCode === 409) {
+          setTitle(draftSnapshot.title);
+          setDescription(draftSnapshot.description);
+          router.refresh();
         }
 
         showError(result.message || "Unable to save draft");
@@ -244,10 +254,16 @@ export default function ConceptSuggestionDraftForm({
               )}
             </div>
             <Title order={1} className="text-[clamp(2rem,4vw,3rem)]">
-              {isEditMode ? "Edit Draft" : "Suggest a Concept"}
+              {isSubmitted
+                ? "Suggestion Under Review"
+                : isEditMode
+                  ? "Edit Draft"
+                  : "Suggest a Concept"}
             </Title>
             <Text className="max-w-2xl text-[var(--color-text-secondary)]">
-              {isEditMode
+              {isSubmitted
+                ? "Your suggestion has been submitted for admin review."
+                : isEditMode
                 ? "Update your concept suggestion draft and keep it ready for later submission."
                 : "Create a concept suggestion draft with a title and description."}
             </Text>
@@ -303,6 +319,12 @@ export default function ConceptSuggestionDraftForm({
 
           <Card className="admin-card">
             <Stack gap="lg">
+              {persistentBanner && (
+                <Alert color="blue" variant="light">
+                  {persistentBanner}
+                </Alert>
+              )}
+
               {formMessage && (
                 <Alert
                   color={
@@ -323,6 +345,7 @@ export default function ConceptSuggestionDraftForm({
                 placeholder="Italian Brainrot"
                 value={title}
                 onChange={(event) => handleFieldChange(setTitle, event.currentTarget.value)}
+                readOnly={isSubmitted}
                 required
                 classNames={{
                   input: "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
@@ -337,6 +360,7 @@ export default function ConceptSuggestionDraftForm({
                 onChange={(event) => handleFieldChange(setDescription, event.currentTarget.value)}
                 autosize
                 minRows={8}
+                readOnly={isSubmitted}
                 required
                 classNames={{
                   input: "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
@@ -350,20 +374,22 @@ export default function ConceptSuggestionDraftForm({
                     variant="default"
                     onClick={handleSubmitForReview}
                     loading={isSubmitting}
-                    disabled={isSaving}
+                    disabled={isSaving || isSubmitted}
                   >
                     Submit for Review
                   </Button>
                 )}
 
-                <Button
-                  onClick={handleSaveDraft}
-                  loading={isSaving}
-                  disabled={isSubmitting}
-                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
-                >
-                  {hasDraft ? "Save Draft" : "Create Draft"}
-                </Button>
+                {!isSubmitted && (
+                  <Button
+                    onClick={handleSaveDraft}
+                    loading={isSaving}
+                    disabled={isSubmitting}
+                    className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
+                  >
+                    {hasDraft ? "Save Draft" : "Create Draft"}
+                  </Button>
+                )}
               </div>
             </Stack>
           </Card>
