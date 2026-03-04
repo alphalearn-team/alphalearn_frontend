@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -12,20 +13,24 @@ import {
   Title,
 } from "@mantine/core";
 import Link from "next/link";
-import type { ConceptSuggestionDraft } from "@/interfaces/interfaces";
+import type {
+  ConceptSuggestionDraft,
+  ConceptSuggestionStatus,
+} from "@/interfaces/interfaces";
 import { showError, showSuccess } from "@/lib/actions/notifications";
 import { formatDateTime } from "@/lib/formatDate";
 import { useRouter } from "next/navigation";
 import {
   createConceptSuggestionDraft,
   saveConceptSuggestionDraft,
+  submitConceptSuggestionDraft,
 } from "./actions";
 
 type DraftSnapshot = {
   publicId: string | null;
   title: string;
   description: string;
-  status: "DRAFT" | null;
+  status: ConceptSuggestionStatus | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -64,12 +69,18 @@ export default function ConceptSuggestionDraftForm({
   const [title, setTitle] = useState(initialDraft?.title ?? "");
   const [description, setDescription] = useState(initialDraft?.description ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formMessage, setFormMessage] = useState<{
+    tone: "error" | "success" | "info";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     const nextSnapshot = initialDraft ? toSnapshot(initialDraft) : emptyDraftSnapshot;
     setDraftSnapshot(nextSnapshot);
     setTitle(nextSnapshot.title);
     setDescription(nextSnapshot.description);
+    setFormMessage(null);
   }, [initialDraft]);
 
   const hasDraft = Boolean(draftSnapshot.publicId);
@@ -77,6 +88,7 @@ export default function ConceptSuggestionDraftForm({
     title !== draftSnapshot.title || description !== draftSnapshot.description
   );
   const isEditMode = hasDraft;
+  const canSubmitForReview = hasDraft && draftSnapshot.status === "DRAFT";
 
   useEffect(() => {
     if (!hasUnsavedChanges) {
@@ -102,6 +114,17 @@ export default function ConceptSuggestionDraftForm({
     setDescription(draft.description);
   };
 
+  const handleFieldChange = (
+    setter: (value: string) => void,
+    value: string,
+  ) => {
+    setter(value);
+
+    if (formMessage?.tone === "error") {
+      setFormMessage(null);
+    }
+  };
+
   const handleStartNewDraft = () => {
     if (hasUnsavedChanges) {
       const shouldDiscard = window.confirm(
@@ -124,11 +147,12 @@ export default function ConceptSuggestionDraftForm({
   };
 
   const handleSaveDraft = async () => {
-    if (isSaving) {
+    if (isSaving || isSubmitting) {
       return;
     }
 
     setIsSaving(true);
+    setFormMessage(null);
 
     try {
       const payload = { title, description };
@@ -137,6 +161,13 @@ export default function ConceptSuggestionDraftForm({
         : await createConceptSuggestionDraft(payload);
 
       if (!result.success || !result.data) {
+        if (result.statusCode === 400 || result.statusCode === 409) {
+          setFormMessage({
+            tone: "error",
+            text: result.message || "Unable to save draft",
+          });
+        }
+
         showError(result.message || "Unable to save draft");
         return;
       }
@@ -149,6 +180,46 @@ export default function ConceptSuggestionDraftForm({
       }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSubmitForReview = async () => {
+    if (!draftSnapshot.publicId || isSaving || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormMessage(null);
+
+    try {
+      const result = await submitConceptSuggestionDraft(draftSnapshot.publicId);
+
+      if (!result.success || !result.data) {
+        if (result.statusCode === 400) {
+          setFormMessage({
+            tone: "error",
+            text: result.message || "Title and description are required before submission.",
+          });
+        } else if (result.statusCode === 409) {
+          setFormMessage({
+            tone: "info",
+            text: result.message || "This suggestion is already under review.",
+          });
+          router.refresh();
+        }
+
+        showError(result.message || "Unable to submit for review");
+        return;
+      }
+
+      persistDraft(result.data);
+      setFormMessage({
+        tone: "success",
+        text: "Submitted for review",
+      });
+      showSuccess("Submitted for review");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -232,11 +303,26 @@ export default function ConceptSuggestionDraftForm({
 
           <Card className="admin-card">
             <Stack gap="lg">
+              {formMessage && (
+                <Alert
+                  color={
+                    formMessage.tone === "error"
+                      ? "red"
+                      : formMessage.tone === "success"
+                        ? "green"
+                        : "blue"
+                  }
+                  variant="light"
+                >
+                  {formMessage.text}
+                </Alert>
+              )}
+
               <TextInput
                 label="Title"
                 placeholder="Italian Brainrot"
                 value={title}
-                onChange={(event) => setTitle(event.currentTarget.value)}
+                onChange={(event) => handleFieldChange(setTitle, event.currentTarget.value)}
                 required
                 classNames={{
                   input: "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
@@ -248,7 +334,7 @@ export default function ConceptSuggestionDraftForm({
                 label="Description"
                 placeholder="Italian Brainrot is a term used to describe brainrot content in Italian."
                 value={description}
-                onChange={(event) => setDescription(event.currentTarget.value)}
+                onChange={(event) => handleFieldChange(setDescription, event.currentTarget.value)}
                 autosize
                 minRows={8}
                 required
@@ -258,10 +344,22 @@ export default function ConceptSuggestionDraftForm({
                 }}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-3">
+                {canSubmitForReview && (
+                  <Button
+                    variant="default"
+                    onClick={handleSubmitForReview}
+                    loading={isSubmitting}
+                    disabled={isSaving}
+                  >
+                    Submit for Review
+                  </Button>
+                )}
+
                 <Button
                   onClick={handleSaveDraft}
                   loading={isSaving}
+                  disabled={isSubmitting}
                   className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
                 >
                   {hasDraft ? "Save Draft" : "Create Draft"}
