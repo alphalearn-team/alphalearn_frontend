@@ -51,11 +51,15 @@ const emptyDraftSnapshot: DraftSnapshot = {
   updatedAt: null,
 };
 
+function normalizeDraftText(value: string | null | undefined): string {
+  return value ?? "";
+}
+
 function toSnapshot(draft: ConceptSuggestionDraft): DraftSnapshot {
   return {
     publicId: draft.publicId,
-    title: draft.title,
-    description: draft.description,
+    title: normalizeDraftText(draft.title),
+    description: normalizeDraftText(draft.description),
     status: draft.status,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
@@ -73,8 +77,8 @@ export default function ConceptSuggestionDraftForm({
   const [draftSnapshot, setDraftSnapshot] = useState<DraftSnapshot>(
     initialDraft ? toSnapshot(initialDraft) : emptyDraftSnapshot,
   );
-  const [title, setTitle] = useState(initialDraft?.title ?? "");
-  const [description, setDescription] = useState(initialDraft?.description ?? "");
+  const [title, setTitle] = useState(normalizeDraftText(initialDraft?.title));
+  const [description, setDescription] = useState(normalizeDraftText(initialDraft?.description));
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -123,8 +127,8 @@ export default function ConceptSuggestionDraftForm({
   const persistDraft = (draft: ConceptSuggestionDraft) => {
     const nextSnapshot = toSnapshot(draft);
     setDraftSnapshot(nextSnapshot);
-    setTitle(draft.title);
-    setDescription(draft.description);
+    setTitle(normalizeDraftText(draft.title));
+    setDescription(normalizeDraftText(draft.description));
   };
 
   const handleFieldChange = (

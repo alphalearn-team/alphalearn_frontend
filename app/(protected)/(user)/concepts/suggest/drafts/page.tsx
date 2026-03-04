@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Button, Container, Stack, Text, Title } from "@mantine/core";
-import { getUserRole } from "@/lib/auth/rbac";
 import { apiFetch } from "@/lib/api";
 import type { ConceptSuggestion } from "@/interfaces/interfaces";
 import ConceptSuggestionCards from "./conceptSuggestionCards";
@@ -11,12 +9,6 @@ async function getSuggestions(): Promise<ConceptSuggestion[]> {
 }
 
 export default async function ConceptSuggestionDraftsPage() {
-  const role = await getUserRole();
-
-  if (role === "ADMIN") {
-    redirect("/admin/concepts");
-  }
-
   const suggestions = await getSuggestions();
 
   return (

@@ -97,9 +97,9 @@ export default function ConceptSuggestionCards({
                     Updated {formatDateTime(suggestion.updatedAt)}
                   </span>
                 </div>
-                <Title order={3}>{suggestion.title}</Title>
+                <Title order={3}>{suggestion.title?.trim() || "Untitled suggestion"}</Title>
                 <Text className="text-[var(--color-text-secondary)]">
-                  {suggestion.description}
+                  {suggestion.description?.trim() || "No description yet"}
                 </Text>
               </div>
 

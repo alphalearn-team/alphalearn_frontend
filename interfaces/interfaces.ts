@@ -55,8 +55,8 @@ export type ConceptSuggestionStatus = "DRAFT" | "SUBMITTED" | "APPROVED" | "REJE
 
 export interface ConceptSuggestion {
   publicId: string;
-  title: string;
-  description: string;
+  title: string | null;
+  description: string | null;
   status: ConceptSuggestionStatus;
   createdAt: string;
   updatedAt: string;
@@ -66,8 +66,8 @@ export type ConceptSuggestionDraft = ConceptSuggestion;
 
 export interface AdminConceptSuggestionQueueItem {
   publicId: string;
-  title: string;
-  description: string;
+  title: string | null;
+  description: string | null;
   status: ConceptSuggestionStatus;
   ownerPublicId: string;
   ownerUsername: string;
