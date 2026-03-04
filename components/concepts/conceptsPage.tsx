@@ -96,16 +96,16 @@ function HeroSection() {
             </Text>
           </Stack>
 
-          <Group justify="flex-end">
+          <div className="flex flex-col items-end gap-3">
+            <GradientButton href="#concepts-list" className="!w-[320px] justify-center">
+              Browse Concepts
+            </GradientButton>
             {canSuggestConcept && (
-              <GradientButton href="/concepts/suggest">
+              <GradientButton href="/concepts/suggest" className="!w-[320px] justify-center">
                 Suggest a Concept
               </GradientButton>
             )}
-            <GradientButton href="#concepts-list">
-              Browse Concepts
-            </GradientButton>
-          </Group>
+          </div>
         </Stack>
       </Container>
     </div>

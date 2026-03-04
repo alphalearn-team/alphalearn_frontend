@@ -224,7 +224,7 @@ export default function ConceptSuggestionDraftForm() {
               Suggest a Concept
             </Title>
             <Text className="max-w-2xl text-[var(--color-text-secondary)]">
-              Save a concept suggestion draft with a title and description. The draft stays editable only in this current browser session for now.
+              Save a concept suggestion draft with a title and description.
             </Text>
           </div>
 
@@ -289,7 +289,7 @@ export default function ConceptSuggestionDraftForm() {
             <Stack gap="lg">
               <TextInput
                 label="Title"
-                placeholder="Fractions through pizza sharing"
+                placeholder="Italian Brainrot"
                 value={title}
                 onChange={(event) => setTitle(event.currentTarget.value)}
                 required
@@ -301,7 +301,7 @@ export default function ConceptSuggestionDraftForm() {
 
               <Textarea
                 label="Description"
-                placeholder="An idea for teaching fractions visually through portions and sharing scenarios"
+                placeholder="Italian Brainrot is a term used to describe brainrot content in Italian."
                 value={description}
                 onChange={(event) => setDescription(event.currentTarget.value)}
                 autosize
