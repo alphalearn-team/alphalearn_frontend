@@ -45,6 +45,21 @@ export interface CreateLessonRequest {
   conceptPublicIds: string[]
   submit?: boolean
 }
+
+export interface ConceptSuggestionDraftRequest {
+  title: string;
+  description: string;
+}
+
+export interface ConceptSuggestionDraft {
+  publicId: string;
+  title: string;
+  description: string;
+  status: "DRAFT";
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AdminContributor {
   publicId: string;
   username: string;
