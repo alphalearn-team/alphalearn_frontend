@@ -11,6 +11,7 @@ import {
   Textarea,
   Title,
 } from "@mantine/core";
+import { useAuth } from "@/context/AuthContext";
 import type { ConceptSuggestionDraft } from "@/interfaces/interfaces";
 import { showError, showSuccess } from "@/lib/actions/notifications";
 import { formatDateTime } from "@/lib/formatDate";
@@ -18,8 +19,6 @@ import {
   createConceptSuggestionDraft,
   saveConceptSuggestionDraft,
 } from "./actions";
-
-const SESSION_STORAGE_KEY = "concept-suggestion-draft";
 
 type DraftSnapshot = {
   publicId: string | null;
@@ -39,6 +38,14 @@ const emptyDraftSnapshot: DraftSnapshot = {
   updatedAt: null,
 };
 
+function getDraftSessionStorageKey(userId: string | null): string | null {
+  if (!userId) {
+    return null;
+  }
+
+  return `concept-suggestion-draft:${userId}`;
+}
+
 function toSnapshot(draft: ConceptSuggestionDraft): DraftSnapshot {
   return {
     publicId: draft.publicId,
@@ -50,13 +57,13 @@ function toSnapshot(draft: ConceptSuggestionDraft): DraftSnapshot {
   };
 }
 
-function readDraftSnapshot(): DraftSnapshot {
-  if (typeof window === "undefined") {
+function readDraftSnapshot(storageKey: string | null): DraftSnapshot {
+  if (typeof window === "undefined" || !storageKey) {
     return emptyDraftSnapshot;
   }
 
   try {
-    const raw = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(storageKey);
 
     if (!raw) {
       return emptyDraftSnapshot;
@@ -77,28 +84,42 @@ function readDraftSnapshot(): DraftSnapshot {
   }
 }
 
-function writeDraftSnapshot(snapshot: DraftSnapshot) {
-  if (typeof window === "undefined") {
+function writeDraftSnapshot(storageKey: string | null, snapshot: DraftSnapshot) {
+  if (typeof window === "undefined" || !storageKey) {
     return;
   }
 
-  window.sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(snapshot));
+  window.sessionStorage.setItem(storageKey, JSON.stringify(snapshot));
+}
+
+function clearDraftSnapshot(storageKey: string | null) {
+  if (typeof window === "undefined" || !storageKey) {
+    return;
+  }
+
+  window.sessionStorage.removeItem(storageKey);
 }
 
 export default function ConceptSuggestionDraftForm() {
+  const { user, isLoading } = useAuth();
   const [draftSnapshot, setDraftSnapshot] = useState<DraftSnapshot>(emptyDraftSnapshot);
   const [isHydrated, setIsHydrated] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const draftStorageKey = useMemo(() => getDraftSessionStorageKey(user?.id ?? null), [user?.id]);
 
   useEffect(() => {
-    const snapshot = readDraftSnapshot();
+    if (isLoading) {
+      return;
+    }
+
+    const snapshot = readDraftSnapshot(draftStorageKey);
     setDraftSnapshot(snapshot);
     setTitle(snapshot.title);
     setDescription(snapshot.description);
     setIsHydrated(true);
-  }, []);
+  }, [draftStorageKey, isLoading]);
 
   const hasDraft = Boolean(draftSnapshot.publicId);
   const helperCopy = useMemo(() => {
@@ -106,7 +127,7 @@ export default function ConceptSuggestionDraftForm() {
       return "Your first save will create a DRAFT and return a public ID that the frontend keeps in this browser session.";
     }
 
-    return "This story supports draft save only. Reopening an existing draft later will come in a separate backend story.";
+    return "This story supports draft save only. Reopening an existing draft later will come in a separate backend story. Use Start New Draft to clear the current session draft.";
   }, [hasDraft]);
 
   const persistDraft = (draft: ConceptSuggestionDraft) => {
@@ -114,11 +135,18 @@ export default function ConceptSuggestionDraftForm() {
     setDraftSnapshot(nextSnapshot);
     setTitle(draft.title);
     setDescription(draft.description);
-    writeDraftSnapshot(nextSnapshot);
+    writeDraftSnapshot(draftStorageKey, nextSnapshot);
+  };
+
+  const handleStartNewDraft = () => {
+    clearDraftSnapshot(draftStorageKey);
+    setDraftSnapshot(emptyDraftSnapshot);
+    setTitle("");
+    setDescription("");
   };
 
   const handleSaveDraft = async () => {
-    if (!isHydrated || isSaving) {
+    if (!isHydrated || isSaving || isLoading) {
       return;
     }
 
@@ -165,13 +193,20 @@ export default function ConceptSuggestionDraftForm() {
             </Text>
           </div>
 
-          <Button
-            onClick={handleSaveDraft}
-            loading={isSaving}
-            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
-          >
-            {hasDraft ? "Save Draft" : "Create Draft"}
-          </Button>
+          <div className="flex flex-wrap justify-end gap-3">
+            {hasDraft && (
+              <Button variant="default" onClick={handleStartNewDraft}>
+                Start New Draft
+              </Button>
+            )}
+            <Button
+              onClick={handleSaveDraft}
+              loading={isSaving}
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
+            >
+              {hasDraft ? "Save Draft" : "Create Draft"}
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-6">
