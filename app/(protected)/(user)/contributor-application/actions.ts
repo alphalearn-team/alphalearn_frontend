@@ -23,7 +23,7 @@ export async function submitContributorApplication(): Promise<SubmitContributorA
       method: "POST",
     });
 
-    revalidatePath("/profile");
+    revalidatePath("/contributor-application");
 
     return {
       success: true,

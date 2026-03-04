@@ -22,7 +22,7 @@ import {
 } from "@/lib/contributorApplications";
 import { formatDateTime } from "@/lib/formatDate";
 import { showError, showSuccess } from "@/lib/actions/notifications";
-import { submitContributorApplication } from "@/app/(protected)/(user)/profile/actions";
+import { submitContributorApplication } from "@/app/(protected)/(user)/contributor-application/actions";
 
 type ContributorApplicationPanelProps = {
   initialApplications: ContributorApplication[];
@@ -151,7 +151,7 @@ export default function ContributorApplicationPanel({
             </Alert>
           )}
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className={`grid gap-4 ${role === "CONTRIBUTOR" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
             <StatusDetail
               label="Current Status"
               value={viewState.statusLabel}
@@ -160,30 +160,24 @@ export default function ContributorApplicationPanel({
               label="Latest Submission"
               value={latestApplication ? formatDateTime(latestApplication.submittedAt) : "Not submitted yet"}
             />
-            <StatusDetail
-              label="Review Progress"
-              value={
-                latestApplication
-                  ? getApplicationTimelineLabel(latestApplication.status)
-                  : "Ready to apply"
-              }
-            />
+            {role !== "CONTRIBUTOR" && (
+              <StatusDetail
+                label="Review Progress"
+                value={
+                  latestApplication
+                    ? getApplicationTimelineLabel(latestApplication.status)
+                    : "Ready to apply"
+                }
+              />
+            )}
           </div>
 
           {latestApplication && (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4">
               <StatusDetail
                 label="Application ID"
                 value={latestApplication.publicId}
                 monospace
-              />
-              <StatusDetail
-                label="Reviewed At"
-                value={
-                  latestApplication.reviewedAt
-                    ? formatDateTime(latestApplication.reviewedAt)
-                    : "Still waiting for review"
-                }
               />
             </div>
           )}
