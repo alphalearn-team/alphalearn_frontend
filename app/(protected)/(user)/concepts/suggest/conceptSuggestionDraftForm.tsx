@@ -219,7 +219,43 @@ export default function ConceptSuggestionDraftForm({
     setFormMessage(null);
 
     try {
-      const result = await submitConceptSuggestionDraft(draftSnapshot.publicId);
+      const payload = { title, description };
+      const draftPublicId = draftSnapshot.publicId;
+
+      if (hasUnsavedChanges) {
+        const saveResult = await saveConceptSuggestionDraft(draftPublicId, payload);
+
+        if (!saveResult.success || !saveResult.data) {
+          const saveFeedback = getConceptSuggestionSaveFailureFeedback(
+            saveResult.statusCode,
+            saveResult.message || "Unable to save draft",
+          );
+
+          if (saveFeedback) {
+            setFormMessage({
+              tone: saveFeedback.tone,
+              text: saveFeedback.text,
+            });
+          }
+
+          if (saveFeedback?.shouldResetToSnapshot) {
+            setTitle(draftSnapshot.title);
+            setDescription(draftSnapshot.description);
+          }
+
+          if (saveFeedback?.shouldRefresh) {
+            router.refresh();
+          }
+
+          showError(saveResult.message || "Unable to save draft");
+          return;
+        }
+
+        // Keep the successfully saved state even if submit fails afterward.
+        persistDraft(saveResult.data);
+      }
+
+      const result = await submitConceptSuggestionDraft(draftPublicId);
 
       if (!result.success || !result.data) {
         const feedback = getConceptSuggestionSubmitFailureFeedback(
