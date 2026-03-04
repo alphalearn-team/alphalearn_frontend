@@ -112,6 +112,7 @@ export interface CreateLessonWithSectionsRequest {
   title: string
   conceptPublicIds: string[]
   sections: LessonSectionInput[]
+  content?: LessonContent // Optional legacy field for backend compatibility
   submit?: boolean
 }
 

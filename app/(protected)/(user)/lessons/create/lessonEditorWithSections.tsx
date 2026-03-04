@@ -50,28 +50,85 @@ export default function LessonEditorWithSections({
       return;
     }
 
+    // Validate section content
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      if (section.sectionType === "text") {
+        const content = section.content as any;
+        if (!content.html || content.html.trim() === "") {
+          setError(`Section ${i + 1}: Text content cannot be empty`);
+          return;
+        }
+      }
+      if (section.sectionType === "example") {
+        const examples = (section.content as any).examples || [];
+        if (examples.length === 0 || !examples[0].text || examples[0].text.trim() === "") {
+          setError(`Section ${i + 1}: At least one example is required`);
+          return;
+        }
+      }
+      if (section.sectionType === "definition") {
+        const content = section.content as any;
+        if (!content.term || content.term.trim() === "" || !content.definition || content.definition.trim() === "") {
+          setError(`Section ${i + 1}: Term and definition are required`);
+          return;
+        }
+      }
+      if (section.sectionType === "comparison") {
+        const items = (section.content as any).items || [];
+        if (items.length < 2) {
+          setError(`Section ${i + 1}: At least 2 comparison items are required`);
+          return;
+        }
+        for (let j = 0; j < items.length; j++) {
+          if (!items[j].label || items[j].label.trim() === "" || !items[j].description || items[j].description.trim() === "") {
+            setError(`Section ${i + 1}: All comparison items must have both label and description`);
+            return;
+          }
+        }
+      }
+      if (section.sectionType === "callout") {
+        const content = section.content as any;
+        if (!content.html || content.html.trim() === "") {
+          setError(`Section ${i + 1}: Callout content cannot be empty`);
+          return;
+        }
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
-      const result = await createLessonWithSections({
+      const payload = {
         title: title.trim(),
         conceptPublicIds: selectedConceptIds,
         sections,
-      });
+        content: {}, // Empty placeholder for legacy content field (backend requires NOT NULL)
+        submit: true, // Submit for review immediately
+      };
+
+      console.log("Creating lesson with payload:", JSON.stringify(payload, null, 2));
+
+      const result = await createLessonWithSections(payload);
+
+      console.log("API Response:", result);
 
       if (result.success && result.data) {
-        const lessonPublicId = result.data.lessonPublicId || (result.data as any).publicId;
+        const lessonPublicId = result.data.lessonPublicId;
         if (lessonPublicId) {
+          console.log("Navigating to lesson:", lessonPublicId);
           router.push(`/lessons/${lessonPublicId}`);
         } else {
+          console.error("No lessonPublicId in response:", result.data);
           setError("Lesson created but could not navigate to it");
         }
       } else {
+        console.error("Failed to create lesson:", result.message);
         setError(result.message || "Failed to create lesson");
       }
     } catch (err) {
-      setError("An unexpected error occurred");
-      console.error(err);
+      console.error("Exception while creating lesson:", err);
+      setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsSubmitting(false);
     }
