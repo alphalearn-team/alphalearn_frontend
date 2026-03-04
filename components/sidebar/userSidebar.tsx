@@ -17,6 +17,7 @@ const sections: SidebarNavSection[] = [
 const nonAdminQuickActionsSection: SidebarNavSection = {
   label: "Quick Actions",
   items: [
+    { label: "Contributor Access", href: "/profile#contributor-access", icon: "group_add" },
     { label: "Suggest Concept", href: "/concepts/suggest", icon: "lightbulb" },
     { label: "My Drafts", href: "/concepts/suggest/drafts", icon: "draft" },
     { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
