@@ -114,7 +114,7 @@ export function SectionCalloutBlock({
           </label>
           <div
             className="rounded-xl border border-[var(--color-border)]"
-            style={{ backgroundColor: "var(--color-surface)" }}
+            style={{ backgroundColor: "var(--color-surface)", minHeight: "auto" }}
           >
             <RichTextEditor
               value={content.html}

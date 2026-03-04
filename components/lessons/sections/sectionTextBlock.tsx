@@ -19,7 +19,7 @@ export function SectionTextBlock({
     return (
       <div
         className="rounded-xl border border-[var(--color-border)]"
-        style={{ backgroundColor: "var(--color-surface)" }}
+        style={{ backgroundColor: "var(--color-surface)", minHeight: "auto" }}
       >
         <RichTextEditor
           value={content.html}
@@ -32,8 +32,8 @@ export function SectionTextBlock({
 
   return (
     <div
-      className="rounded-xl border border-[var(--color-border)] overflow-hidden"
-      style={{ background: "var(--color-surface)" }}
+      className="rounded-xl border border-[var(--color-border)]"
+      style={{ background: "var(--color-surface)", minHeight: "auto" }}
     >
       <TextDisplayer content={content.html} />
     </div>

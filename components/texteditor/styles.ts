@@ -8,14 +8,14 @@ export const richTextContentStyles = `
     background: transparent !important;
     color: var(--color-text);
     font-family: var(--font-geist-sans);
-    min-height: 400px;
+    min-height: auto;
     padding: 24px;
     font-size: 15px;
     line-height: 1.75;
   }
 
   .lesson-rich-text .mantine-RichTextEditor-content .ProseMirror {
-    min-height: 360px;
+    min-height: auto;
   }
 
   .lesson-rich-text .mantine-RichTextEditor-content .ProseMirror:focus {
