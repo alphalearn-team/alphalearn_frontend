@@ -129,6 +129,7 @@ export default async function LessonPage({
             lessonId={lessonPublicId}
             canEdit={canEdit}
             canDelete={canDelete}
+            showBackToMine={role === "CONTRIBUTOR" && ownsLesson}
           />
         </Group>
 
