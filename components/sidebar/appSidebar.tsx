@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar } from "@mantine/core";
 import { useAuth } from "@/context/AuthContext";
-import ThemeToggle from "@/components/themeToggle";
 
 export interface SidebarNavItem {
   label: string;
@@ -46,18 +45,25 @@ export default function AppSidebar({
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpenPath, setMobileOpenPath] = useState<string | null>(null);
 
   const avatarLetter = user?.email ? user.email[0].toUpperCase() : "?";
   const profilePicture = user?.user_metadata?.picture || user?.user_metadata?.avatar_url;
+  const mobileOpen = mobileOpenPath === pathname;
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+  const closeMobileSidebar = () => {
+    setMobileOpenPath(null);
+  };
+
+  const toggleMobileSidebar = () => {
+    setMobileOpenPath((currentPath) => (currentPath === pathname ? null : pathname));
+  };
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileOpen(false);
+      if (e.key === "Escape") {
+        closeMobileSidebar();
+      }
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
@@ -72,7 +78,7 @@ export default function AppSidebar({
     <>
       <button
         className="admin-sidebar-toggle"
-        onClick={() => setMobileOpen(!mobileOpen)}
+        onClick={toggleMobileSidebar}
         aria-label="Toggle sidebar"
       >
         <span className="material-symbols-outlined">
@@ -83,13 +89,17 @@ export default function AppSidebar({
       {mobileOpen && (
         <div
           className="admin-sidebar-overlay"
-          onClick={() => setMobileOpen(false)}
+          onClick={closeMobileSidebar}
         />
       )}
 
       <aside className={`admin-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}>
         <div className="admin-sidebar-header">
-          <Link href={brandHref} className="admin-sidebar-brand">
+          <Link
+            href={brandHref}
+            className="admin-sidebar-brand"
+            onClick={closeMobileSidebar}
+          >
             <div className="admin-sidebar-logo">
               <span className="material-symbols-outlined">{brandIcon}</span>
             </div>
@@ -123,6 +133,7 @@ export default function AppSidebar({
                       href={item.href}
                       className={`admin-sidebar-nav-item ${isActive(item) ? "active" : ""}`}
                       title={collapsed ? item.label : undefined}
+                      onClick={closeMobileSidebar}
                     >
                       <span className="admin-sidebar-nav-icon material-symbols-outlined">
                         {item.icon}
@@ -148,6 +159,7 @@ export default function AppSidebar({
                       href={item.href}
                       className="admin-sidebar-nav-item"
                       title={collapsed ? item.label : undefined}
+                      onClick={closeMobileSidebar}
                     >
                       <span className="admin-sidebar-nav-icon material-symbols-outlined">
                         {item.icon}
@@ -163,10 +175,6 @@ export default function AppSidebar({
         </nav>
 
         <div className="admin-sidebar-footer">
-          <div className="admin-sidebar-theme-section">
-            <ThemeToggle />
-          </div>
-
           <div className="admin-sidebar-user">
             <Avatar
               src={profilePicture}
