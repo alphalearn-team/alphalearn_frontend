@@ -18,6 +18,11 @@ import type {
   ConceptSuggestionStatus,
 } from "@/interfaces/interfaces";
 import { showError, showSuccess } from "@/lib/actions/notifications";
+import {
+  getConceptSuggestionFormState,
+  getConceptSuggestionSaveFailureFeedback,
+  getConceptSuggestionSubmitFailureFeedback,
+} from "@/lib/conceptSuggestionUi";
 import { formatDateTime } from "@/lib/formatDate";
 import { useRouter } from "next/navigation";
 import {
@@ -88,11 +93,10 @@ export default function ConceptSuggestionDraftForm({
     title !== draftSnapshot.title || description !== draftSnapshot.description
   );
   const isEditMode = hasDraft;
-  const isSubmitted = draftSnapshot.status === "SUBMITTED";
-  const canSubmitForReview = hasDraft && draftSnapshot.status === "DRAFT";
-  const persistentBanner = isSubmitted
-    ? "This suggestion is under review and cannot be edited."
-    : null;
+  const formState = getConceptSuggestionFormState({
+    hasDraft,
+    status: draftSnapshot.status,
+  });
 
   useEffect(() => {
     if (!hasUnsavedChanges) {
@@ -151,7 +155,7 @@ export default function ConceptSuggestionDraftForm({
   };
 
   const handleSaveDraft = async () => {
-    if (isSubmitted || isSaving || isSubmitting) {
+    if (formState.isReadOnly || isSaving || isSubmitting) {
       return;
     }
 
@@ -165,16 +169,24 @@ export default function ConceptSuggestionDraftForm({
         : await createConceptSuggestionDraft(payload);
 
       if (!result.success || !result.data) {
-        if (result.statusCode === 400 || result.statusCode === 409) {
+        const feedback = getConceptSuggestionSaveFailureFeedback(
+          result.statusCode,
+          result.message || "Unable to save draft",
+        );
+
+        if (feedback) {
           setFormMessage({
-            tone: result.statusCode === 409 ? "info" : "error",
-            text: result.message || "Unable to save draft",
+            tone: feedback.tone,
+            text: feedback.text,
           });
         }
 
-        if (result.statusCode === 409) {
+        if (feedback?.shouldResetToSnapshot) {
           setTitle(draftSnapshot.title);
           setDescription(draftSnapshot.description);
+        }
+
+        if (feedback?.shouldRefresh) {
           router.refresh();
         }
 
@@ -205,16 +217,19 @@ export default function ConceptSuggestionDraftForm({
       const result = await submitConceptSuggestionDraft(draftSnapshot.publicId);
 
       if (!result.success || !result.data) {
-        if (result.statusCode === 400) {
+        const feedback = getConceptSuggestionSubmitFailureFeedback(
+          result.statusCode,
+          result.message || "Unable to submit for review",
+        );
+
+        if (feedback) {
           setFormMessage({
-            tone: "error",
-            text: result.message || "Title and description are required before submission.",
+            tone: feedback.tone,
+            text: feedback.text,
           });
-        } else if (result.statusCode === 409) {
-          setFormMessage({
-            tone: "info",
-            text: result.message || "This suggestion is already under review.",
-          });
+        }
+
+        if (feedback?.shouldRefresh) {
           router.refresh();
         }
 
@@ -254,18 +269,10 @@ export default function ConceptSuggestionDraftForm({
               )}
             </div>
             <Title order={1} className="text-[clamp(2rem,4vw,3rem)]">
-              {isSubmitted
-                ? "Suggestion Under Review"
-                : isEditMode
-                  ? "Edit Draft"
-                  : "Suggest a Concept"}
+              {formState.heading}
             </Title>
             <Text className="max-w-2xl text-[var(--color-text-secondary)]">
-              {isSubmitted
-                ? "Your suggestion has been submitted for admin review."
-                : isEditMode
-                ? "Update your concept suggestion draft and keep it ready for later submission."
-                : "Create a concept suggestion draft with a title and description."}
+              {formState.description}
             </Text>
           </div>
 
@@ -319,9 +326,9 @@ export default function ConceptSuggestionDraftForm({
 
           <Card className="admin-card">
             <Stack gap="lg">
-              {persistentBanner && (
+              {formState.persistentBanner && (
                 <Alert color="blue" variant="light">
-                  {persistentBanner}
+                  {formState.persistentBanner}
                 </Alert>
               )}
 
@@ -345,7 +352,7 @@ export default function ConceptSuggestionDraftForm({
                 placeholder="Italian Brainrot"
                 value={title}
                 onChange={(event) => handleFieldChange(setTitle, event.currentTarget.value)}
-                readOnly={isSubmitted}
+                readOnly={formState.isReadOnly}
                 required
                 classNames={{
                   input: "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
@@ -360,7 +367,7 @@ export default function ConceptSuggestionDraftForm({
                 onChange={(event) => handleFieldChange(setDescription, event.currentTarget.value)}
                 autosize
                 minRows={8}
-                readOnly={isSubmitted}
+                readOnly={formState.isReadOnly}
                 required
                 classNames={{
                   input: "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
@@ -369,18 +376,18 @@ export default function ConceptSuggestionDraftForm({
               />
 
               <div className="flex justify-end gap-3">
-                {canSubmitForReview && (
+                {formState.canSubmitForReview && (
                   <Button
                     variant="default"
                     onClick={handleSubmitForReview}
                     loading={isSubmitting}
-                    disabled={isSaving || isSubmitted}
+                    disabled={isSaving || formState.isReadOnly}
                   >
                     Submit for Review
                   </Button>
                 )}
 
-                {!isSubmitted && (
+                {formState.showSaveButton && (
                   <Button
                     onClick={handleSaveDraft}
                     loading={isSaving}

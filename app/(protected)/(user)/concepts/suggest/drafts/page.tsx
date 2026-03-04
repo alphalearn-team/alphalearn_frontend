@@ -4,28 +4,14 @@ import { Container, Stack, Title, Text, Card, Button } from "@mantine/core";
 import { getUserRole } from "@/lib/auth/rbac";
 import { apiFetch } from "@/lib/api";
 import type { ConceptSuggestion } from "@/interfaces/interfaces";
+import {
+  getConceptSuggestionListBadgeClasses,
+  getConceptSuggestionListOpenLabel,
+} from "@/lib/conceptSuggestionUi";
 import { formatDateTime } from "@/lib/formatDate";
 
 async function getSuggestions(): Promise<ConceptSuggestion[]> {
   return apiFetch<ConceptSuggestion[]>("/concept-suggestions/mine");
-}
-
-function getStatusBadgeClasses(status: ConceptSuggestion["status"]): string {
-  switch (status) {
-    case "SUBMITTED":
-      return "bg-blue-500/10 text-blue-300";
-    case "APPROVED":
-      return "bg-green-500/10 text-green-300";
-    case "REJECTED":
-      return "bg-red-500/10 text-red-300";
-    case "DRAFT":
-    default:
-      return "bg-white/5 text-white/70";
-  }
-}
-
-function getOpenLabel(status: ConceptSuggestion["status"]): string {
-  return status === "DRAFT" ? "Open Draft" : "View Suggestion";
 }
 
 export default async function ConceptSuggestionDraftsPage() {
@@ -80,7 +66,7 @@ export default async function ConceptSuggestionDraftsPage() {
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${getStatusBadgeClasses(suggestion.status)}`}
+                          className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${getConceptSuggestionListBadgeClasses(suggestion.status)}`}
                         >
                           {suggestion.status}
                         </span>
@@ -96,7 +82,7 @@ export default async function ConceptSuggestionDraftsPage() {
 
                     <Link href={`/concepts/suggest/${suggestion.publicId}`} className="no-underline">
                       <Button variant="default">
-                        {getOpenLabel(suggestion.status)}
+                        {getConceptSuggestionListOpenLabel(suggestion.status)}
                       </Button>
                     </Link>
                   </div>
