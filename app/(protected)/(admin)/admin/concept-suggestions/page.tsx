@@ -39,36 +39,55 @@ async function ConceptSuggestionsQueue() {
 
   return (
     <Card className="admin-card overflow-hidden">
-      <Table highlightOnHover verticalSpacing="md">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Title</Table.Th>
-            <Table.Th>Owner</Table.Th>
-            <Table.Th>Submitted</Table.Th>
-            <Table.Th>Status</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
+      <Table className="admin-table" highlightOnHover>
+        <colgroup>
+          <col style={{ width: "46%" }} />
+          <col style={{ width: "18%" }} />
+          <col style={{ width: "22%" }} />
+          <col style={{ width: "14%" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Owner</th>
+            <th>Submitted</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
           {suggestions.map((suggestion) => (
-            <Table.Tr key={suggestion.publicId}>
-              <Table.Td>
+            <tr key={suggestion.publicId}>
+              <td>
                 <div className="space-y-1">
-                  <Text fw={600}>{suggestion.title}</Text>
-                  <Text size="sm" className="text-[var(--color-text-secondary)]">
+                  <Text fw={700} className="text-[var(--color-text)]">
+                    {suggestion.title}
+                  </Text>
+                  <Text
+                    size="sm"
+                    className="line-clamp-2 max-w-3xl text-[var(--color-text-secondary)]"
+                  >
                     {suggestion.description}
                   </Text>
                 </div>
-              </Table.Td>
-              <Table.Td>{suggestion.ownerUsername}</Table.Td>
-              <Table.Td>{formatDateTime(suggestion.submittedAt)}</Table.Td>
-              <Table.Td>
+              </td>
+              <td>
+                <Text fw={600} className="text-[var(--color-text)]">
+                  {suggestion.ownerUsername}
+                </Text>
+              </td>
+              <td>
+                <Text className="whitespace-nowrap text-[var(--color-text-secondary)]">
+                  {formatDateTime(suggestion.submittedAt)}
+                </Text>
+              </td>
+              <td>
                 <Badge color={getStatusColor(suggestion.status)} variant="light" radius="xl">
                   {suggestion.status}
                 </Badge>
-              </Table.Td>
-            </Table.Tr>
+              </td>
+            </tr>
           ))}
-        </Table.Tbody>
+        </tbody>
       </Table>
     </Card>
   );
