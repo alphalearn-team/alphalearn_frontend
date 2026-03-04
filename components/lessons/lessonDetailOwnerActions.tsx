@@ -11,12 +11,14 @@ interface LessonDetailOwnerActionsProps {
   lessonId: string;
   canEdit: boolean;
   canDelete: boolean;
+  showBackToMine?: boolean;
 }
 
 export default function LessonDetailOwnerActions({
   lessonId,
   canEdit,
   canDelete,
+  showBackToMine = false,
 }: LessonDetailOwnerActionsProps) {
   const router = useRouter();
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
@@ -32,19 +34,28 @@ export default function LessonDetailOwnerActions({
       } else {
         showError(response.message);
       }
-    } catch (error: any) {
-      showError(error?.message || "Failed to delete lesson");
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Failed to delete lesson");
     } finally {
       setLoading(false);
       setDeleteModalOpened(false);
     }
   };
 
-  if (!canEdit && !canDelete) return null;
+  if (!canEdit && !canDelete && !showBackToMine) return null;
 
   return (
     <>
       <div className="flex items-center gap-2">
+        {showBackToMine && (
+          <Link
+            href="/lessons/mine"
+            className="inline-flex h-10 items-center rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-white/10 hover:text-[var(--color-text)]"
+          >
+            Back to My Lessons
+          </Link>
+        )}
+
         {canDelete && (
           <button
             type="button"

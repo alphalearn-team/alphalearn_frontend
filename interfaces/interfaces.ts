@@ -28,8 +28,10 @@ export type Lesson = {
   conceptPublicIds: string[]
   concepts?: LessonConceptSummary[]
   latestModerationReasons?: string[]
+  automatedModerationReasons?: string[]
   latestModerationEventType?: string | null
   latestModeratedAt?: string | null
+  adminRejectionReason?: string | null
 }
 
 export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" | "createdAt" | "moderationStatus"> & {
@@ -68,23 +70,25 @@ export interface AdminUser {
 
 export type AdminConcept = Concept;
 
-// Admin lesson interface for moderation
-export interface AdminLesson {
-  lessonPublicId: string;
-  lessonTitle: string;
-  author: PublicAuthor;
-  lessonModerationStatus: LessonModerationStatus;
-  createdAt?: string;
-  submittedAt?: string;
-}
-
-// API response type matching backend /admin/lessons endpoint
-export interface LessonModerationResponse {
+export interface AdminLessonQueueItem {
   lessonPublicId: string;
   title: string;
-  conceptPublicIds: string[];
   author: PublicAuthor;
   lessonModerationStatus: LessonModerationStatus;
   createdAt: string;
-  deletedAt: string | null;
+  automatedModerationReasons: string[];
+  adminRejectionReason: string | null;
+}
+
+export interface AdminLessonReviewDetail {
+  lessonPublicId: string;
+  title: string;
+  content: LessonContent;
+  conceptPublicIds?: string[];
+  author?: PublicAuthor | null;
+  lessonModerationStatus: LessonModerationStatus;
+  createdAt?: string | null;
+  submittedAt?: string | null;
+  automatedModerationReasons: string[];
+  adminRejectionReason: string | null;
 }

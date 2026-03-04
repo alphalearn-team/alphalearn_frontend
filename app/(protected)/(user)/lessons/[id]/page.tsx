@@ -17,9 +17,23 @@ import {
   normalizeLessonModerationStatus,
 } from "@/lib/lessonModeration";
 
+function normalizeLessonDetail(lesson: Lesson): Lesson {
+  return {
+    ...lesson,
+    latestModerationReasons: Array.isArray(lesson.latestModerationReasons)
+      ? lesson.latestModerationReasons
+      : [],
+    automatedModerationReasons: Array.isArray(lesson.automatedModerationReasons)
+      ? lesson.automatedModerationReasons
+      : [],
+    adminRejectionReason: lesson.adminRejectionReason ?? null,
+  };
+}
+
 async function getLessonContent(id: string): Promise<Lesson | null> {
   try {
-    return await apiFetch<Lesson>(`/lessons/${id}`);
+    const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
+    return normalizeLessonDetail(lesson);
   } catch {
     return null;
   }
@@ -44,6 +58,14 @@ export default async function LessonPage({
   let ownsLesson = false;
   const normalizedStatus = normalizeLessonModerationStatus(lessonContent.moderationStatus);
   const moderationMeta = getLessonModerationMeta(normalizedStatus);
+  const automatedReasons = lessonContent.automatedModerationReasons ?? [];
+  const latestReasons = lessonContent.latestModerationReasons ?? [];
+  const hasModerationFeedback =
+    automatedReasons.length > 0 ||
+    latestReasons.length > 0 ||
+    Boolean(lessonContent.adminRejectionReason) ||
+    Boolean(lessonContent.latestModerationEventType) ||
+    Boolean(lessonContent.latestModeratedAt);
   const lessonConceptLabels = (lessonContent.concepts || [])
     .map((concept) => concept?.title)
     .filter(Boolean) as string[];
@@ -59,6 +81,7 @@ export default async function LessonPage({
 
   const canEdit = role === "CONTRIBUTOR" && ownsLesson;
   const canDelete = ownsLesson && normalizedStatus === "UNPUBLISHED";
+  const shouldShowModerationState = ownsLesson || (role === "CONTRIBUTOR" && hasModerationFeedback);
 
   return (
     <Container size="md" py="xl">
@@ -81,7 +104,7 @@ export default async function LessonPage({
               </div>
             )}
 
-            {ownsLesson && (
+            {shouldShowModerationState && (
               <div
                 className="mt-5 rounded-2xl border px-5 py-4"
                 style={{
@@ -106,13 +129,16 @@ export default async function LessonPage({
             lessonId={lessonPublicId}
             canEdit={canEdit}
             canDelete={canDelete}
+            showBackToMine={role === "CONTRIBUTOR" && ownsLesson}
           />
         </Group>
 
-        {ownsLesson && (
+        {shouldShowModerationState && (
           <LessonModerationFeedbackPanel
             status={normalizedStatus}
             reasons={lessonContent.latestModerationReasons}
+            automatedReasons={lessonContent.automatedModerationReasons}
+            adminRejectionReason={lessonContent.adminRejectionReason}
             eventType={lessonContent.latestModerationEventType}
             moderatedAt={lessonContent.latestModeratedAt}
           />

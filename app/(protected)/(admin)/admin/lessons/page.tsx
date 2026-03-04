@@ -5,23 +5,25 @@ import CardSkeleton from "@/components/common/cardSkeleton";
 import LessonsManagementTable from "./lessonsTable";
 import AdminBreadcrumb from "@/components/admin/breadcrumb";
 import AdminPageHeader from "@/components/admin/pageHeader";
-import type { AdminLesson, LessonModerationResponse } from "@/interfaces/interfaces";
+import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 import { getUserRole } from "@/lib/auth/rbac";
+
+function normalizeQueueLesson(lesson: AdminLessonQueueItem): AdminLessonQueueItem {
+  return {
+    ...lesson,
+    automatedModerationReasons: Array.isArray(lesson.automatedModerationReasons)
+      ? lesson.automatedModerationReasons
+      : [],
+    adminRejectionReason: lesson.adminRejectionReason ?? null,
+  };
+}
 
 async function LessonsData() {
   const role = await getUserRole();
   if (role !== "ADMIN") return null;
 
-  const lessonsResponse = await apiFetch<LessonModerationResponse[]>("/admin/lessons");
-
-  const lessons: AdminLesson[] = lessonsResponse.map(lesson => ({
-    lessonPublicId: lesson.lessonPublicId,
-    lessonTitle: lesson.title,
-    author: lesson.author,
-    lessonModerationStatus: lesson.lessonModerationStatus,
-    submittedAt: lesson.createdAt,
-    createdAt: lesson.createdAt,
-  }));
+  const lessonsResponse = await apiFetch<AdminLessonQueueItem[]>("/admin/lessons?status=PENDING");
+  const lessons = lessonsResponse.map(normalizeQueueLesson);
 
   return <LessonsManagementTable lessons={lessons} />;
 }
@@ -33,27 +35,16 @@ export default function ManageLessonsPage() {
         <AdminBreadcrumb />
 
         <AdminPageHeader
-          title="Lesson Moderation"
-          description="Review and approve lessons submitted by contributors"
+          title="Lesson Review Queue"
+          description="Review lessons pending manual moderation"
           icon="rate_review"
         />
 
         <Suspense
           fallback={
-            <div>
-              {/* Stats Skeleton */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                {[...Array(4)].map((_, i) => (
-                  <Card key={i} className="admin-card">
-                    <CardSkeleton count={1} cols={1} showBookmark={false} lines={1} />
-                  </Card>
-                ))}
-              </div>
-              {/* Table Skeleton */}
-              <Card className="admin-card">
-                <CardSkeleton count={6} cols={1} showBookmark={false} lines={2} />
-              </Card>
-            </div>
+            <Card className="admin-card">
+              <CardSkeleton count={6} cols={1} showBookmark={false} lines={2} />
+            </Card>
           }
         >
           <LessonsData />

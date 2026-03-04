@@ -9,6 +9,8 @@ import {
 interface LessonModerationFeedbackPanelProps {
   status?: string | null;
   reasons?: string[];
+  automatedReasons?: string[];
+  adminRejectionReason?: string | null;
   eventType?: string | null;
   moderatedAt?: string | null;
 }
@@ -16,15 +18,20 @@ interface LessonModerationFeedbackPanelProps {
 export default function LessonModerationFeedbackPanel({
   status,
   reasons = [],
+  automatedReasons = [],
+  adminRejectionReason,
   eventType,
   moderatedAt,
 }: LessonModerationFeedbackPanelProps) {
   const meta = getLessonModerationMeta(status);
-  const visibleReasons = reasons.filter(Boolean);
+  const visibleAutomatedReasons = (automatedReasons.length > 0
+    ? automatedReasons
+    : reasons).filter(Boolean);
+  const visibleAdminRejectionReason = adminRejectionReason?.trim() || null;
   const formattedEventType = formatLessonModerationEventType(eventType);
   const hasMetadata = Boolean(formattedEventType || moderatedAt);
 
-  if (visibleReasons.length === 0 && !hasMetadata) {
+  if (visibleAutomatedReasons.length === 0 && !visibleAdminRejectionReason && !hasMetadata) {
     return null;
   }
 
@@ -44,18 +51,34 @@ export default function LessonModerationFeedbackPanel({
         Moderation Feedback
       </div>
 
-      {visibleReasons.length > 0 && (
-        <ul className="mt-3 space-y-2 text-sm text-[var(--color-text-secondary)]">
-          {visibleReasons.map((reason) => (
-            <li key={reason} className="flex items-start gap-2">
-              <span
-                className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: meta.color }}
-              />
-              <span>{reason}</span>
-            </li>
-          ))}
-        </ul>
+      {visibleAdminRejectionReason && (
+        <div className="mt-3">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
+            Admin Rejection Reason
+          </div>
+          <div className="mt-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+            {visibleAdminRejectionReason}
+          </div>
+        </div>
+      )}
+
+      {visibleAutomatedReasons.length > 0 && (
+        <div className="mt-3">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
+            Automated Moderation Reasons
+          </div>
+          <ul className="mt-2 space-y-2 text-sm text-[var(--color-text-secondary)]">
+            {visibleAutomatedReasons.map((reason) => (
+              <li key={reason} className="flex items-start gap-2">
+                <span
+                  className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ background: meta.color }}
+                />
+                <span>{reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {hasMetadata && (
