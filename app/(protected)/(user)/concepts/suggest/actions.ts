@@ -87,6 +87,52 @@ async function requestConceptSuggestion(
   return response.json();
 }
 
+async function requestConceptSuggestionNoContent(
+  endpoint: string,
+  options: RequestInit,
+): Promise<void> {
+  const session = await getServerSession();
+
+  if (!session) {
+    throw { message: "user not authenticated", statusCode: 403 };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      ...(options.headers || {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const rawBody = await response.text();
+
+    if (!rawBody) {
+      throw {
+        message: `Request failed (${response.status}${response.statusText ? ` ${response.statusText}` : ""})`,
+        statusCode: response.status,
+      };
+    }
+
+    let message = rawBody;
+
+    try {
+      const parsedBody = JSON.parse(rawBody) as { message?: string };
+      message = parsedBody.message || rawBody;
+    } catch {
+      // Fall back to raw text when backend response isn't JSON.
+    }
+
+    throw {
+      message,
+      statusCode: response.status,
+    };
+  }
+}
+
 export async function createConceptSuggestionDraft(
   input: ConceptSuggestionDraftRequest,
 ): Promise<ConceptSuggestionDraftResult> {
@@ -164,6 +210,32 @@ export async function submitConceptSuggestionDraft(
       success: true,
       message: "Submitted for review",
       data: suggestion,
+    };
+  } catch (error) {
+    const { message, statusCode } = getErrorDetails(error);
+
+    return {
+      success: false,
+      message,
+      statusCode,
+    };
+  }
+}
+
+export async function deleteConceptSuggestionDraft(
+  conceptSuggestionPublicId: string,
+): Promise<ConceptSuggestionDraftResult> {
+  try {
+    await requestConceptSuggestionNoContent(
+      `/concept-suggestions/${conceptSuggestionPublicId}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    return {
+      success: true,
+      message: "Draft deleted",
     };
   } catch (error) {
     const { message, statusCode } = getErrorDetails(error);

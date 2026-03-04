@@ -27,9 +27,11 @@ import { formatDateTime } from "@/lib/formatDate";
 import { useRouter } from "next/navigation";
 import {
   createConceptSuggestionDraft,
+  deleteConceptSuggestionDraft,
   saveConceptSuggestionDraft,
   submitConceptSuggestionDraft,
 } from "./actions";
+import ConfirmModal from "@/components/common/confirmModal";
 
 type DraftSnapshot = {
   publicId: string | null;
@@ -75,6 +77,8 @@ export default function ConceptSuggestionDraftForm({
   const [description, setDescription] = useState(initialDraft?.description ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [formMessage, setFormMessage] = useState<{
     tone: "error" | "success" | "info";
     text: string;
@@ -97,6 +101,7 @@ export default function ConceptSuggestionDraftForm({
     hasDraft,
     status: draftSnapshot.status,
   });
+  const canDeleteDraft = hasDraft && draftSnapshot.status === "DRAFT";
 
   useEffect(() => {
     if (!hasUnsavedChanges) {
@@ -155,7 +160,7 @@ export default function ConceptSuggestionDraftForm({
   };
 
   const handleSaveDraft = async () => {
-    if (formState.isReadOnly || isSaving || isSubmitting) {
+    if (formState.isReadOnly || isSaving || isSubmitting || isDeleting) {
       return;
     }
 
@@ -206,7 +211,7 @@ export default function ConceptSuggestionDraftForm({
   };
 
   const handleSubmitForReview = async () => {
-    if (!draftSnapshot.publicId || isSaving || isSubmitting) {
+    if (!draftSnapshot.publicId || isSaving || isSubmitting || isDeleting) {
       return;
     }
 
@@ -248,6 +253,38 @@ export default function ConceptSuggestionDraftForm({
     }
   };
 
+  const handleDeleteDraft = async () => {
+    if (!draftSnapshot.publicId || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setFormMessage(null);
+
+    try {
+      const result = await deleteConceptSuggestionDraft(draftSnapshot.publicId);
+
+      if (!result.success) {
+        if (result.statusCode === 409) {
+          setFormMessage({
+            tone: "info",
+            text: result.message || "This suggestion can no longer be deleted.",
+          });
+          router.refresh();
+        }
+
+        showError(result.message || "Unable to delete draft");
+        return;
+      }
+
+      showSuccess("Draft deleted");
+      router.replace("/concepts/suggest/drafts");
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpened(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
       <div className="mx-auto max-w-4xl">
@@ -281,11 +318,12 @@ export default function ConceptSuggestionDraftForm({
               component={Link}
               href="/concepts/suggest/drafts"
               variant="default"
+              disabled={isDeleting}
             >
               My Drafts
             </Button>
             {(hasDraft || title || description) && (
-              <Button variant="default" onClick={handleStartNewDraft}>
+              <Button variant="default" onClick={handleStartNewDraft} disabled={isDeleting}>
                 Start New Draft
               </Button>
             )}
@@ -376,12 +414,23 @@ export default function ConceptSuggestionDraftForm({
               />
 
               <div className="flex justify-end gap-3">
+                {canDeleteDraft && (
+                  <Button
+                    variant="default"
+                    color="red"
+                    onClick={() => setDeleteModalOpened(true)}
+                    disabled={isSaving || isSubmitting || isDeleting}
+                  >
+                    Delete Draft
+                  </Button>
+                )}
+
                 {formState.canSubmitForReview && (
                   <Button
                     variant="default"
                     onClick={handleSubmitForReview}
                     loading={isSubmitting}
-                    disabled={isSaving || formState.isReadOnly}
+                    disabled={isSaving || formState.isReadOnly || isDeleting}
                   >
                     Submit for Review
                   </Button>
@@ -391,7 +440,7 @@ export default function ConceptSuggestionDraftForm({
                   <Button
                     onClick={handleSaveDraft}
                     loading={isSaving}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isDeleting}
                     className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
                   >
                     {hasDraft ? "Save Draft" : "Create Draft"}
@@ -402,6 +451,18 @@ export default function ConceptSuggestionDraftForm({
           </Card>
         </div>
       </div>
+
+      <ConfirmModal
+        opened={deleteModalOpened}
+        onClose={() => !isDeleting && setDeleteModalOpened(false)}
+        onConfirm={handleDeleteDraft}
+        title="Delete Draft?"
+        message="This draft will be permanently deleted."
+        confirmText="Delete"
+        confirmColor="red"
+        icon="delete_forever"
+        loading={isDeleting}
+      />
     </div>
   );
 }
