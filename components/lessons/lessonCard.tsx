@@ -1,11 +1,12 @@
 "use client";
 
-import { Group, Stack, Title, Text, Badge, Tooltip } from "@mantine/core";
+import { Group, Stack, Title, Text, Tooltip } from "@mantine/core";
 import type { LessonSummary } from "@/interfaces/interfaces";
 import ContentCardShell from "@/components/common/contentCardShell";
 import { formatShortDate } from "@/lib/formatDate";
+import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
 
-interface LessonCardProps extends LessonSummary { }
+type LessonCardProps = LessonSummary;
 interface LessonCardOptions {
   showModerationBadge?: boolean;
 }
@@ -49,21 +50,7 @@ export default function LessonCard({
             </div>
 
             <div className="flex items-start gap-2 shrink-0">
-              {showModerationBadge && (
-                <Badge
-                  color={
-                    moderationStatus === "APPROVED"
-                      ? "green"
-                      : moderationStatus === "REJECTED"
-                        ? "red"
-                        : "yellow"
-                  }
-                  size="sm"
-                  variant="light"
-                >
-                  {moderationStatus}
-                </Badge>
-              )}
+              {showModerationBadge && <LessonModerationBadge status={moderationStatus} />}
 
               <Tooltip label="Open lesson" position="top" withArrow>
                 <span className="material-symbols-outlined text-[var(--color-card-text-muted)] opacity-40 group-hover:opacity-80 transition-opacity text-lg">

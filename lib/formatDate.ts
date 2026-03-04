@@ -1,8 +1,10 @@
+const APP_TIME_ZONE = "Asia/Singapore";
+
 const shortDateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "2-digit",
   day: "2-digit",
   year: "numeric",
-  timeZone: "UTC",
+  timeZone: APP_TIME_ZONE,
 });
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
@@ -12,7 +14,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
   minute: "2-digit",
   hour12: true,
-  timeZone: "UTC",
+  timeZone: APP_TIME_ZONE,
 });
 
 export function formatShortDate(date: string | number | Date) {
