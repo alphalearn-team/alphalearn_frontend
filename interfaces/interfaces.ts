@@ -18,15 +18,76 @@ export interface PublicAuthor {
 export type LessonContent = unknown;
 export type LessonModerationStatus = "PENDING" | "APPROVED" | "REJECTED" | "UNPUBLISHED";
 
+// ============================================
+// LESSON SECTION TYPES
+// ============================================
+
+export type SectionType = 'text' | 'example' | 'callout' | 'definition' | 'comparison';
+
+export type CalloutVariant = 'info' | 'warning' | 'tip' | 'note';
+
+export interface TextSectionContent {
+  html: string;
+}
+
+export interface ExampleSectionContent {
+  examples: Array<{
+    text: string;
+    context?: string | null;
+  }>;
+}
+
+export interface CalloutSectionContent {
+  variant: CalloutVariant;
+  title?: string | null;
+  html: string;
+}
+
+export interface DefinitionSectionContent {
+  term: string;
+  pronunciation?: string | null;
+  definition: string;
+}
+
+export interface ComparisonSectionContent {
+  items: Array<{
+    label: string;
+    description: string;
+  }>;
+}
+
+export type SectionContent = TextSectionContent | ExampleSectionContent | CalloutSectionContent | DefinitionSectionContent | ComparisonSectionContent;
+
+export interface LessonSection {
+  sectionPublicId: string;
+  orderIndex: number;
+  sectionType: SectionType;
+  title: string | null;
+  content: SectionContent;
+}
+
+// For creating/editing sections (no publicId yet)
+export interface LessonSectionInput {
+  sectionType: SectionType;
+  title?: string | null;
+  content: SectionContent;
+}
+
+// ============================================
+// LESSON TYPES (with sections support)
+// ============================================
+
 export type Lesson = {
   lessonPublicId: string
   title: string
-  content: LessonContent
+  content: LessonContent // Legacy field for backward compatibility
   moderationStatus: LessonModerationStatus
   author: PublicAuthor
   createdAt: string
   conceptPublicIds: string[]
   concepts?: LessonConceptSummary[]
+  sections?: LessonSection[] // New sections array
+  totalSections?: number // Total number of sections
   latestModerationReasons?: string[]
   automatedModerationReasons?: string[]
   latestModerationEventType?: string | null
@@ -43,6 +104,14 @@ export interface CreateLessonRequest {
   title: string
   content: LessonContent
   conceptPublicIds: string[]
+  submit?: boolean
+}
+
+// New request type for lessons with sections
+export interface CreateLessonWithSectionsRequest {
+  title: string
+  conceptPublicIds: string[]
+  sections: LessonSectionInput[]
   submit?: boolean
 }
 
