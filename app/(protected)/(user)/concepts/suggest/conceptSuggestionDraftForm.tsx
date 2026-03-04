@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Badge,
   Button,
@@ -11,10 +11,11 @@ import {
   Textarea,
   Title,
 } from "@mantine/core";
-import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
 import type { ConceptSuggestionDraft } from "@/interfaces/interfaces";
 import { showError, showSuccess } from "@/lib/actions/notifications";
 import { formatDateTime } from "@/lib/formatDate";
+import { useRouter } from "next/navigation";
 import {
   createConceptSuggestionDraft,
   saveConceptSuggestionDraft,
@@ -38,14 +39,6 @@ const emptyDraftSnapshot: DraftSnapshot = {
   updatedAt: null,
 };
 
-function getDraftSessionStorageKey(userId: string | null): string | null {
-  if (!userId) {
-    return null;
-  }
-
-  return `concept-suggestion-draft:${userId}`;
-}
-
 function toSnapshot(draft: ConceptSuggestionDraft): DraftSnapshot {
   return {
     publicId: draft.publicId,
@@ -57,81 +50,33 @@ function toSnapshot(draft: ConceptSuggestionDraft): DraftSnapshot {
   };
 }
 
-function readDraftSnapshot(storageKey: string | null): DraftSnapshot {
-  if (typeof window === "undefined" || !storageKey) {
-    return emptyDraftSnapshot;
-  }
+type ConceptSuggestionDraftFormProps = {
+  initialDraft?: ConceptSuggestionDraft | null;
+};
 
-  try {
-    const raw = window.sessionStorage.getItem(storageKey);
-
-    if (!raw) {
-      return emptyDraftSnapshot;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<DraftSnapshot>;
-
-    return {
-      publicId: typeof parsed.publicId === "string" ? parsed.publicId : null,
-      title: typeof parsed.title === "string" ? parsed.title : "",
-      description: typeof parsed.description === "string" ? parsed.description : "",
-      status: parsed.status === "DRAFT" ? "DRAFT" : null,
-      createdAt: typeof parsed.createdAt === "string" ? parsed.createdAt : null,
-      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
-    };
-  } catch {
-    return emptyDraftSnapshot;
-  }
-}
-
-function writeDraftSnapshot(storageKey: string | null, snapshot: DraftSnapshot) {
-  if (typeof window === "undefined" || !storageKey) {
-    return;
-  }
-
-  window.sessionStorage.setItem(storageKey, JSON.stringify(snapshot));
-}
-
-function clearDraftSnapshot(storageKey: string | null) {
-  if (typeof window === "undefined" || !storageKey) {
-    return;
-  }
-
-  window.sessionStorage.removeItem(storageKey);
-}
-
-export default function ConceptSuggestionDraftForm() {
-  const { user, isLoading } = useAuth();
-  const [draftSnapshot, setDraftSnapshot] = useState<DraftSnapshot>(emptyDraftSnapshot);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+export default function ConceptSuggestionDraftForm({
+  initialDraft = null,
+}: ConceptSuggestionDraftFormProps) {
+  const router = useRouter();
+  const [draftSnapshot, setDraftSnapshot] = useState<DraftSnapshot>(
+    initialDraft ? toSnapshot(initialDraft) : emptyDraftSnapshot,
+  );
+  const [title, setTitle] = useState(initialDraft?.title ?? "");
+  const [description, setDescription] = useState(initialDraft?.description ?? "");
   const [isSaving, setIsSaving] = useState(false);
-  const draftStorageKey = useMemo(() => getDraftSessionStorageKey(user?.id ?? null), [user?.id]);
 
   useEffect(() => {
-    if (isLoading) {
-      return;
-    }
-
-    const snapshot = readDraftSnapshot(draftStorageKey);
-    setDraftSnapshot(snapshot);
-    setTitle(snapshot.title);
-    setDescription(snapshot.description);
-    setIsHydrated(true);
-  }, [draftStorageKey, isLoading]);
+    const nextSnapshot = initialDraft ? toSnapshot(initialDraft) : emptyDraftSnapshot;
+    setDraftSnapshot(nextSnapshot);
+    setTitle(nextSnapshot.title);
+    setDescription(nextSnapshot.description);
+  }, [initialDraft]);
 
   const hasDraft = Boolean(draftSnapshot.publicId);
-  const hasUnsavedChanges = isHydrated && (
+  const hasUnsavedChanges = (
     title !== draftSnapshot.title || description !== draftSnapshot.description
   );
-  const helperCopy = useMemo(() => {
-    if (!hasDraft) {
-      return "Your first save will create a DRAFT and return a public ID that the frontend keeps in this browser session.";
-    }
-
-    return "This story supports draft save only. Reopening an existing draft later will come in a separate backend story. Use Start New Draft to clear the current session draft.";
-  }, [hasDraft]);
+  const isEditMode = hasDraft;
 
   useEffect(() => {
     if (!hasUnsavedChanges) {
@@ -155,7 +100,6 @@ export default function ConceptSuggestionDraftForm() {
     setDraftSnapshot(nextSnapshot);
     setTitle(draft.title);
     setDescription(draft.description);
-    writeDraftSnapshot(draftStorageKey, nextSnapshot);
   };
 
   const handleStartNewDraft = () => {
@@ -169,14 +113,18 @@ export default function ConceptSuggestionDraftForm() {
       }
     }
 
-    clearDraftSnapshot(draftStorageKey);
+    if (isEditMode) {
+      router.push("/concepts/suggest");
+      return;
+    }
+
     setDraftSnapshot(emptyDraftSnapshot);
     setTitle("");
     setDescription("");
   };
 
   const handleSaveDraft = async () => {
-    if (!isHydrated || isSaving || isLoading) {
+    if (isSaving) {
       return;
     }
 
@@ -195,6 +143,10 @@ export default function ConceptSuggestionDraftForm() {
 
       persistDraft(result.data);
       showSuccess(result.message);
+
+      if (!draftSnapshot.publicId) {
+        router.replace(`/concepts/suggest/${result.data.publicId}`);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -221,41 +173,34 @@ export default function ConceptSuggestionDraftForm() {
               )}
             </div>
             <Title order={1} className="text-[clamp(2rem,4vw,3rem)]">
-              Suggest a Concept
+              {isEditMode ? "Edit Draft" : "Suggest a Concept"}
             </Title>
             <Text className="max-w-2xl text-[var(--color-text-secondary)]">
-              Save a concept suggestion draft with a title and description.
+              {isEditMode
+                ? "Update your concept suggestion draft and keep it ready for later submission."
+                : "Create a concept suggestion draft with a title and description."}
             </Text>
           </div>
 
           <div className="flex flex-wrap justify-end gap-3">
-            {hasDraft && (
+            <Button
+              component={Link}
+              href="/concepts/suggest/drafts"
+              variant="default"
+            >
+              My Drafts
+            </Button>
+            {(hasDraft || title || description) && (
               <Button variant="default" onClick={handleStartNewDraft}>
                 Start New Draft
               </Button>
             )}
-            <Button
-              onClick={handleSaveDraft}
-              loading={isSaving}
-              className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
-            >
-              {hasDraft ? "Save Draft" : "Create Draft"}
-            </Button>
           </div>
         </div>
 
         <div className="space-y-6">
           <Card className="admin-card">
             <Stack gap="md">
-              <div className="space-y-1">
-                <Text size="sm" className="font-semibold text-[var(--color-text)]">
-                  Draft persistence
-                </Text>
-                <Text size="sm" className="text-[var(--color-text-secondary)]">
-                  {helperCopy}
-                </Text>
-              </div>
-
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <Text size="xs" className="font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
