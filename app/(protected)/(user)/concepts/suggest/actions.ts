@@ -12,15 +12,6 @@ export type ConceptSuggestionDraftResult = {
   data?: ConceptSuggestionDraft;
 };
 
-function normalizeDraft(
-  draft: ConceptSuggestionDraft,
-): ConceptSuggestionDraft {
-  return {
-    ...draft,
-    status: "DRAFT",
-  };
-}
-
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message;
@@ -70,7 +61,7 @@ export async function createConceptSuggestionDraft(
     return {
       success: true,
       message: "Draft created",
-      data: normalizeDraft(draft),
+      data: draft,
     };
   } catch (error) {
     return {
@@ -111,7 +102,7 @@ export async function saveConceptSuggestionDraft(
     return {
       success: true,
       message: "Draft saved",
-      data: normalizeDraft(draft),
+      data: draft,
     };
   } catch (error) {
     return {
