@@ -122,6 +122,9 @@ export default function ConceptSuggestionDraftForm() {
   }, [draftStorageKey, isLoading]);
 
   const hasDraft = Boolean(draftSnapshot.publicId);
+  const hasUnsavedChanges = isHydrated && (
+    title !== draftSnapshot.title || description !== draftSnapshot.description
+  );
   const helperCopy = useMemo(() => {
     if (!hasDraft) {
       return "Your first save will create a DRAFT and return a public ID that the frontend keeps in this browser session.";
@@ -129,6 +132,23 @@ export default function ConceptSuggestionDraftForm() {
 
     return "This story supports draft save only. Reopening an existing draft later will come in a separate backend story. Use Start New Draft to clear the current session draft.";
   }, [hasDraft]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
 
   const persistDraft = (draft: ConceptSuggestionDraft) => {
     const nextSnapshot = toSnapshot(draft);
@@ -139,6 +159,16 @@ export default function ConceptSuggestionDraftForm() {
   };
 
   const handleStartNewDraft = () => {
+    if (hasUnsavedChanges) {
+      const shouldDiscard = window.confirm(
+        "You have unsaved changes. Start a new draft and discard them?",
+      );
+
+      if (!shouldDiscard) {
+        return;
+      }
+    }
+
     clearDraftSnapshot(draftStorageKey);
     setDraftSnapshot(emptyDraftSnapshot);
     setTitle("");
@@ -182,6 +212,11 @@ export default function ConceptSuggestionDraftForm() {
               {draftSnapshot.status && (
                 <Badge color="gray" variant="light" radius="xl">
                   {draftSnapshot.status}
+                </Badge>
+              )}
+              {hasUnsavedChanges && (
+                <Badge color="yellow" variant="light" radius="xl">
+                  Unsaved Changes
                 </Badge>
               )}
             </div>
