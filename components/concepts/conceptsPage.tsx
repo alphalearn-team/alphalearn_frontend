@@ -97,12 +97,12 @@ function HeroSection() {
           </Stack>
 
           <div className="flex flex-col items-end gap-3">
-            <GradientButton href="#concepts-list" className="!w-[320px] justify-center">
+            <GradientButton href="#concepts-list" className="!w-[200px] justify-center">
               Browse Concepts
             </GradientButton>
             {canSuggestConcept && (
-              <GradientButton href="/concepts/suggest" className="!w-[320px] justify-center">
-                Suggest a Concept
+              <GradientButton href="/concepts/suggest/drafts" className="!w-[200px] justify-center">
+                My Drafts
               </GradientButton>
             )}
           </div>

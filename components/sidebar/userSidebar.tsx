@@ -18,6 +18,7 @@ const nonAdminQuickActionsSection: SidebarNavSection = {
   label: "Quick Actions",
   items: [
     { label: "Suggest Concept", href: "/concepts/suggest", icon: "lightbulb" },
+    { label: "My Drafts", href: "/concepts/suggest/drafts", icon: "draft" },
     { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
   ],
 };
