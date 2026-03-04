@@ -24,6 +24,11 @@ const urgencyConfig = {
 export default function LessonsManagementTable({
   lessons,
 }: LessonsManagementTableProps) {
+  const getAutomatedReasons = (lesson: AdminLessonQueueItem) =>
+    Array.isArray(lesson.automatedModerationReasons)
+      ? lesson.automatedModerationReasons
+      : [];
+
   const sortedLessons = useMemo(
     () =>
       [...lessons].sort(
@@ -33,7 +38,7 @@ export default function LessonsManagementTable({
   );
 
   const flaggedCount = useMemo(
-    () => sortedLessons.filter((lesson) => lesson.automatedModerationReasons.length > 0).length,
+    () => sortedLessons.filter((lesson) => getAutomatedReasons(lesson).length > 0).length,
     [sortedLessons],
   );
 
@@ -123,7 +128,8 @@ export default function LessonsManagementTable({
                 </tr>
               ) : (
                 sortedLessons.map((lesson) => {
-                  const isFlagged = lesson.automatedModerationReasons.length > 0;
+                  const automatedReasons = getAutomatedReasons(lesson);
+                  const isFlagged = automatedReasons.length > 0;
                   const urgency = getUrgencyLevel(new Date(lesson.createdAt));
                   const isUrgent = urgency !== "normal";
 
@@ -184,8 +190,8 @@ export default function LessonsManagementTable({
                           <LessonModerationBadge status={lesson.lessonModerationStatus} />
                           {isFlagged && (
                             <Text size="xs" className="text-red-400">
-                              {lesson.automatedModerationReasons.length} automated reason
-                              {lesson.automatedModerationReasons.length === 1 ? "" : "s"}
+                              {automatedReasons.length} automated reason
+                              {automatedReasons.length === 1 ? "" : "s"}
                             </Text>
                           )}
                         </div>

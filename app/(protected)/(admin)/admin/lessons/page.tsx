@@ -8,11 +8,22 @@ import AdminPageHeader from "@/components/admin/pageHeader";
 import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 import { getUserRole } from "@/lib/auth/rbac";
 
+function normalizeQueueLesson(lesson: AdminLessonQueueItem): AdminLessonQueueItem {
+  return {
+    ...lesson,
+    automatedModerationReasons: Array.isArray(lesson.automatedModerationReasons)
+      ? lesson.automatedModerationReasons
+      : [],
+    adminRejectionReason: lesson.adminRejectionReason ?? null,
+  };
+}
+
 async function LessonsData() {
   const role = await getUserRole();
   if (role !== "ADMIN") return null;
 
-  const lessons = await apiFetch<AdminLessonQueueItem[]>("/admin/lessons?status=PENDING");
+  const lessonsResponse = await apiFetch<AdminLessonQueueItem[]>("/admin/lessons?status=PENDING");
+  const lessons = lessonsResponse.map(normalizeQueueLesson);
 
   return <LessonsManagementTable lessons={lessons} />;
 }

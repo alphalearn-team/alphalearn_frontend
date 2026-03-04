@@ -10,6 +10,16 @@ import { apiFetch } from "@/lib/api";
 import { formatDateTime } from "@/lib/formatDate";
 import ReviewActions from "../reviewActions";
 
+function normalizeReviewLesson(lesson: AdminLessonReviewDetail): AdminLessonReviewDetail {
+  return {
+    ...lesson,
+    automatedModerationReasons: Array.isArray(lesson.automatedModerationReasons)
+      ? lesson.automatedModerationReasons
+      : [],
+    adminRejectionReason: lesson.adminRejectionReason ?? null,
+  };
+}
+
 function getReviewSummary(lesson: AdminLessonReviewDetail) {
   const automatedReasonCount = lesson.automatedModerationReasons.filter(Boolean).length;
 
@@ -65,7 +75,8 @@ async function getAdminLessonDetail(
   lessonPublicId: string,
 ): Promise<AdminLessonReviewDetail | null> {
   try {
-    return await apiFetch<AdminLessonReviewDetail>(`/admin/lessons/${lessonPublicId}`);
+    const lesson = await apiFetch<AdminLessonReviewDetail>(`/admin/lessons/${lessonPublicId}`);
+    return normalizeReviewLesson(lesson);
   } catch {
     return null;
   }

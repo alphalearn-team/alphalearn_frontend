@@ -28,8 +28,10 @@ export type Lesson = {
   conceptPublicIds: string[]
   concepts?: LessonConceptSummary[]
   latestModerationReasons?: string[]
+  automatedModerationReasons?: string[]
   latestModerationEventType?: string | null
   latestModeratedAt?: string | null
+  adminRejectionReason?: string | null
 }
 
 export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" | "createdAt" | "moderationStatus"> & {
