@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { apiFetch } from "@/lib/api";
-import LessonEditor from "@/app/(protected)/(user)/lessons/[id]/edit/lessoneditor";
+import LessonEditorWithSections from "./lessonEditorWithSections";
 import { redirect } from "next/navigation";
 import { Group } from "@mantine/core";
 import { Concept } from "@/interfaces/interfaces";
@@ -66,9 +66,7 @@ export default async function CreateLessonPage({
       )}
       description="Craft an interactive lesson and share your knowledge with the community."
     >
-      <LessonEditor
-        initialTitle=""
-        initialContent={{ type: "doc", content: [] }}
+      <LessonEditorWithSections
         availableConcepts={concepts}
         initialConceptPublicIds={initialConceptPublicIds}
       />
