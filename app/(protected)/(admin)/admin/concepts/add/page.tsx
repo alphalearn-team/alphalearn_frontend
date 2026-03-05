@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, TextInput, Textarea, Button, Text } from "@mantine/core";
 import { addConcept } from "./actions";
-import { showSuccess, showError } from "@/lib/actions/notifications";
+import { showError } from "@/lib/actions/notifications";
 import { useRouter } from "next/navigation";
 import AdminBreadcrumb from "@/components/admin/breadcrumb";
 

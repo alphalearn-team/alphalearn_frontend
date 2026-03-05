@@ -4,11 +4,6 @@ import { apiFetch } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-interface AddConceptInput {
-  title: string;
-  description: string;
-}
-
 /**
  * Server Action: Create a new concept
  */

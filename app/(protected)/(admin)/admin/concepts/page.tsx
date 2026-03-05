@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api";
-import { Badge, Card } from "@mantine/core";
+import { Card } from "@mantine/core";
 import { Suspense } from "react";
 import CardSkeleton from "@/components/common/cardSkeleton";
 import ConceptsManagementTable from "./conceptsTable";
