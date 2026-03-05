@@ -53,7 +53,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
   // Add IDs to sections if they don't have them
   const sectionsWithIds: SectionWithId[] = sections.map((s) => ({
     ...s,
-    _id: (s as any)._id || generateId(),
+    _id: (s as unknown as { _id?: string })._id || generateId(),
   }));
 
   const handleAddSection = (type: SectionType) => {
@@ -109,7 +109,13 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
     if (originalSection !== null && editingIndex !== null) {
       const updated = [...sectionsWithIds];
       updated[editingIndex] = originalSection;
-      onChange(updated.map(({ _id: _, ...section }) => section));
+      onChange(
+        updated.map((s) => ({
+          sectionType: s.sectionType,
+          title: s.title ?? null,
+          content: s.content,
+        }))
+      );
     }
     setEditingIndex(null);
     setOriginalSection(null);
