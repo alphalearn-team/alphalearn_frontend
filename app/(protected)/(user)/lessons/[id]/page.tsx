@@ -29,7 +29,19 @@ function normalizeLessonDetail(lesson: Lesson): Lesson {
 
 async function getLessonContent(id: string): Promise<Lesson | null> {
   try {
-    const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
+    const lesson = await apiFetch<Lesson>(`/lessons/${id}/content`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[LessonDetail] API payload", {
+        endpoint: `/lessons/${id}/content`,
+        keys: lesson && typeof lesson === "object" ? Object.keys(lesson) : [],
+        contentType: typeof lesson?.content,
+        contentPreview:
+          typeof lesson?.content === "string"
+            ? lesson.content.slice(0, 200)
+            : lesson?.content,
+        lesson,
+      });
+    }
     return normalizeLessonDetail(lesson);
   } catch {
     return null;
