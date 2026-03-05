@@ -113,8 +113,8 @@ function buildLearnerState(
         latestApplication,
         canApply: false,
         badgeColor: "blue",
-        statusLabel: "Pending Review",
-        title: "Application pending",
+        statusLabel: "Application under review",
+        title: "Application under review",
         description:
           "Your contributor application is currently under review. You cannot submit another one until it is reviewed.",
         showRejectionReason: false,
@@ -122,12 +122,12 @@ function buildLearnerState(
     case "APPROVED":
       return {
         latestApplication,
-        canApply: false,
-        badgeColor: "green",
-        statusLabel: "Approved",
-        title: "Application approved",
+        canApply: true,
+        badgeColor: "gray",
+        statusLabel: "Approved (History)",
+        title: "Application approved previously",
         description:
-          "Your contributor application was approved. Contributor access should already be available on your account.",
+          "A past application was approved, but your current role is learner. You can submit a new application.",
         showRejectionReason: false,
       };
     case "REJECTED":
@@ -167,6 +167,18 @@ export function getContributorApplicationViewState(
 
 export function isConflictMessage(message: string) {
   return message.toLowerCase().includes("already");
+}
+
+export function shouldRefreshRoleAfterApproval(
+  role: ContributorApplicationRole,
+  latestApplication: ContributorApplication | null,
+  hasRequestedRefresh: boolean,
+) {
+  return (
+    role === "LEARNER" &&
+    latestApplication?.status === "APPROVED" &&
+    !hasRequestedRefresh
+  );
 }
 
 export function getApplicationTimelineLabel(

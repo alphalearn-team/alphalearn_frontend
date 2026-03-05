@@ -5,6 +5,7 @@ import {
   getContributorApplicationViewState,
   mergeContributorApplication,
   resolveContributorApplicationsAfterConflict,
+  shouldRefreshRoleAfterApproval,
 } from "./contributorApplications";
 
 function makeApplication(
@@ -12,6 +13,8 @@ function makeApplication(
 ): ContributorApplication {
   return {
     publicId: "app-1",
+    learnerPublicId: "learner-1",
+    learnerUsername: "learner-one",
     status: "PENDING",
     submittedAt: "2026-01-01T00:00:00.000Z",
     reviewedAt: null,
@@ -41,7 +44,23 @@ test("pending state disables submit action", () => {
 
   assert.equal(state.latestApplication?.publicId, "pending-1");
   assert.equal(state.canApply, false);
-  assert.equal(state.statusLabel, "Pending Review");
+  assert.equal(state.statusLabel, "Application under review");
+});
+
+test("approved state for learner is treated as historical and allows re-application", () => {
+  const applications = [
+    makeApplication({
+      status: "APPROVED",
+      publicId: "approved-1",
+      reviewedAt: "2026-01-03T00:00:00.000Z",
+    }),
+  ];
+
+  const state = getContributorApplicationViewState(applications, "LEARNER");
+
+  assert.equal(state.latestApplication?.publicId, "approved-1");
+  assert.equal(state.canApply, true);
+  assert.equal(state.statusLabel, "Approved (History)");
 });
 
 test("rejected state shows rejection reason and allows re-application", () => {
@@ -102,4 +121,16 @@ test("conflict/error flow preserves known state when refreshed data is unavailab
   assert.equal(resolved.length, 1);
   assert.equal(resolved[0]?.publicId, "pending-locked");
   assert.equal(resolved[0]?.status, "PENDING");
+});
+
+test("role refresh helper only requests refresh for newly approved learners", () => {
+  const approved = makeApplication({
+    status: "APPROVED",
+    publicId: "approved-refresh",
+  });
+
+  assert.equal(shouldRefreshRoleAfterApproval("LEARNER", approved, false), true);
+  assert.equal(shouldRefreshRoleAfterApproval("LEARNER", approved, true), false);
+  assert.equal(shouldRefreshRoleAfterApproval("CONTRIBUTOR", approved, false), false);
+  assert.equal(shouldRefreshRoleAfterApproval("LEARNER", null, false), false);
 });

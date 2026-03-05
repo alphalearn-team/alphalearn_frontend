@@ -9,6 +9,7 @@ type SubmitContributorApplicationResult =
   | {
       success: true;
       data: ContributorApplication;
+      applications: ContributorApplication[];
       message: string;
     }
   | {
@@ -22,24 +23,47 @@ export async function submitContributorApplication(): Promise<SubmitContributorA
     const data = await apiFetch<ContributorApplication>("/contributor-applications", {
       method: "POST",
     });
+    const { data: applications } = await fetchMyContributorApplications();
 
     revalidatePath("/contributor-application");
 
     return {
       success: true,
       data,
+      applications,
       message: "Contributor application submitted successfully.",
     };
   } catch (error) {
     const { data: applications } = await fetchMyContributorApplications();
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to submit contributor application";
 
     return {
       success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to submit contributor application",
+      message: toFriendlyLearnerError(message),
       applications,
     };
   }
+}
+
+function toFriendlyLearnerError(message: string) {
+  if (message.includes("400")) {
+    return "Your request is invalid. Please try again.";
+  }
+
+  if (message.includes("403")) {
+    return "You are not allowed to submit a contributor application.";
+  }
+
+  if (message.includes("404")) {
+    return "Contributor application service is unavailable right now.";
+  }
+
+  if (message.includes("409")) {
+    return "You already have a pending contributor application.";
+  }
+
+  return message;
 }

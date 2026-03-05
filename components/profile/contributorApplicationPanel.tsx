@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Alert,
   Badge,
@@ -16,13 +17,14 @@ import {
   getApplicationTimelineLabel,
   getContributorApplicationViewState,
   isConflictMessage,
-  mergeContributorApplication,
   resolveContributorApplicationsAfterConflict,
+  shouldRefreshRoleAfterApproval,
   type ContributorApplicationRole,
 } from "@/lib/contributorApplications";
 import { formatDateTime } from "@/lib/formatDate";
 import { showError, showSuccess } from "@/lib/actions/notifications";
 import { submitContributorApplication } from "@/app/(protected)/(user)/contributor-application/actions";
+import { useAuth } from "@/context/AuthContext";
 
 type ContributorApplicationPanelProps = {
   initialApplications: ContributorApplication[];
@@ -35,11 +37,14 @@ export default function ContributorApplicationPanel({
   initialLoadError = null,
   role,
 }: ContributorApplicationPanelProps) {
+  const router = useRouter();
+  const { refreshUserRole } = useAuth();
   const [applications, setApplications] = useState(initialApplications);
   const [loadError, setLoadError] = useState(initialLoadError);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasRequestedRoleRefresh, setHasRequestedRoleRefresh] = useState(false);
 
   const viewState = getContributorApplicationViewState(applications, role);
   const latestApplication = viewState.latestApplication;
@@ -57,9 +62,9 @@ export default function ContributorApplicationPanel({
       const result = await submitContributorApplication();
 
       if (result.success) {
-        setApplications((currentApplications) =>
-          mergeContributorApplication(currentApplications, result.data),
-        );
+        setApplications(result.applications);
+        await refreshUserRole();
+        router.refresh();
         setLoadError(null);
         setSuccessMessage(result.message);
         showSuccess(result.message);
@@ -90,6 +95,33 @@ export default function ContributorApplicationPanel({
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (
+      !shouldRefreshRoleAfterApproval(
+        role,
+        latestApplication,
+        hasRequestedRoleRefresh,
+      )
+    ) {
+      return;
+    }
+
+    setHasRequestedRoleRefresh(true);
+    refreshUserRole()
+      .then(() => {
+        router.refresh();
+      })
+      .catch(() => {
+        setHasRequestedRoleRefresh(false);
+      });
+  }, [
+    hasRequestedRoleRefresh,
+    latestApplication,
+    refreshUserRole,
+    role,
+    router,
+  ]);
 
   return (
     <div id="contributor-access" className="space-y-6">
