@@ -1,0 +1,27 @@
+import AdminBreadcrumb from "@/components/admin/breadcrumb";
+import AdminPageHeader from "@/components/admin/pageHeader";
+import ContributorApplicationsModerationPanel from "./moderationPanel";
+import { fetchPendingContributorApplicationsAction } from "./actions";
+
+export default async function AdminContributorApplicationsPage() {
+  const pendingResult = await fetchPendingContributorApplicationsAction();
+
+  return (
+    <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <AdminBreadcrumb />
+
+        <AdminPageHeader
+          title="Contributor Applications"
+          description="Review pending contributor applications and approve or reject submissions."
+          icon="approval_delegation"
+        />
+
+        <ContributorApplicationsModerationPanel
+          initialPending={pendingResult.success ? pendingResult.data : []}
+          initialError={pendingResult.success ? null : pendingResult.message}
+        />
+      </div>
+    </div>
+  );
+}

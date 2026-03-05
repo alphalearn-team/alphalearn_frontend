@@ -19,6 +19,7 @@ type AuthContextType = {
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUserRole: () => Promise<UserRole>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -159,6 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signUp,
     signOut,
+    refreshUserRole: fetchUserRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -18,6 +18,7 @@ const labelOverrides: BreadcrumbOverride = {
   admin: "Dashboard",
   lessons: "Lessons",
   contributors: "Users",
+  "contributor-applications": "Contributor Applications",
   concepts: "Concepts",
   add: "Add New",
 };
