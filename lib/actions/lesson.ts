@@ -50,8 +50,8 @@ async function handleRequest<T = void>(
   }
 }
 
-export async function saveLesson({ id, title, content }: { id: string; title: string; content: LessonContent; }): Promise<LessonActionResult> {
-  const response = await handleRequest(`/lessons/${id}`, {
+export async function saveLesson({ id, title, content }: { id: string; title: string; content: LessonContent; }): Promise<LessonActionResult<Lesson>> {
+  const response = await handleRequest<Lesson>(`/lessons/${id}`, {
     method: "PUT",
     headers,
     body: JSON.stringify({ title, content }),
