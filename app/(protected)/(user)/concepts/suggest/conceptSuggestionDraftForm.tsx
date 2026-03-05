@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -12,20 +13,31 @@ import {
   Title,
 } from "@mantine/core";
 import Link from "next/link";
-import type { ConceptSuggestionDraft } from "@/interfaces/interfaces";
+import type {
+  ConceptSuggestionDraft,
+  ConceptSuggestionStatus,
+} from "@/interfaces/interfaces";
 import { showError, showSuccess } from "@/lib/actions/notifications";
+import {
+  getConceptSuggestionFormState,
+  getConceptSuggestionSaveFailureFeedback,
+  getConceptSuggestionSubmitFailureFeedback,
+} from "@/lib/conceptSuggestionUi";
 import { formatDateTime } from "@/lib/formatDate";
 import { useRouter } from "next/navigation";
 import {
   createConceptSuggestionDraft,
+  deleteConceptSuggestionDraft,
   saveConceptSuggestionDraft,
+  submitConceptSuggestionDraft,
 } from "./actions";
+import ConfirmModal from "@/components/common/confirmModal";
 
 type DraftSnapshot = {
   publicId: string | null;
   title: string;
   description: string;
-  status: "DRAFT" | null;
+  status: ConceptSuggestionStatus | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -39,11 +51,15 @@ const emptyDraftSnapshot: DraftSnapshot = {
   updatedAt: null,
 };
 
+function normalizeDraftText(value: string | null | undefined): string {
+  return value ?? "";
+}
+
 function toSnapshot(draft: ConceptSuggestionDraft): DraftSnapshot {
   return {
     publicId: draft.publicId,
-    title: draft.title,
-    description: draft.description,
+    title: normalizeDraftText(draft.title),
+    description: normalizeDraftText(draft.description),
     status: draft.status,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
@@ -61,15 +77,23 @@ export default function ConceptSuggestionDraftForm({
   const [draftSnapshot, setDraftSnapshot] = useState<DraftSnapshot>(
     initialDraft ? toSnapshot(initialDraft) : emptyDraftSnapshot,
   );
-  const [title, setTitle] = useState(initialDraft?.title ?? "");
-  const [description, setDescription] = useState(initialDraft?.description ?? "");
+  const [title, setTitle] = useState(normalizeDraftText(initialDraft?.title));
+  const [description, setDescription] = useState(normalizeDraftText(initialDraft?.description));
   const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [formMessage, setFormMessage] = useState<{
+    tone: "error" | "success" | "info";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     const nextSnapshot = initialDraft ? toSnapshot(initialDraft) : emptyDraftSnapshot;
     setDraftSnapshot(nextSnapshot);
     setTitle(nextSnapshot.title);
     setDescription(nextSnapshot.description);
+    setFormMessage(null);
   }, [initialDraft]);
 
   const hasDraft = Boolean(draftSnapshot.publicId);
@@ -77,6 +101,11 @@ export default function ConceptSuggestionDraftForm({
     title !== draftSnapshot.title || description !== draftSnapshot.description
   );
   const isEditMode = hasDraft;
+  const formState = getConceptSuggestionFormState({
+    hasDraft,
+    status: draftSnapshot.status,
+  });
+  const canDeleteDraft = hasDraft && draftSnapshot.status === "DRAFT";
 
   useEffect(() => {
     if (!hasUnsavedChanges) {
@@ -98,8 +127,19 @@ export default function ConceptSuggestionDraftForm({
   const persistDraft = (draft: ConceptSuggestionDraft) => {
     const nextSnapshot = toSnapshot(draft);
     setDraftSnapshot(nextSnapshot);
-    setTitle(draft.title);
-    setDescription(draft.description);
+    setTitle(normalizeDraftText(draft.title));
+    setDescription(normalizeDraftText(draft.description));
+  };
+
+  const handleFieldChange = (
+    setter: (value: string) => void,
+    value: string,
+  ) => {
+    setter(value);
+
+    if (formMessage?.tone === "error") {
+      setFormMessage(null);
+    }
   };
 
   const handleStartNewDraft = () => {
@@ -124,11 +164,12 @@ export default function ConceptSuggestionDraftForm({
   };
 
   const handleSaveDraft = async () => {
-    if (isSaving) {
+    if (formState.isReadOnly || isSaving || isSubmitting || isDeleting) {
       return;
     }
 
     setIsSaving(true);
+    setFormMessage(null);
 
     try {
       const payload = { title, description };
@@ -137,6 +178,27 @@ export default function ConceptSuggestionDraftForm({
         : await createConceptSuggestionDraft(payload);
 
       if (!result.success || !result.data) {
+        const feedback = getConceptSuggestionSaveFailureFeedback(
+          result.statusCode,
+          result.message || "Unable to save draft",
+        );
+
+        if (feedback) {
+          setFormMessage({
+            tone: feedback.tone,
+            text: feedback.text,
+          });
+        }
+
+        if (feedback?.shouldResetToSnapshot) {
+          setTitle(draftSnapshot.title);
+          setDescription(draftSnapshot.description);
+        }
+
+        if (feedback?.shouldRefresh) {
+          router.refresh();
+        }
+
         showError(result.message || "Unable to save draft");
         return;
       }
@@ -149,6 +211,117 @@ export default function ConceptSuggestionDraftForm({
       }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSubmitForReview = async () => {
+    if (!draftSnapshot.publicId || isSaving || isSubmitting || isDeleting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormMessage(null);
+
+    try {
+      const payload = { title, description };
+      const draftPublicId = draftSnapshot.publicId;
+
+      if (hasUnsavedChanges) {
+        const saveResult = await saveConceptSuggestionDraft(draftPublicId, payload);
+
+        if (!saveResult.success || !saveResult.data) {
+          const saveFeedback = getConceptSuggestionSaveFailureFeedback(
+            saveResult.statusCode,
+            saveResult.message || "Unable to save draft",
+          );
+
+          if (saveFeedback) {
+            setFormMessage({
+              tone: saveFeedback.tone,
+              text: saveFeedback.text,
+            });
+          }
+
+          if (saveFeedback?.shouldResetToSnapshot) {
+            setTitle(draftSnapshot.title);
+            setDescription(draftSnapshot.description);
+          }
+
+          if (saveFeedback?.shouldRefresh) {
+            router.refresh();
+          }
+
+          showError(saveResult.message || "Unable to save draft");
+          return;
+        }
+
+        // Keep the successfully saved state even if submit fails afterward.
+        persistDraft(saveResult.data);
+      }
+
+      const result = await submitConceptSuggestionDraft(draftPublicId);
+
+      if (!result.success || !result.data) {
+        const feedback = getConceptSuggestionSubmitFailureFeedback(
+          result.statusCode,
+          result.message || "Unable to submit for review",
+        );
+
+        if (feedback) {
+          setFormMessage({
+            tone: feedback.tone,
+            text: feedback.text,
+          });
+        }
+
+        if (feedback?.shouldRefresh) {
+          router.refresh();
+        }
+
+        showError(result.message || "Unable to submit for review");
+        return;
+      }
+
+      persistDraft(result.data);
+      setFormMessage({
+        tone: "success",
+        text: "Submitted for review",
+      });
+      showSuccess("Submitted for review");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteDraft = async () => {
+    if (!draftSnapshot.publicId || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setFormMessage(null);
+
+    try {
+      const result = await deleteConceptSuggestionDraft(draftSnapshot.publicId);
+
+      if (!result.success) {
+        if (result.statusCode === 409) {
+          setFormMessage({
+            tone: "info",
+            text: result.message || "This suggestion can no longer be deleted.",
+          });
+          router.refresh();
+        }
+
+        showError(result.message || "Unable to delete draft");
+        return;
+      }
+
+      showSuccess("Draft deleted");
+      router.replace("/concepts/suggest/drafts");
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpened(false);
     }
   };
 
@@ -173,12 +346,10 @@ export default function ConceptSuggestionDraftForm({
               )}
             </div>
             <Title order={1} className="text-[clamp(2rem,4vw,3rem)]">
-              {isEditMode ? "Edit Draft" : "Suggest a Concept"}
+              {formState.heading}
             </Title>
             <Text className="max-w-2xl text-[var(--color-text-secondary)]">
-              {isEditMode
-                ? "Update your concept suggestion draft and keep it ready for later submission."
-                : "Create a concept suggestion draft with a title and description."}
+              {formState.description}
             </Text>
           </div>
 
@@ -187,11 +358,12 @@ export default function ConceptSuggestionDraftForm({
               component={Link}
               href="/concepts/suggest/drafts"
               variant="default"
+              disabled={isDeleting}
             >
               My Drafts
             </Button>
             {(hasDraft || title || description) && (
-              <Button variant="default" onClick={handleStartNewDraft}>
+              <Button variant="default" onClick={handleStartNewDraft} disabled={isDeleting}>
                 Start New Draft
               </Button>
             )}
@@ -232,11 +404,33 @@ export default function ConceptSuggestionDraftForm({
 
           <Card className="admin-card">
             <Stack gap="lg">
+              {formState.persistentBanner && (
+                <Alert color="blue" variant="light">
+                  {formState.persistentBanner}
+                </Alert>
+              )}
+
+              {formMessage && (
+                <Alert
+                  color={
+                    formMessage.tone === "error"
+                      ? "red"
+                      : formMessage.tone === "success"
+                        ? "green"
+                        : "blue"
+                  }
+                  variant="light"
+                >
+                  {formMessage.text}
+                </Alert>
+              )}
+
               <TextInput
                 label="Title"
                 placeholder="Italian Brainrot"
                 value={title}
-                onChange={(event) => setTitle(event.currentTarget.value)}
+                onChange={(event) => handleFieldChange(setTitle, event.currentTarget.value)}
+                readOnly={formState.isReadOnly}
                 required
                 classNames={{
                   input: "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
@@ -248,9 +442,10 @@ export default function ConceptSuggestionDraftForm({
                 label="Description"
                 placeholder="Italian Brainrot is a term used to describe brainrot content in Italian."
                 value={description}
-                onChange={(event) => setDescription(event.currentTarget.value)}
+                onChange={(event) => handleFieldChange(setDescription, event.currentTarget.value)}
                 autosize
                 minRows={8}
+                readOnly={formState.isReadOnly}
                 required
                 classNames={{
                   input: "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
@@ -258,19 +453,56 @@ export default function ConceptSuggestionDraftForm({
                 }}
               />
 
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleSaveDraft}
-                  loading={isSaving}
-                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
-                >
-                  {hasDraft ? "Save Draft" : "Create Draft"}
-                </Button>
+              <div className="flex justify-end gap-3">
+                {canDeleteDraft && (
+                  <Button
+                    variant="default"
+                    color="red"
+                    onClick={() => setDeleteModalOpened(true)}
+                    disabled={isSaving || isSubmitting || isDeleting}
+                  >
+                    Delete Draft
+                  </Button>
+                )}
+
+                {formState.canSubmitForReview && (
+                  <Button
+                    variant="default"
+                    onClick={handleSubmitForReview}
+                    loading={isSubmitting}
+                    disabled={isSaving || formState.isReadOnly || isDeleting}
+                  >
+                    Submit for Review
+                  </Button>
+                )}
+
+                {formState.showSaveButton && (
+                  <Button
+                    onClick={handleSaveDraft}
+                    loading={isSaving}
+                    disabled={isSubmitting || isDeleting}
+                    className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
+                  >
+                    {hasDraft ? "Save Draft" : "Create Draft"}
+                  </Button>
+                )}
               </div>
             </Stack>
           </Card>
         </div>
       </div>
+
+      <ConfirmModal
+        opened={deleteModalOpened}
+        onClose={() => !isDeleting && setDeleteModalOpened(false)}
+        onConfirm={handleDeleteDraft}
+        title="Delete Draft?"
+        message="This draft will be permanently deleted."
+        confirmText="Delete"
+        confirmColor="red"
+        icon="delete_forever"
+        loading={isDeleting}
+      />
     </div>
   );
 }

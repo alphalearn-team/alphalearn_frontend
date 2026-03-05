@@ -51,11 +51,13 @@ export interface ConceptSuggestionDraftRequest {
   description: string;
 }
 
-export interface ConceptSuggestionDraft {
+export type ConceptSuggestionStatus = "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED";
+
+export interface ConceptSuggestion {
   publicId: string;
-  title: string;
-  description: string;
-  status: "DRAFT";
+  title: string | null;
+  description: string | null;
+  status: ConceptSuggestionStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -68,6 +70,17 @@ export interface ContributorApplication {
   submittedAt: string;
   reviewedAt: string | null;
   rejectionReason: string | null;
+export type ConceptSuggestionDraft = ConceptSuggestion;
+
+export interface AdminConceptSuggestionQueueItem {
+  publicId: string;
+  title: string | null;
+  description: string | null;
+  status: ConceptSuggestionStatus;
+  ownerPublicId: string;
+  ownerUsername: string;
+  createdAt: string;
+  submittedAt: string;
 }
 
 export interface AdminContributor {

@@ -102,7 +102,7 @@ function HeroSection() {
             </GradientButton>
             {canSuggestConcept && (
               <GradientButton href="/concepts/suggest/drafts" className="!w-[200px] justify-center">
-                My Drafts
+                My Suggestions
               </GradientButton>
             )}
           </div>

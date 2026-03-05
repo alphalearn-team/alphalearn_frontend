@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getUserRole } from "@/lib/auth/rbac";
 import { apiFetch } from "@/lib/api";
 import type { ConceptSuggestionDraft } from "@/interfaces/interfaces";
 import NotFound from "@/components/notFound";
@@ -19,11 +17,6 @@ export default async function EditConceptSuggestionDraftPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const role = await getUserRole();
-
-  if (role === "ADMIN") {
-    redirect("/admin/concepts");
-  }
 
   const draft = await getDraft(id);
 
