@@ -1,21 +1,28 @@
 "use client"
 
 import { useEffect } from "react";
-import { useEditor } from "@tiptap/react";
+import { useEditor, type Content } from "@tiptap/react";
 import { RichTextEditor as MantineRichTextEditor, Link } from "@mantine/tiptap";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import Superscript from "@tiptap/extension-superscript";
 import Subscript from "@tiptap/extension-subscript";
 import StarterKit from "@tiptap/starter-kit";
+import type { LessonContent } from "@/interfaces/interfaces";
 import "@mantine/tiptap/styles.css";
 import { richTextStyles } from "./styles";
 
 
 interface RichTextEditorProps {
-  value: string | any;
-  onChange: (value: string | any) => void;
+  value: LessonContent;
+  onChange: (value: string) => void;
   isEditing: boolean;
+}
+
+function toEditorContent(value: LessonContent): Content {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object") return value as Content;
+  return "";
 }
 
 export function RichTextEditor({
@@ -34,7 +41,7 @@ export function RichTextEditor({
     ],
     shouldRerenderOnTransaction: true,
     immediatelyRender: false,
-    content: value,
+    content: toEditorContent(value),
     editable: isEditing,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());

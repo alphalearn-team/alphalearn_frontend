@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import {
-    SpotlightActionData,
-    SpotlightActions,
+    type SpotlightActionData,
+    type SpotlightActionGroupData,
     spotlight,
 } from "@mantine/spotlight";
 import type { Concept } from "@/interfaces/interfaces";
 import ContentSpotlight from "@/components/common/contentSpotlight";
+
+type SpotlightActionItem = SpotlightActionData | SpotlightActionGroupData;
 
 interface ConceptSpotlightSearchProps {
     concepts: Concept[];
@@ -38,7 +40,7 @@ export default function ConceptSpotlightSearch({ concepts }: ConceptSpotlightSea
         };
     });
 
-    const filterActions = (rawQuery: string, rawActions: SpotlightActions[]): SpotlightActions[] => {
+    const filterActions = (rawQuery: string, rawActions: SpotlightActionItem[]): SpotlightActionItem[] => {
         const trimmedQuery = rawQuery.trim().toLowerCase();
         const flatActions = rawActions.filter(
             (action): action is SpotlightActionData => "id" in action

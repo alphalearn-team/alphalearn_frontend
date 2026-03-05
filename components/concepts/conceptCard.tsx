@@ -5,7 +5,7 @@ import type { Concept } from "@/interfaces/interfaces";
 import ContentCardShell from "@/components/common/contentCardShell";
 import { formatShortDate } from "@/lib/formatDate";
 
-interface ConceptCardProps extends Concept { }
+type ConceptCardProps = Concept;
 
 export default function ConceptCard({
   publicId,

@@ -1,16 +1,23 @@
 "use client";
 
-import { useEditor } from "@tiptap/react";
+import { useEditor, type Content } from "@tiptap/react";
 import { RichTextEditor, Link } from "@mantine/tiptap";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import Superscript from "@tiptap/extension-superscript";
 import Subscript from "@tiptap/extension-subscript";
 import StarterKit from "@tiptap/starter-kit";
+import type { LessonContent } from "@/interfaces/interfaces";
 import { richTextContentStyles } from "./styles";
 
 
-export function TextDisplayer({ content }: { content: any }) {
+function toEditorContent(content: LessonContent): Content {
+  if (typeof content === "string") return content;
+  if (content && typeof content === "object") return content as Content;
+  return "";
+}
+
+export function TextDisplayer({ content }: { content: LessonContent }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ link: false }),
@@ -22,7 +29,7 @@ export function TextDisplayer({ content }: { content: any }) {
     ],
     shouldRerenderOnTransaction: true,
     immediatelyRender: false,
-    content: content,
+    content: toEditorContent(content),
     editable: false,
   });
 

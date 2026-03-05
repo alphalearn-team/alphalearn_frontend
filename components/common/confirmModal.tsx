@@ -1,7 +1,6 @@
 "use client";
 
-import { Modal, Button, Text, Group } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { Modal, Button, Group } from "@mantine/core";
 
 /**
  * REUSABLE COMPONENT - Confirmation Modal
@@ -42,29 +41,6 @@ export default function ConfirmModal({
   loading = false,
   icon,
 }: ConfirmModalProps) {
-  // Store props locally to prevent "undefined" flash during exit animation
-  const [displayProps, setDisplayProps] = useState({
-    title,
-    message,
-    confirmText,
-    cancelText,
-    confirmColor,
-    icon,
-  });
-
-  useEffect(() => {
-    if (opened) {
-      // Update display props only when modal is opening
-      setDisplayProps({
-        title,
-        message,
-        confirmText: confirmText || "Confirm",
-        cancelText: cancelText || "Cancel",
-        confirmColor,
-        icon,
-      });
-    }
-  }, [opened, title, message, confirmText, cancelText, confirmColor, icon]);
   return (
     <Modal
       opened={opened}
@@ -93,21 +69,21 @@ export default function ConfirmModal({
     >
       {/* Header with Icon */}
       <div className="mb-6 pt-2">
-        {displayProps.icon && (
+        {icon && (
           <div className="flex justify-center mb-4">
             <div className={`relative flex items-center justify-center w-16 h-16 rounded-full ${
-              displayProps.confirmColor === "red" ? "bg-red-500/10" :
-              displayProps.confirmColor === "green" ? "bg-green-500/10" :
-              displayProps.confirmColor === "yellow" ? "bg-yellow-500/10" :
-              displayProps.confirmColor === "blue" ? "bg-blue-500/10" :
+              confirmColor === "red" ? "bg-red-500/10" :
+              confirmColor === "green" ? "bg-green-500/10" :
+              confirmColor === "yellow" ? "bg-yellow-500/10" :
+              confirmColor === "blue" ? "bg-blue-500/10" :
               "bg-orange-500/10"
             }`}>
               <span 
                 className={`material-symbols-outlined ${
-                  displayProps.confirmColor === "red" ? "text-red-500" :
-                  displayProps.confirmColor === "green" ? "text-green-500" :
-                  displayProps.confirmColor === "yellow" ? "text-yellow-500" :
-                  displayProps.confirmColor === "blue" ? "text-blue-500" :
+                  confirmColor === "red" ? "text-red-500" :
+                  confirmColor === "green" ? "text-green-500" :
+                  confirmColor === "yellow" ? "text-yellow-500" :
+                  confirmColor === "blue" ? "text-blue-500" :
                   "text-orange-500"
                 }`}
                 style={{ 
@@ -120,20 +96,20 @@ export default function ConfirmModal({
                   height: '100%'
                 }}
               >
-                {displayProps.icon}
+                {icon}
               </span>
             </div>
           </div>
         )}
         
         <h3 className="text-xl font-bold text-[var(--color-text)] text-center leading-tight">
-          {displayProps.title}
+          {title}
         </h3>
       </div>
 
       {/* Message */}
       <div className="text-sm text-[var(--color-text-secondary)] mb-6 text-center leading-relaxed whitespace-pre-line">
-        {displayProps.message}
+        {message}
       </div>
 
       {/* Action Buttons */}
@@ -145,31 +121,31 @@ export default function ConfirmModal({
           disabled={loading}
           className="text-[var(--color-text)] hover:bg-[var(--color-background-hover)] min-w-[100px]"
         >
-          {displayProps.cancelText}
+          {cancelText}
         </Button>
         <Button
-          color={displayProps.confirmColor}
+          color={confirmColor}
           onClick={onConfirm}
           loading={loading}
           className="min-w-[100px]"
           styles={{
             root: {
-              backgroundColor: displayProps.confirmColor === "red" ? "#ef4444" :
-                              displayProps.confirmColor === "green" ? "#22c55e" :
-                              displayProps.confirmColor === "yellow" ? "#eab308" :
-                              displayProps.confirmColor === "blue" ? "#2563eb" :
+              backgroundColor: confirmColor === "red" ? "#ef4444" :
+                              confirmColor === "green" ? "#22c55e" :
+                              confirmColor === "yellow" ? "#eab308" :
+                              confirmColor === "blue" ? "#2563eb" :
                               "var(--color-primary)",
               '&:hover': {
-                backgroundColor: displayProps.confirmColor === "red" ? "#dc2626" :
-                                displayProps.confirmColor === "green" ? "#16a34a" :
-                                displayProps.confirmColor === "yellow" ? "#ca8a04" :
-                                displayProps.confirmColor === "blue" ? "#1d4ed8" :
+                backgroundColor: confirmColor === "red" ? "#dc2626" :
+                                confirmColor === "green" ? "#16a34a" :
+                                confirmColor === "yellow" ? "#ca8a04" :
+                                confirmColor === "blue" ? "#1d4ed8" :
                                 "var(--color-primary-hover)",
               },
             },
           }}
         >
-          {displayProps.confirmText}
+          {confirmText}
         </Button>
       </Group>
     </Modal>

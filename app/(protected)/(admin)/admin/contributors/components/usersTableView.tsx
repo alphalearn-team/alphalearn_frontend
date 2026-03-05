@@ -65,7 +65,6 @@ export function UsersTableView({
             ) : (
               filteredUsers.map((user) => {
                 const isActive = user.role === "CONTRIBUTOR" && user.demotedAt === null;
-                const isDemoted = user.role === "CONTRIBUTOR" && user.demotedAt !== null;
                 
                 return (
                   <tr 
