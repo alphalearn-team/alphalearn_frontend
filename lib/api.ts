@@ -1,5 +1,15 @@
 import { getServerSession } from "@/lib/auth/session";
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   options?: RequestInit
@@ -26,15 +36,18 @@ export async function apiFetch<T>(
     const rawBody = await res.text();
 
     if (!rawBody) {
-      throw new Error(statusFallback);
+      throw new ApiError(res.status, statusFallback);
     }
 
+    let message = statusFallback;
     try {
       const errbody = JSON.parse(rawBody) as { message?: string };
-      throw new Error(errbody.message || statusFallback);
+      message = errbody.message || statusFallback;
     } catch {
-      throw new Error(rawBody || statusFallback);
+      message = rawBody || statusFallback;
     }
+
+    throw new ApiError(res.status, message);
   }
 
   // Handle 204 No Content 
