@@ -62,6 +62,14 @@ export interface ConceptSuggestion {
   updatedAt: string;
 }
 
+export type ContributorApplicationStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface ContributorApplication {
+  publicId: string;
+  status: ContributorApplicationStatus;
+  submittedAt: string;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
 export type ConceptSuggestionDraft = ConceptSuggestion;
 
 export interface AdminConceptSuggestionQueueItem {

@@ -12,6 +12,7 @@ const labelOverrides: Record<string, string> = {
   edit: "Edit",
   suggest: "Suggest Concept",
   drafts: "My Drafts",
+  "contributor-application": "Contributor Access",
 };
 
 function formatSegment(segment: string) {
