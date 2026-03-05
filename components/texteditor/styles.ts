@@ -9,9 +9,16 @@ export const richTextContentStyles = `
     color: var(--color-text);
     font-family: var(--font-geist-sans);
     min-height: auto;
-    padding: 24px;
-    font-size: 15px;
+    padding: 12px 16px;
+    font-size: 14px;
     line-height: 1.75;
+  }
+
+  @media (min-width: 640px) {
+    .lesson-rich-text .mantine-RichTextEditor-content {
+      padding: 24px;
+      font-size: 15px;
+    }
   }
 
   .lesson-rich-text .mantine-RichTextEditor-content .ProseMirror {
@@ -24,25 +31,43 @@ export const richTextContentStyles = `
 
   .lesson-rich-text .mantine-RichTextEditor-content h1 {
     color: var(--color-text);
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin-top: 1.5em;
     margin-bottom: 0.5em;
   }
 
+  @media (min-width: 640px) {
+    .lesson-rich-text .mantine-RichTextEditor-content h1 {
+      font-size: 2rem;
+    }
+  }
+
   .lesson-rich-text .mantine-RichTextEditor-content h2 {
     color: var(--color-text);
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     margin-top: 1.25em;
     margin-bottom: 0.5em;
   }
 
+  @media (min-width: 640px) {
+    .lesson-rich-text .mantine-RichTextEditor-content h2 {
+      font-size: 1.5rem;
+    }
+  }
+
   .lesson-rich-text .mantine-RichTextEditor-content h3 {
     color: var(--color-text);
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
     margin-top: 1em;
     margin-bottom: 0.5em;
+  }
+
+  @media (min-width: 640px) {
+    .lesson-rich-text .mantine-RichTextEditor-content h3 {
+      font-size: 1.25rem;
+    }
   }
 
   .lesson-rich-text .mantine-RichTextEditor-content p {
@@ -71,9 +96,17 @@ export const richTextContentStyles = `
     background: var(--color-surface-elevated);
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     overflow-x: auto;
     margin: 1em 0;
+    font-size: 13px;
+  }
+
+  @media (min-width: 640px) {
+    .lesson-rich-text .mantine-RichTextEditor-content pre {
+      padding: 16px;
+      font-size: 14px;
+    }
   }
 
   .lesson-rich-text .mantine-RichTextEditor-content pre code {

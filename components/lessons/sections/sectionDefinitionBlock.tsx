@@ -17,6 +17,10 @@ export function SectionDefinitionBlock({
   if (isEditing) {
     return (
       <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="material-symbols-outlined text-lg" style={{ color: "var(--color-primary)" }}>book</span>
+          <span className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--color-primary)" }}>Definition</span>
+        </div>
         <TextInput
           label="Term"
           placeholder="Enter the slang term..."
