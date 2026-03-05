@@ -170,3 +170,19 @@ export async function unpublishLesson(id: string): Promise<LessonActionResult> {
 
   return response;
 }
+
+export async function enrollLesson(lessonPublicId: string): Promise<LessonActionResult> {
+  const response = await handleRequest(`/lessonenrollments`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ lessonPublicId }),
+  }, "Successfully enrolled in lesson");
+
+  if (response.success) {
+    revalidatePath("/lessons");
+    revalidatePath(`/lessons/${lessonPublicId}`);
+  }
+
+  return response;
+}
+
