@@ -20,10 +20,14 @@ export function useNotifications(enabled: boolean) {
     useEffect(() => {
         if (!enabled) return;
         
-        refresh();
+        // Defer refresh call to avoid synchronous setState in effect
+        const timeoutId = setTimeout(() => {
+            refresh();
+        }, 0);
         intervalRef.current = setInterval(refresh, POLL_INTERVAL_MS);
         
         return () => {
+            clearTimeout(timeoutId);
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
     }, [enabled, refresh]);

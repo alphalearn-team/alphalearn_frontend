@@ -72,7 +72,7 @@ export function SectionComparisonBlock({
             <span className="material-symbols-outlined text-4xl mb-2 block opacity-50">
               compare_arrows
             </span>
-            <p className="text-sm">No comparison items yet. Click "Add Item" to start.</p>
+            <p className="text-sm">No comparison items yet. Click &quot;Add Item&quot; to start.</p>
           </div>
         )}
 

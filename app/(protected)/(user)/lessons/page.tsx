@@ -12,7 +12,6 @@ import GradientButton from "@/components/common/gradientbutton";
 import SpotlightSearch from "@/components/spotlightsearch";
 import { getUserRole } from "@/lib/auth/rbac";
 import LessonsGridSection from "@/components/lessons/lessonsGridSection";
-import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
 
 export default async function LessonsPage() {
   const [role, lessons] = await Promise.all([

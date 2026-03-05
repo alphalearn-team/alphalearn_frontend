@@ -109,7 +109,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
     if (originalSection !== null && editingIndex !== null) {
       const updated = [...sectionsWithIds];
       updated[editingIndex] = originalSection;
-      onChange(updated.map(({ _id, ...section }) => section));
+      onChange(updated.map(({ _id: _, ...section }) => section));
     }
     setEditingIndex(null);
     setOriginalSection(null);
