@@ -8,6 +8,7 @@ const sections: SidebarNavSection[] = [
     items: [
       { label: "Dashboard", href: "/admin", icon: "dashboard", exact: true },
       { label: "Lessons", href: "/admin/lessons", icon: "rate_review" },
+      { label: "Suggestions", href: "/admin/concept-suggestions", icon: "fact_check" },
       { label: "Concepts", href: "/admin/concepts", icon: "library_books" },
       { label: "Users", href: "/admin/contributors", icon: "group" },
     ],
