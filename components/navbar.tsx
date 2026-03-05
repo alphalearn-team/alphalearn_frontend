@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Burger, Drawer, Avatar, Menu } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { usePathname } from "next/navigation";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 export default function Navbar() {
   const { user, userRole, isLoading, signOut } = useAuth();
@@ -74,6 +75,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           {!isLoading && (
             <>
+              {user && userRole !== "ADMIN" && <NotificationBell />}
               {user ? (
                 <Menu shadow="md" width={200} position="bottom-end" radius={10}>
                   <Menu.Target>

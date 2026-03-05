@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar } from "@mantine/core";
 import { useAuth } from "@/context/AuthContext";
+import NotificationBell from "../notifications/NotificationBell";
 
 export interface SidebarNavItem {
   label: string;
@@ -110,6 +111,7 @@ export default function AppSidebar({
               )}
             </div>
           </Link>
+          <NotificationBell />
         </div>
 
         <button
