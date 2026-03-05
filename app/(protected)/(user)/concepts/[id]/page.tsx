@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Container, SimpleGrid, Text, Title } from "@mantine/core";
 import { formatDateTime } from "@/lib/formatDate";
 import LessonCard from "@/components/lessons/lessonCard";
+import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
 
 export default async function ConceptPage({
   params,
@@ -98,7 +99,9 @@ async function fetchRelatedLessons(conceptId: string): Promise<LessonSummary[]> 
     try {
       const lessons = await apiFetch<LessonSummary[]>(endpoint);
       if (Array.isArray(lessons)) {
-        return lessons;
+        return lessons.filter(
+          (lesson) => normalizeLessonModerationStatus(lesson.moderationStatus) === "APPROVED",
+        );
       }
     } catch {
       // Try the next common endpoint shape.
