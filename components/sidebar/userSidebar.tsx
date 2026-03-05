@@ -14,13 +14,28 @@ const sections: SidebarNavSection[] = [
   },
 ];
 
-const nonAdminQuickActionsSection: SidebarNavSection = {
-  label: "Quick Actions",
-  items: [
-    { label: "Contributor Access", href: "/contributor-application", icon: "group_add" },
-    { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
-  ],
-};
+function getQuickActionsSection(userRole: string | null): SidebarNavSection | undefined {
+  if (userRole === "ADMIN" || userRole === null) {
+    return undefined;
+  }
+
+  if (userRole === "CONTRIBUTOR") {
+    return {
+      label: "Quick Actions",
+      items: [
+        { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
+      ],
+    };
+  }
+
+  return {
+    label: "Quick Actions",
+    items: [
+      { label: "Contributor Access", href: "/contributor-application", icon: "group_add" },
+      { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
+    ],
+  };
+}
 
 function toRoleLabel(role: string | null) {
   if (role === "CONTRIBUTOR") return "Contributor";
@@ -31,8 +46,7 @@ function toRoleLabel(role: string | null) {
 
 export default function UserSidebar() {
   const { userRole } = useAuth();
-  const quickActionsSection =
-    userRole === "ADMIN" || userRole === null ? undefined : nonAdminQuickActionsSection;
+  const quickActionsSection = getQuickActionsSection(userRole);
 
   return (
     <AppSidebar
