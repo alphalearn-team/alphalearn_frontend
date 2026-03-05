@@ -1,72 +1,163 @@
 "use server";
 
 import type {
-  ConceptSuggestionDraft,
+  ConceptSuggestion,
   ConceptSuggestionDraftRequest,
 } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { getServerSession } from "@/lib/auth/session";
 
 export type ConceptSuggestionDraftResult = {
   success: boolean;
   message: string;
-  data?: ConceptSuggestionDraft;
+  statusCode?: number;
+  data?: ConceptSuggestion;
 };
 
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
+type RequestError = {
+  message: string;
+  statusCode?: number;
+};
+
+const headers = {
+  "Content-Type": "application/json",
+};
+
+function getErrorDetails(error: unknown): RequestError {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = typeof error.message === "string"
+      ? error.message
+      : "Something went wrong";
+    const statusCode = (
+      "statusCode" in error && typeof error.statusCode === "number"
+    )
+      ? error.statusCode
+      : undefined;
+
+    return { message, statusCode };
   }
 
-  return "Something went wrong";
+  return { message: "Something went wrong" };
 }
 
-function validateDraftInput(
-  input: ConceptSuggestionDraftRequest,
-): string | null {
-  if (!input.title.trim()) {
-    return "Title is required";
+async function requestConceptSuggestion(
+  endpoint: string,
+  options: RequestInit,
+): Promise<ConceptSuggestion> {
+  const session = await getServerSession();
+
+  if (!session) {
+    throw { message: "user not authenticated", statusCode: 403 };
   }
 
-  if (!input.description.trim()) {
-    return "Description is required";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      ...(options.headers || {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const rawBody = await response.text();
+
+    if (!rawBody) {
+      throw {
+        message: `Request failed (${response.status}${response.statusText ? ` ${response.statusText}` : ""})`,
+        statusCode: response.status,
+      };
+    }
+
+    let message = rawBody;
+
+    try {
+      const parsedBody = JSON.parse(rawBody) as { message?: string };
+      message = parsedBody.message || rawBody;
+    } catch {
+      // Fall back to the raw response body when the backend does not return JSON.
+    }
+
+    throw {
+      message,
+      statusCode: response.status,
+    };
   }
 
-  return null;
+  return response.json();
+}
+
+async function requestConceptSuggestionNoContent(
+  endpoint: string,
+  options: RequestInit,
+): Promise<void> {
+  const session = await getServerSession();
+
+  if (!session) {
+    throw { message: "user not authenticated", statusCode: 403 };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      ...(options.headers || {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const rawBody = await response.text();
+
+    if (!rawBody) {
+      throw {
+        message: `Request failed (${response.status}${response.statusText ? ` ${response.statusText}` : ""})`,
+        statusCode: response.status,
+      };
+    }
+
+    let message = rawBody;
+
+    try {
+      const parsedBody = JSON.parse(rawBody) as { message?: string };
+      message = parsedBody.message || rawBody;
+    } catch {
+      // Fall back to raw text when backend response isn't JSON.
+    }
+
+    throw {
+      message,
+      statusCode: response.status,
+    };
+  }
 }
 
 export async function createConceptSuggestionDraft(
   input: ConceptSuggestionDraftRequest,
 ): Promise<ConceptSuggestionDraftResult> {
-  const validationError = validateDraftInput(input);
-
-  if (validationError) {
-    return {
-      success: false,
-      message: validationError,
-    };
-  }
-
   try {
-    const draft = await apiFetch<ConceptSuggestionDraft>("/concept-suggestions", {
+    const suggestion = await requestConceptSuggestion("/concept-suggestions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
-        title: input.title.trim(),
-        description: input.description.trim(),
+        title: input.title,
+        description: input.description,
       }),
     });
 
     return {
       success: true,
       message: "Draft created",
-      data: draft,
+      data: suggestion,
     };
   } catch (error) {
+    const { message, statusCode } = getErrorDetails(error);
+
     return {
       success: false,
-      message: getErrorMessage(error),
+      message,
+      statusCode,
     };
   }
 }
@@ -75,26 +166,15 @@ export async function saveConceptSuggestionDraft(
   conceptSuggestionPublicId: string,
   input: ConceptSuggestionDraftRequest,
 ): Promise<ConceptSuggestionDraftResult> {
-  const validationError = validateDraftInput(input);
-
-  if (validationError) {
-    return {
-      success: false,
-      message: validationError,
-    };
-  }
-
   try {
-    const draft = await apiFetch<ConceptSuggestionDraft>(
+    const suggestion = await requestConceptSuggestion(
       `/concept-suggestions/${conceptSuggestionPublicId}`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({
-          title: input.title.trim(),
-          description: input.description.trim(),
+          title: input.title,
+          description: input.description,
         }),
       },
     );
@@ -102,12 +182,68 @@ export async function saveConceptSuggestionDraft(
     return {
       success: true,
       message: "Draft saved",
-      data: draft,
+      data: suggestion,
     };
   } catch (error) {
+    const { message, statusCode } = getErrorDetails(error);
+
     return {
       success: false,
-      message: getErrorMessage(error),
+      message,
+      statusCode,
+    };
+  }
+}
+
+export async function submitConceptSuggestionDraft(
+  conceptSuggestionPublicId: string,
+): Promise<ConceptSuggestionDraftResult> {
+  try {
+    const suggestion = await requestConceptSuggestion(
+      `/concept-suggestions/${conceptSuggestionPublicId}/submit`,
+      {
+        method: "POST",
+      },
+    );
+
+    return {
+      success: true,
+      message: "Submitted for review",
+      data: suggestion,
+    };
+  } catch (error) {
+    const { message, statusCode } = getErrorDetails(error);
+
+    return {
+      success: false,
+      message,
+      statusCode,
+    };
+  }
+}
+
+export async function deleteConceptSuggestionDraft(
+  conceptSuggestionPublicId: string,
+): Promise<ConceptSuggestionDraftResult> {
+  try {
+    await requestConceptSuggestionNoContent(
+      `/concept-suggestions/${conceptSuggestionPublicId}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    return {
+      success: true,
+      message: "Draft deleted",
+    };
+  } catch (error) {
+    const { message, statusCode } = getErrorDetails(error);
+
+    return {
+      success: false,
+      message,
+      statusCode,
     };
   }
 }
