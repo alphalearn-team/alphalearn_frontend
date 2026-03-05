@@ -69,10 +69,23 @@ export default function AppSidebar({
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
-  const isActive = (item: SidebarNavItem) => {
-    if (item.exact) return pathname === item.href;
-    return pathname.startsWith(item.href);
-  };
+  const normalizePath = (p: string) => (p !== "/" ? p.replace(/\/+$/, "") : p);
+
+  const normalizedPathname = normalizePath(pathname);
+
+  // Flatten all nav items so we can pick ONE active item
+  const allItems = sections.flatMap((s) => s.items);
+
+  const activeHref =
+    allItems
+      .filter((item) => {
+        const href = normalizePath(item.href);
+        if (item.exact) return normalizedPathname === href;
+        return normalizedPathname === href || normalizedPathname.startsWith(href + "/");
+      })
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
+
+  const isActive = (item: SidebarNavItem) => item.href === activeHref;
 
   return (
     <>
