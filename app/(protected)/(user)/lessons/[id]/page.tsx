@@ -14,7 +14,6 @@ import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
 import LessonModerationFeedbackPanel from "@/components/lessons/lessonModerationFeedbackPanel";
 import {
   getLessonModerationMeta,
-  normalizeLessonModerationStatus,
 } from "@/lib/lessonModeration";
 
 function normalizeLessonDetail(lesson: Lesson): Lesson {

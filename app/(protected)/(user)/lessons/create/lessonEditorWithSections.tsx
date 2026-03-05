@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextInput, Button, MultiSelect } from "@mantine/core";
 import { SectionEditor } from "@/components/lessons/sectionEditor";
@@ -96,24 +96,24 @@ export default function LessonEditorWithSections({
       let errorMessage = "";
 
       if (section.sectionType === "text") {
-        const content = section.content as any;
+        const content = section.content as { html: string };
         if (!content.html || isHTMLEmpty(content.html)) {
           errorMessage = "Please add content to this text section";
         }
       } else if (section.sectionType === "example") {
-        const examples = (section.content as any).examples || [];
+        const examples = (section.content as { examples: Array<{ text: string }> }).examples || [];
         if (examples.length === 0 || !examples[0].text || examples[0].text.trim() === "") {
           errorMessage = "Please add at least one example";
         }
       } else if (section.sectionType === "definition") {
-        const content = section.content as any;
+        const content = section.content as { term: string; definition: string };
         if (!content.term || content.term.trim() === "") {
           errorMessage = "Please enter a term";
         } else if (!content.definition || content.definition.trim() === "") {
           errorMessage = "Please enter a definition";
         }
       } else if (section.sectionType === "comparison") {
-        const items = (section.content as any).items || [];
+        const items = (section.content as { items: Array<{ label: string; description: string }> }).items || [];
         if (items.length < 2) {
           errorMessage = "Please add at least 2 items to compare";
         } else {
@@ -129,7 +129,7 @@ export default function LessonEditorWithSections({
           }
         }
       } else if (section.sectionType === "callout") {
-        const content = section.content as any;
+        const content = section.content as { html: string };
         if (!content.html || isHTMLEmpty(content.html)) {
           errorMessage = "Please add content to this callout";
         }

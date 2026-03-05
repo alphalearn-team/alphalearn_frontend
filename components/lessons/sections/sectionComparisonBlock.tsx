@@ -111,7 +111,7 @@ export function SectionComparisonBlock({
               </div>
 
               <TextInput
-                placeholder="Label (e.g., 'Skibidi' or 'Traditional way')"
+                placeholder="Label (e.g., &quot;Skibidi&quot; or &quot;Traditional way&quot;)"
                 value={item.label}
                 onChange={(e) =>
                   handleUpdateItem(index, "label", e.currentTarget.value)

@@ -2,7 +2,7 @@
 
 // server side logic that the client component can use
 
-import { ApiError, apiFetch } from "../api";
+import { apiFetch } from "../api";
 import { CreateLessonRequest, CreateLessonWithSectionsRequest, Lesson, LessonContent } from "@/interfaces/interfaces";
 import { revalidatePath } from "next/cache";
 

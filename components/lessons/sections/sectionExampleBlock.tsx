@@ -163,7 +163,7 @@ export function SectionExampleBlock({
                   className="text-base leading-relaxed mb-1"
                   style={{ color: "var(--color-text)" }}
                 >
-                  "{example.text}"
+                  &quot;{example.text}&quot;
                 </p>
 
                 {example.context && (

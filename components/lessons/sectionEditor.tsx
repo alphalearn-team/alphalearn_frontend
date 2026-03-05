@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, TextInput, Textarea, ActionIcon, Modal, Tooltip } from "@mantine/core";
+import { Button, TextInput, ActionIcon, Tooltip } from "@mantine/core";
 import ConfirmModal from "@/components/common/confirmModal";
 import type {
   LessonSectionInput,
@@ -27,7 +27,7 @@ function generateId(): string {
   return `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function getDefaultContent(type: SectionType): any {
+function getDefaultContent(type: SectionType): TextSectionContent | ExampleSectionContent | CalloutSectionContent | DefinitionSectionContent | ComparisonSectionContent {
   switch (type) {
     case "text":
       return { html: "" } as TextSectionContent;
@@ -51,7 +51,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
   const [originalSection, setOriginalSection] = useState<SectionWithId | null>(null);
   
   // Add IDs to sections if they don't have them
-  const sectionsWithIds: SectionWithId[] = sections.map((s: any) => ({
+  const sectionsWithIds: SectionWithId[] = sections.map((s) => ({
     ...s,
     _id: s._id || generateId(),
   }));

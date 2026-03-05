@@ -20,7 +20,7 @@ export function SectionBlock({
   onChange,
   showTitle = true,
 }: SectionBlockProps) {
-  const handleContentChange = (content: any) => {
+  const handleContentChange = (content: TextSectionContent | ExampleSectionContent | CalloutSectionContent | DefinitionSectionContent | ComparisonSectionContent) => {
     if (onChange) {
       onChange({
         sectionType: section.sectionType,
@@ -43,7 +43,7 @@ export function SectionBlock({
 
       {section.sectionType === "text" && (
         <SectionTextBlock
-          content={section.content as any}
+          content={section.content as TextSectionContent}
           isEditing={isEditing}
           onChange={handleContentChange}
         />
@@ -51,7 +51,7 @@ export function SectionBlock({
 
       {section.sectionType === "example" && (
         <SectionExampleBlock
-          content={section.content as any}
+          content={section.content as ExampleSectionContent}
           isEditing={isEditing}
           onChange={handleContentChange}
         />
@@ -59,7 +59,7 @@ export function SectionBlock({
 
       {section.sectionType === "callout" && (
         <SectionCalloutBlock
-          content={section.content as any}
+          content={section.content as CalloutSectionContent}
           isEditing={isEditing}
           onChange={handleContentChange}
         />
@@ -67,7 +67,7 @@ export function SectionBlock({
 
       {section.sectionType === "definition" && (
         <SectionDefinitionBlock
-          content={section.content as any}
+          content={section.content as DefinitionSectionContent}
           isEditing={isEditing}
           onChange={handleContentChange}
         />
@@ -75,7 +75,7 @@ export function SectionBlock({
 
       {section.sectionType === "comparison" && (
         <SectionComparisonBlock
-          content={section.content as any}
+          content={section.content as ComparisonSectionContent}
           isEditing={isEditing}
           onChange={handleContentChange}
         />
