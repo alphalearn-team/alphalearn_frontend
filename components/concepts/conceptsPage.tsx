@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
 import type { Concept } from "@/interfaces/interfaces";
 import { useState } from "react";
 import {
@@ -67,9 +66,6 @@ export default function ConceptsPage({ concepts }: ConceptsPageProps) {
 
 /* ── Hero: full-screen, matching lessons page ── */
 function HeroSection() {
-  const { userRole } = useAuth();
-  const canSuggestConcept = userRole === "LEARNER" || userRole === "CONTRIBUTOR";
-
   return (
     <div className="border-b border-[var(--color-border)] min-h-screen flex">
       <Container className="my-auto w-full">
@@ -100,11 +96,6 @@ function HeroSection() {
             <GradientButton href="#concepts-list" className="!w-[200px] justify-center">
               Browse Concepts
             </GradientButton>
-            {canSuggestConcept && (
-              <GradientButton href="/concepts/suggest/drafts" className="!w-[200px] justify-center">
-                My Suggestions
-              </GradientButton>
-            )}
           </div>
         </Stack>
       </Container>
