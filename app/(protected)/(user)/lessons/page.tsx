@@ -44,9 +44,7 @@ export default async function LessonsPage() {
 async function fetchLessons(): Promise<LessonSummary[] | null> {
   try {
     const lessons = await apiFetch<LessonSummary[]>("/lessons");
-    return lessons.filter(
-      (lesson) => normalizeLessonModerationStatus(lesson.moderationStatus) === "APPROVED",
-    );
+    return lessons;
   } catch {
     return null;
   }
