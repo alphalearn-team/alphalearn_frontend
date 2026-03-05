@@ -120,7 +120,7 @@ export default function LessonsManagementTable({
                 <tr>
                   <td colSpan={5} className="py-12 text-center">
                     <AdminEmptyState
-                      icon="check_circle"
+                      icon="generic"
                       title="No pending lessons found"
                       description="The manual review queue is empty."
                     />

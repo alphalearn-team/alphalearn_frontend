@@ -3,15 +3,17 @@
 import {
   Spotlight,
   type SpotlightActionData,
-  type SpotlightActions,
+  type SpotlightActionGroupData,
 } from "@mantine/spotlight";
 import type { ReactNode } from "react";
+
+type SpotlightActionItem = SpotlightActionData | SpotlightActionGroupData;
 
 interface ContentSpotlightProps {
   actions: SpotlightActionData[];
   placeholder: string;
   nothingFound: ReactNode;
-  filter?: (query: string, actions: SpotlightActions[]) => SpotlightActions[];
+  filter?: (query: string, actions: SpotlightActionItem[]) => SpotlightActionItem[];
   limit?: number;
 }
 
