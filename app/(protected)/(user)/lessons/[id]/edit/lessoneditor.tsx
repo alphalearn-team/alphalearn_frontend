@@ -387,7 +387,24 @@ export default function LessonEditor({
           )}
 
           {!isCreateMode && (
-            initialStatus === "PENDING" || initialStatus === "APPROVED" ? (
+            initialStatus === "PENDING" ? (
+              <button
+                type="button"
+                disabled
+                className="px-6 py-3 rounded-xl text-sm font-bold
+                  bg-transparent
+                  text-[var(--color-text-muted)] border border-[var(--color-border)]
+                  disabled:opacity-70 disabled:cursor-not-allowed
+                  transition-all duration-200
+                  flex items-center gap-2"
+                title="This lesson is currently in manual review."
+              >
+                <span className="material-symbols-outlined text-base">
+                  hourglass_top
+                </span>
+                Submitted for Review
+              </button>
+            ) : initialStatus === "APPROVED" ? (
               <button
                 type="button"
                 disabled={loading}
