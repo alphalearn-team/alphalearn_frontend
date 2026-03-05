@@ -1,6 +1,14 @@
 "use client";
 
-import type { LessonSection, LessonSectionInput } from "@/interfaces/interfaces";
+import type {
+  LessonSection,
+  LessonSectionInput,
+  TextSectionContent,
+  ExampleSectionContent,
+  CalloutSectionContent,
+  DefinitionSectionContent,
+  ComparisonSectionContent,
+} from "@/interfaces/interfaces";
 import { SectionTextBlock } from "./sectionTextBlock";
 import { SectionExampleBlock } from "./sectionExampleBlock";
 import { SectionCalloutBlock } from "./sectionCalloutBlock";

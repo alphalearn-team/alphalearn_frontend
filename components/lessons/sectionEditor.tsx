@@ -53,7 +53,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
   // Add IDs to sections if they don't have them
   const sectionsWithIds: SectionWithId[] = sections.map((s) => ({
     ...s,
-    _id: s._id || generateId(),
+    _id: (s as any)._id || generateId(),
   }));
 
   const handleAddSection = (type: SectionType) => {
