@@ -1,13 +1,16 @@
+import { redirect } from "next/navigation";
 import { Container, Stack, Text, Title } from "@mantine/core";
 import ContributorApplicationPanel from "@/components/profile/contributorApplicationPanel";
 import { getUserRole } from "@/lib/auth/rbac";
 import { fetchMyContributorApplications } from "@/lib/data/contributorApplications";
 
 export default async function ContributorApplicationPage() {
-  const [{ data, error }, role] = await Promise.all([
-    fetchMyContributorApplications(),
-    getUserRole(),
-  ]);
+  const role = await getUserRole();
+  if (role === "CONTRIBUTOR") {
+    redirect("/lessons");
+  }
+
+  const { data, error } = await fetchMyContributorApplications();
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
@@ -23,7 +26,7 @@ export default async function ContributorApplicationPage() {
           <ContributorApplicationPanel
             initialApplications={data}
             initialLoadError={error}
-            role={role === "CONTRIBUTOR" ? "CONTRIBUTOR" : "LEARNER"}
+            role="LEARNER"
           />
         </Stack>
       </Container>
