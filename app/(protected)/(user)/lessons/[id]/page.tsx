@@ -53,7 +53,7 @@ export default async function LessonPage({
 
   const lessonPublicId = lessonContent.lessonPublicId || id;
   let ownsLesson = false;
-  const normalizedStatus = normalizeLessonModerationStatus(lessonContent.moderationStatus);
+  const normalizedStatus = lessonContent.moderationStatus ?? "APPROVED";
   const moderationMeta = getLessonModerationMeta(normalizedStatus);
   const latestReasons = lessonContent.latestModerationReasons ?? [];
   const hasModerationFeedback =
