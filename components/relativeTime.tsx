@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Tooltip } from "@mantine/core";
 
 interface RelativeTimeProps {
@@ -58,21 +58,23 @@ export function getUrgencyLevel(date: Date): "normal" | "warning" | "urgent" | "
 }
 
 export function RelativeTime({ date, className, showTooltip = true }: RelativeTimeProps) {
-  const [relativeTime, setRelativeTime] = useState<string>("");
-  const [fullDate, setFullDate] = useState<string>("");
+  const dateObj = useMemo(() => new Date(date), [date]);
+  const fullDate = useMemo(() => dateObj.toLocaleString(), [dateObj]);
+  const [minuteTick, setMinuteTick] = useState(0);
 
   useEffect(() => {
-    const dateObj = new Date(date);
-    setRelativeTime(getRelativeTime(dateObj));
-    setFullDate(dateObj.toLocaleString());
-
     // Update relative time every minute
     const interval = setInterval(() => {
-      setRelativeTime(getRelativeTime(dateObj));
+      setMinuteTick((tick) => tick + 1);
     }, 60000);
 
     return () => clearInterval(interval);
   }, [date]);
+
+  const relativeTime = useMemo(() => {
+    void minuteTick;
+    return getRelativeTime(dateObj);
+  }, [dateObj, minuteTick]);
 
   if (!relativeTime) return null;
 

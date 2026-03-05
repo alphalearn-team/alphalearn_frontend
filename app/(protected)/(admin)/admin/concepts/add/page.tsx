@@ -136,7 +136,7 @@ export default function AddConceptPage() {
               <span className="material-symbols-outlined text-[var(--color-accent)] text-base mt-0.5">
                 check_circle
               </span>
-              <span>Use clear, concise language that's easy to understand</span>
+              <span>Use clear, concise language that&apos;s easy to understand</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="material-symbols-outlined text-[var(--color-accent)] text-base mt-0.5">

@@ -12,82 +12,84 @@ export default async function ConceptPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  let concept: Concept;
+  let relatedLessons: LessonSummary[];
 
   try {
-    const concept = await apiFetch<Concept>(`/concepts/${id}`);
-    const relatedLessons = await fetchRelatedLessons(id);
+    concept = await apiFetch<Concept>(`/concepts/${id}`);
+    relatedLessons = await fetchRelatedLessons(id);
+  } catch {
+    notFound();
+  }
 
-    return (
-      <Container size="md" py="xl">
-        <div className="flex flex-col gap-8">
-          <div>
-            <Title order={1} mb="sm">
-              {concept.title}
-            </Title>
-          </div>
+  return (
+    <Container size="md" py="xl">
+      <div className="flex flex-col gap-8">
+        <div>
+          <Title order={1} mb="sm">
+            {concept.title}
+          </Title>
+        </div>
 
-          <div
-            className="rounded-xl border border-[var(--color-border)] overflow-hidden"
-            style={{ background: "var(--color-surface)" }}
-          >
-            <div className="p-6 flex flex-col gap-5">
-              <div>
-                <Text fw={600} mb={6}>
-                  Description
-                </Text>
-                <Text style={{ whiteSpace: "pre-wrap" }}>
-                  {concept.description || "No description available."}
-                </Text>
-              </div>
-
-              <div>
-                <Text fw={600} mb={6}>
-                  Created
-                </Text>
-                <Text c="dimmed">
-                  {concept.createdAt
-                    ? formatDateTime(concept.createdAt)
-                    : "Unknown"}
-                </Text>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
+        <div
+          className="rounded-xl border border-[var(--color-border)] overflow-hidden"
+          style={{ background: "var(--color-surface)" }}
+        >
+          <div className="p-6 flex flex-col gap-5">
             <div>
-              <Title order={3} mb="xs">
-                Related Lessons
-              </Title>
-              <Text c="dimmed" size="sm">
-                Lessons connected to this concept.
+              <Text fw={600} mb={6}>
+                Description
+              </Text>
+              <Text style={{ whiteSpace: "pre-wrap" }}>
+                {concept.description || "No description available."}
               </Text>
             </div>
 
-            {relatedLessons.length === 0 ? (
-              <div
-                className="rounded-xl border border-[var(--color-border)] p-6"
-                style={{ background: "var(--color-surface)" }}
-              >
-                <Text c="dimmed">No related lessons found yet.</Text>
-              </div>
-            ) : (
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                {relatedLessons.map((lesson) => (
-                  <LessonCard
-                    key={lesson.lessonPublicId}
-                    {...lesson}
-                    showModerationBadge={false}
-                  />
-                ))}
-              </SimpleGrid>
-            )}
+            <div>
+              <Text fw={600} mb={6}>
+                Created
+              </Text>
+              <Text c="dimmed">
+                {concept.createdAt
+                  ? formatDateTime(concept.createdAt)
+                  : "Unknown"}
+              </Text>
+            </div>
           </div>
         </div>
-      </Container>
-    );
-  } catch {
-    return notFound();
-  }
+
+        <div className="flex flex-col gap-4">
+          <div>
+            <Title order={3} mb="xs">
+              Related Lessons
+            </Title>
+            <Text c="dimmed" size="sm">
+              Lessons connected to this concept.
+            </Text>
+          </div>
+
+          {relatedLessons.length === 0 ? (
+            <div
+              className="rounded-xl border border-[var(--color-border)] p-6"
+              style={{ background: "var(--color-surface)" }}
+            >
+              <Text c="dimmed">No related lessons found yet.</Text>
+            </div>
+          ) : (
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              {relatedLessons.map((lesson) => (
+                <LessonCard
+                  key={lesson.lessonPublicId}
+                  {...lesson}
+                  showModerationBadge={false}
+                />
+              ))}
+            </SimpleGrid>
+          )}
+        </div>
+      </div>
+    </Container>
+  );
 }
 
 async function fetchRelatedLessons(conceptId: string): Promise<LessonSummary[]> {

@@ -44,7 +44,7 @@ export default async function MyLessonsPage() {
                   My <span className="text-[var(--color-primary)]">Lessons</span>
                 </Title>
                 <Text className="text-[var(--color-text-secondary)]">
-                  Manage and track the lessons you've created.
+                  Manage and track the lessons you&apos;ve created.
                 </Text>
               </Stack>
               {canCreateLessons && (
@@ -66,11 +66,11 @@ export default async function MyLessonsPage() {
               </span>
             </div>
             <Title order={3} className="text-[var(--color-text-muted)]">No lessons yet</Title>
-            <Text className="text-[var(--color-text-muted)]">
-              {canCreateLessons
-                ? "Start your journey by creating your first lesson!"
-                : "You haven't authored any lessons yet."}
-            </Text>
+              <Text className="text-[var(--color-text-muted)]">
+                {canCreateLessons
+                  ? "Start your journey by creating your first lesson!"
+                  : "You haven&apos;t authored any lessons yet."}
+              </Text>
             {canCreateLessons && (
               <Link href="/lessons/create">
                 <Button variant="outline" radius="xl">Create First Lesson</Button>

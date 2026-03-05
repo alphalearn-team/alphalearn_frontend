@@ -24,6 +24,14 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -105,8 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       showSuccess("Logged in successfully!");
       // Layouts handle role-based routing (admin → /admin, etc.)
       router.push("/lessons");
-    } catch (err: any) {
-      showError(err.message || "Failed to log in");
+    } catch (err: unknown) {
+      showError(getErrorMessage(err, "Failed to log in"));
     }
   };
 
@@ -122,19 +130,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) throw error;
-    } catch (err: any) {
-      showError(err.message || "Failed to sign in with Google");
+    } catch (err: unknown) {
+      showError(getErrorMessage(err, "Failed to sign in with Google"));
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
       showSuccess("Account created! Please check your email.");
       router.push("/signin");
-    } catch (err: any) {
-      showError(err.message || "Failed to sign up");
+    } catch (err: unknown) {
+      showError(getErrorMessage(err, "Failed to sign up"));
     }
   };
 
@@ -146,8 +154,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserRole(null);
       showSuccess("Logged out successfully!");
       router.push("/signin");
-    } catch (err: any) {
-      showError(err.message || "Failed to log out");
+    } catch (err: unknown) {
+      showError(getErrorMessage(err, "Failed to log out"));
     }
   };
 
