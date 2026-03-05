@@ -12,6 +12,7 @@ import GradientButton from "@/components/common/gradientbutton";
 import SpotlightSearch from "@/components/spotlightsearch";
 import { getUserRole } from "@/lib/auth/rbac";
 import LessonsGridSection from "@/components/lessons/lessonsGridSection";
+import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
 
 export default async function LessonsPage() {
   const [role, lessons] = await Promise.all([
@@ -42,7 +43,10 @@ export default async function LessonsPage() {
 
 async function fetchLessons(): Promise<LessonSummary[] | null> {
   try {
-    return await apiFetch<LessonSummary[]>("/lessons");
+    const lessons = await apiFetch<LessonSummary[]>("/lessons");
+    return lessons.filter(
+      (lesson) => normalizeLessonModerationStatus(lesson.moderationStatus) === "APPROVED",
+    );
   } catch {
     return null;
   }

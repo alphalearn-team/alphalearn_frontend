@@ -102,7 +102,6 @@ export default async function EditLessonPage({
         <LessonModerationFeedbackPanel
           status={status}
           reasons={lesson.latestModerationReasons}
-          automatedReasons={lesson.automatedModerationReasons}
           adminRejectionReason={lesson.adminRejectionReason}
           eventType={lesson.latestModerationEventType}
           moderatedAt={lesson.latestModeratedAt}

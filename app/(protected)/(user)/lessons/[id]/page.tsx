@@ -23,9 +23,6 @@ function normalizeLessonDetail(lesson: Lesson): Lesson {
     latestModerationReasons: Array.isArray(lesson.latestModerationReasons)
       ? lesson.latestModerationReasons
       : [],
-    automatedModerationReasons: Array.isArray(lesson.automatedModerationReasons)
-      ? lesson.automatedModerationReasons
-      : [],
     adminRejectionReason: lesson.adminRejectionReason ?? null,
   };
 }
@@ -58,10 +55,8 @@ export default async function LessonPage({
   let ownsLesson = false;
   const normalizedStatus = normalizeLessonModerationStatus(lessonContent.moderationStatus);
   const moderationMeta = getLessonModerationMeta(normalizedStatus);
-  const automatedReasons = lessonContent.automatedModerationReasons ?? [];
   const latestReasons = lessonContent.latestModerationReasons ?? [];
   const hasModerationFeedback =
-    automatedReasons.length > 0 ||
     latestReasons.length > 0 ||
     Boolean(lessonContent.adminRejectionReason) ||
     Boolean(lessonContent.latestModerationEventType) ||
@@ -77,6 +72,10 @@ export default async function LessonPage({
     } catch {
       ownsLesson = false;
     }
+  }
+
+  if (role !== "ADMIN" && !ownsLesson && normalizedStatus !== "APPROVED") {
+    return notFound();
   }
 
   const canEdit = role === "CONTRIBUTOR" && ownsLesson;
@@ -137,7 +136,6 @@ export default async function LessonPage({
           <LessonModerationFeedbackPanel
             status={normalizedStatus}
             reasons={lessonContent.latestModerationReasons}
-            automatedReasons={lessonContent.automatedModerationReasons}
             adminRejectionReason={lessonContent.adminRejectionReason}
             eventType={lessonContent.latestModerationEventType}
             moderatedAt={lessonContent.latestModeratedAt}

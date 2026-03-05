@@ -90,7 +90,7 @@ export function getLessonModerationSubmitToast(
     case "APPROVED":
       return "Lesson approved and published.";
     case "PENDING":
-      return "Lesson submitted and pending manual review.";
+      return "Submitted for manual review";
     case "REJECTED":
       return "Lesson rejected. Review the moderation feedback.";
     default:

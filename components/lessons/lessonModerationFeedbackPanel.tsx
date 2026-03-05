@@ -9,7 +9,6 @@ import {
 interface LessonModerationFeedbackPanelProps {
   status?: string | null;
   reasons?: string[];
-  automatedReasons?: string[];
   adminRejectionReason?: string | null;
   eventType?: string | null;
   moderatedAt?: string | null;
@@ -18,20 +17,17 @@ interface LessonModerationFeedbackPanelProps {
 export default function LessonModerationFeedbackPanel({
   status,
   reasons = [],
-  automatedReasons = [],
   adminRejectionReason,
   eventType,
   moderatedAt,
 }: LessonModerationFeedbackPanelProps) {
   const meta = getLessonModerationMeta(status);
-  const visibleAutomatedReasons = (automatedReasons.length > 0
-    ? automatedReasons
-    : reasons).filter(Boolean);
+  const visibleReasons = reasons.filter(Boolean);
   const visibleAdminRejectionReason = adminRejectionReason?.trim() || null;
   const formattedEventType = formatLessonModerationEventType(eventType);
   const hasMetadata = Boolean(formattedEventType || moderatedAt);
 
-  if (visibleAutomatedReasons.length === 0 && !visibleAdminRejectionReason && !hasMetadata) {
+  if (visibleReasons.length === 0 && !visibleAdminRejectionReason && !hasMetadata) {
     return null;
   }
 
@@ -62,13 +58,13 @@ export default function LessonModerationFeedbackPanel({
         </div>
       )}
 
-      {visibleAutomatedReasons.length > 0 && (
+      {visibleReasons.length > 0 && (
         <div className="mt-3">
           <div className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
-            Automated Moderation Reasons
+            Moderation Reasons
           </div>
           <ul className="mt-2 space-y-2 text-sm text-[var(--color-text-secondary)]">
-            {visibleAutomatedReasons.map((reason) => (
+            {visibleReasons.map((reason) => (
               <li key={reason} className="flex items-start gap-2">
                 <span
                   className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"

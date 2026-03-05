@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 const RichTextEditor = dynamic(() => import("@/components/texteditor/textEditor").then(m => m.RichTextEditor), { ssr: false });
@@ -9,7 +9,10 @@ import { showSuccess, showError } from "@/lib/actions/notifications";
 import { createLesson, saveLesson, submitLesson, deleteLesson, unpublishLesson } from "@/lib/actions/lesson";
 import { Concept, CreateLessonRequest, LessonContent } from "@/interfaces/interfaces";
 import ConfirmModal from "@/components/common/confirmModal";
-import { getLessonModerationSubmitToast } from "@/lib/lessonModeration";
+import {
+  getLessonModerationSubmitToast,
+  normalizeLessonModerationStatus,
+} from "@/lib/lessonModeration";
 
 export interface LessonEditorProps {
   id?: string;
@@ -46,7 +49,14 @@ export default function LessonEditor({
   const [loadingAction, setLoadingAction] = useState<"save" | "submit" | null>(null);
   const [discardModalOpened, setDiscardModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(
+    normalizeLessonModerationStatus(initialStatus),
+  );
   const isCreateMode = !id;
+
+  useEffect(() => {
+    setCurrentStatus(normalizeLessonModerationStatus(initialStatus));
+  }, [initialStatus]);
 
   const createLessonWithMode = async (submitForReview: boolean) => {
     if (selectedConceptPublicIds.length === 0) {
@@ -104,6 +114,10 @@ export default function LessonEditor({
       const response = await saveLesson({ id: id!, title, content });
 
       if (response.success) {
+        const moderationStatus = response.data?.moderationStatus;
+        if (moderationStatus) {
+          setCurrentStatus(normalizeLessonModerationStatus(moderationStatus));
+        }
         showSuccess(response.message || "Saved!");
         router.refresh();
       } else {
@@ -238,7 +252,7 @@ export default function LessonEditor({
               minHeight: "54px",
               padding: "8px 16px",
               color: "var(--color-text)",
-              "&:focus-within": {
+              "&:focusWithin": {
                 borderColor: "var(--color-primary)",
                 boxShadow: "0 0 0 2px var(--color-primary-overlay)",
               }
@@ -268,7 +282,7 @@ export default function LessonEditor({
                 backgroundColor: "var(--color-primary)",
               },
               "&[dataComboboxActive]":{
-                BackgroundColor:"var(--color-primary-hover)",
+                backgroundColor:"var(--color-primary-hover)",
               },
             },
             pill: {
@@ -387,7 +401,24 @@ export default function LessonEditor({
           )}
 
           {!isCreateMode && (
-            initialStatus === "PENDING" || initialStatus === "APPROVED" ? (
+            currentStatus === "PENDING" ? (
+              <button
+                type="button"
+                disabled
+                className="px-6 py-3 rounded-xl text-sm font-bold
+                  bg-transparent
+                  text-[var(--color-text-muted)] border border-[var(--color-border)]
+                  disabled:opacity-70 disabled:cursor-not-allowed
+                  transition-all duration-200
+                  flex items-center gap-2"
+                title="This lesson is currently in manual review."
+              >
+                <span className="material-symbols-outlined text-base">
+                  hourglass_top
+                </span>
+                Submitted for Review
+              </button>
+            ) : currentStatus === "APPROVED" ? (
               <button
                 type="button"
                 disabled={loading}
@@ -405,7 +436,7 @@ export default function LessonEditor({
                 </span>
                 Unpublish
               </button>
-            ) : initialStatus === "UNPUBLISHED" || initialStatus === "REJECTED" ? (
+            ) : currentStatus === "UNPUBLISHED" || currentStatus === "REJECTED" ? (
               <button
                 type="button"
                 disabled={loading}
