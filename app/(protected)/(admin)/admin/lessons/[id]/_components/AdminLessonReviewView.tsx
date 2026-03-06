@@ -4,7 +4,7 @@ import { Container, Stack } from "@mantine/core";
 import type { AdminLessonReviewDetail } from "@/interfaces/interfaces";
 import LessonReviewContent from "./LessonReviewContent";
 import LessonReviewHeader from "./LessonReviewHeader";
-import { useAdminLessonReview } from "./useAdminLessonReview";
+import { useAdminLessonReview } from "../_hooks/useAdminLessonReview";
 
 interface AdminLessonReviewViewProps {
   lesson: AdminLessonReviewDetail;

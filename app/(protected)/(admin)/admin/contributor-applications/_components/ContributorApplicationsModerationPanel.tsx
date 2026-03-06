@@ -4,7 +4,7 @@ import type { AdminContributorApplication } from "@/interfaces/interfaces";
 import ApplicationDetailPanel from "./ApplicationDetailPanel";
 import ApplicationsTable from "./ApplicationsTable";
 import RejectApplicationModal from "./RejectApplicationModal";
-import { useContributorApplicationModeration } from "./useContributorApplicationModeration";
+import { useContributorApplicationModeration } from "../_hooks/useContributorApplicationModeration";
 
 type ModerationPanelProps = {
   initialPending: AdminContributorApplication[];

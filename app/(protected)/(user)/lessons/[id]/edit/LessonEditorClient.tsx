@@ -7,7 +7,7 @@ import { Concept, LessonContent } from "@/interfaces/interfaces";
 import LessonConceptSelect from "./_components/LessonConceptSelect";
 import LessonEditorActionBar from "./_components/LessonEditorActionBar";
 import LessonTitleInput from "./_components/LessonTitleInput";
-import { useLessonEditorActions } from "./_components/useLessonEditorActions";
+import { useLessonEditorActions } from "./_hooks/useLessonEditorActions";
 
 const RichTextEditor = dynamic(
   () => import("@/components/texteditor/TextEditor").then((module) => module.RichTextEditor),

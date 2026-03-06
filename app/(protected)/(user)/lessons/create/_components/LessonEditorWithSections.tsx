@@ -5,7 +5,7 @@ import LessonBasicsCard from "./LessonBasicsCard";
 import LessonContentSection from "./LessonContentSection";
 import LessonCreateActionBar from "./LessonCreateActionBar";
 import LessonSubmissionError from "./LessonSubmissionError";
-import { useLessonCreationForm } from "./useLessonCreationForm";
+import { useLessonCreationForm } from "../_hooks/useLessonCreationForm";
 
 interface LessonEditorWithSectionsProps {
   availableConcepts?: Concept[];

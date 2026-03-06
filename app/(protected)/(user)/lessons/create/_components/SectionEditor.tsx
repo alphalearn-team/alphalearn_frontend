@@ -6,7 +6,7 @@ import type { LessonSectionInput } from "@/interfaces/interfaces";
 import { SectionPicker } from "@/components/lessons/sections";
 import SectionEditorCard from "./SectionEditorCard";
 import SectionEditorEmptyState from "./SectionEditorEmptyState";
-import { useSectionEditorState } from "./useSectionEditorState";
+import { useSectionEditorState } from "../_hooks/useSectionEditorState";
 
 interface SectionEditorProps {
   sections: LessonSectionInput[];

@@ -2,7 +2,7 @@
 
 import { Button } from "@mantine/core";
 import RejectLessonModal from "./RejectLessonModal";
-import { useLessonReviewActions } from "./useLessonReviewActions";
+import { useLessonReviewActions } from "../_hooks/useLessonReviewActions";
 
 interface ReviewActionsProps {
   lessonPublicId: string;
