@@ -1,30 +1,18 @@
-import { apiFetch } from "@/lib/api";
-import { Card } from "@mantine/core";
 import { Suspense } from "react";
-import CardSkeleton from "@/components/common/CardSkeleton";
-import LessonsManagementTable from "./_components/LessonsManagementTable";
 import AdminBreadcrumb from "@/components/admin/Breadcrumb";
 import AdminPageHeader from "@/components/admin/PageHeader";
-import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 import { getUserRole } from "@/lib/auth/rbac";
-
-function normalizeQueueLesson(lesson: AdminLessonQueueItem): AdminLessonQueueItem {
-  return {
-    ...lesson,
-    automatedModerationReasons: Array.isArray(lesson.automatedModerationReasons)
-      ? lesson.automatedModerationReasons
-      : [],
-    adminRejectionReason: lesson.adminRejectionReason ?? null,
-  };
-}
+import LessonsManagementTable from "./_components/LessonsManagementTable";
+import LessonsManagementFallback from "./_components/LessonsManagementFallback";
+import { fetchPendingAdminLessons } from "./lessonsQueueData";
 
 async function LessonsData() {
   const role = await getUserRole();
-  if (role !== "ADMIN") return null;
+  if (role !== "ADMIN") {
+    return null;
+  }
 
-  const lessonsResponse = await apiFetch<AdminLessonQueueItem[]>("/admin/lessons?status=PENDING");
-  const lessons = lessonsResponse.map(normalizeQueueLesson);
-
+  const lessons = await fetchPendingAdminLessons();
   return <LessonsManagementTable lessons={lessons} />;
 }
 
@@ -40,13 +28,7 @@ export default function ManageLessonsPage() {
           icon="rate_review"
         />
 
-        <Suspense
-          fallback={
-            <Card className="admin-card">
-              <CardSkeleton count={6} cols={1} showBookmark={false} lines={2} />
-            </Card>
-          }
-        >
+        <Suspense fallback={<LessonsManagementFallback />}>
           <LessonsData />
         </Suspense>
       </div>
