@@ -29,12 +29,18 @@ export default function LessonsHeroSection({ role }: { role: UserRole }) {
 
           {role === "CONTRIBUTOR" || role === "LEARNER" ? (
             <Stack align="flex-end" gap="sm">
-              <GradientButton href="#lessons-list">View All Lessons</GradientButton>
-              <GradientButton href="/lessons/mine">View My Lessons</GradientButton>
+              <GradientButton href="#lessons-list" className="!w-[248px] justify-center">
+                View All Lessons
+              </GradientButton>
+              <GradientButton href="/lessons/mine" className="!w-[248px] justify-center">
+                View My Lessons
+              </GradientButton>
             </Stack>
           ) : (
             <Group justify="flex-end">
-              <GradientButton href="#lessons-list">View All Lessons</GradientButton>
+              <GradientButton href="#lessons-list" className="!w-[248px] justify-center">
+                View All Lessons
+              </GradientButton>
             </Group>
           )}
         </Stack>

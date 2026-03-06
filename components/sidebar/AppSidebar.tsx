@@ -100,6 +100,7 @@ export default function AppSidebar({
           brandIcon={brandIcon}
           brandTitle={brandTitle}
           brandSubtitle={brandSubtitle}
+          collapsed={collapsed}
           onBrandClick={closeMobileSidebar}
         />
 

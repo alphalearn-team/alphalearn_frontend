@@ -6,7 +6,11 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/context/AuthContext";
 import NotificationBellContent from "./NotificationBellContent";
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  compact?: boolean;
+}
+
+export default function NotificationBell({ compact = false }: NotificationBellProps) {
   const { user, userRole } = useAuth();
   const [opened, setOpened] = useState(false);
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications(
@@ -25,20 +29,25 @@ export default function NotificationBell() {
     <Popover
       opened={opened}
       onChange={handleOpen}
-      position="bottom-end"
-      width={340}
+      position={compact ? "left-start" : "bottom-end"}
+      width={compact ? 320 : 340}
+      offset={8}
       shadow="xl"
       radius={12}
       withArrow
+      zIndex={220}
     >
       <Popover.Target>
-        <div className="relative cursor-pointer" onClick={() => handleOpen(!opened)}>
+        <div className={`admin-notification-bell ${compact ? "compact" : ""} ${opened ? "open" : ""}`}>
           <ActionIcon
-            variant="subtle"
+            variant="transparent"
             size="lg"
             radius="xl"
             aria-label="Notifications"
-            style={{ color: "var(--color-text-muted)" }}
+            aria-expanded={opened}
+            onClick={() => handleOpen(!opened)}
+            className="admin-notification-trigger"
+            style={{ color: "var(--color-text)" }}
           >
             <span className="material-symbols-outlined text-[20px]">notifications</span>
           </ActionIcon>
@@ -46,13 +55,11 @@ export default function NotificationBell() {
           {unreadCount > 0 && (
             <Badge
               size="xs"
-              color="violet"
+              color="blue"
               variant="filled"
               circle
+              className="admin-notification-badge"
               style={{
-                position: "absolute",
-                top: 2,
-                right: 2,
                 minWidth: 16,
                 height: 16,
                 fontSize: 9,
@@ -71,6 +78,7 @@ export default function NotificationBell() {
             backgroundColor: "var(--color-surface-elevated)",
             borderColor: "var(--color-border)",
             padding: 0,
+            overflow: "hidden",
           },
         }}
       >

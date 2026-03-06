@@ -54,6 +54,14 @@
   position: relative;
 }
 
+.admin-sidebar-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .admin-sidebar-brand {
   display: flex;
   align-items: center;
@@ -61,6 +69,25 @@
   text-decoration: none;
   flex: 1;
   min-width: 0;
+}
+
+.admin-sidebar-header.collapsed {
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 8px;
+  justify-content: center;
+}
+
+.admin-sidebar-header.collapsed .admin-sidebar-brand {
+  flex: 0;
+  width: 100%;
+  justify-content: center;
+  gap: 0;
+}
+
+.admin-sidebar-header.collapsed .admin-sidebar-header-actions {
+  margin-left: 0;
+  width: 100%;
 }
 
 .admin-sidebar-logo {
@@ -78,6 +105,12 @@
 .admin-sidebar-logo .material-symbols-outlined {
   color: white;
   font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
 }
 
 .admin-sidebar-brand-text {
@@ -100,6 +133,43 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.admin-notification-bell {
+  position: relative;
+  display: inline-flex;
+}
+
+.admin-notification-trigger {
+  border: 1px solid var(--color-border) !important;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+  color: var(--color-text) !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-notification-trigger:hover {
+  border-color: var(--color-primary) !important;
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent) !important;
+}
+
+.admin-notification-bell.open .admin-notification-trigger {
+  border-color: var(--color-accent) !important;
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+.admin-notification-bell.compact .admin-notification-trigger {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+}
+
+.admin-notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  border: 1px solid var(--color-surface);
 }
 
 .admin-sidebar-collapse-btn {
@@ -234,9 +304,19 @@
   color: var(--color-primary);
 }
 
+.admin-sidebar.collapsed .admin-sidebar-nav-item {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0;
+}
+
 .admin-sidebar-nav-icon {
   font-size: 20px;
   flex-shrink: 0;
+}
+
+.admin-sidebar.collapsed .admin-sidebar-nav-icon {
+  margin: 0 auto;
 }
 
 .admin-sidebar-nav-text {
@@ -410,6 +490,35 @@
   .admin-sidebar.collapsed .admin-sidebar-logout-text {
     opacity: 1;
     width: auto;
+  }
+
+  .admin-sidebar-header.collapsed {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 20px 16px;
+  }
+
+  .admin-sidebar-header.collapsed .admin-sidebar-brand {
+    flex: 1;
+    justify-content: flex-start;
+    width: auto;
+    gap: 12px;
+  }
+
+  .admin-sidebar-header.collapsed .admin-sidebar-header-actions {
+    margin-left: auto;
+    width: auto;
+  }
+
+  .admin-sidebar.collapsed .admin-sidebar-nav-item {
+    justify-content: flex-start;
+    gap: 12px;
+    padding-inline: 12px;
+  }
+
+  .admin-sidebar.collapsed .admin-sidebar-nav-icon {
+    margin: 0;
   }
 
   .admin-sidebar-toggle {

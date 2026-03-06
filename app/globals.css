@@ -102,6 +102,13 @@ html {
   background: var(--color-background);
   margin: 0;
   padding: 0;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {

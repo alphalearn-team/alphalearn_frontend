@@ -6,6 +6,7 @@ interface SidebarHeaderProps {
   brandIcon: string;
   brandTitle: string;
   brandSubtitle?: string;
+  collapsed: boolean;
   onBrandClick: () => void;
 }
 
@@ -14,10 +15,11 @@ export default function SidebarHeader({
   brandIcon,
   brandTitle,
   brandSubtitle,
+  collapsed,
   onBrandClick,
 }: SidebarHeaderProps) {
   return (
-    <div className="admin-sidebar-header">
+    <div className={`admin-sidebar-header ${collapsed ? "collapsed" : ""}`}>
       <Link
         href={brandHref}
         className="admin-sidebar-brand"
@@ -33,7 +35,9 @@ export default function SidebarHeader({
           )}
         </div>
       </Link>
-      <NotificationBell />
+      <div className="admin-sidebar-header-actions">
+        <NotificationBell compact={collapsed} />
+      </div>
     </div>
   );
 }

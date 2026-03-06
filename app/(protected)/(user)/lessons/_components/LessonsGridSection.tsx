@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Group, SimpleGrid, Stack } from "@mantine/core";
 import type { LessonSummary } from "@/interfaces/interfaces";
 import LessonCard from "@/components/lessons/LessonCard";
@@ -18,7 +18,6 @@ export default function LessonsGridSection({
   role?: string | null;
 }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const listSectionRef = useRef<HTMLDivElement | null>(null);
 
   const totalPages = Math.ceil(lessons.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -26,11 +25,10 @@ export default function LessonsGridSection({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    listSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <div ref={listSectionRef}>
+    <div>
       <Stack gap="lg">
         <LessonsHeader count={lessons.length} role={role} />
 
