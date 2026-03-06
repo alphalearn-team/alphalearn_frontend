@@ -37,7 +37,7 @@ export default function SignInPage() {
               {/* Header text */}
               <div className="mb-8">
                 <h1 className="text-4xl text-center font-black tracking-tight leading-tight mb-2 text-[var(--color-text)]">
-                  {isSignUp ? "Level Up Your Lore!" : "WELCOME BACK!"}
+                  {isSignUp ? "Level Up Your Lore!" : "Welcome Back!"}
                 </h1>
                 <p className="text-[var(--color-text-secondary)] text-center text-lg font-normal">
                   {isSignUp
@@ -203,7 +203,7 @@ export default function SignInPage() {
 
             {/* Right Panel: Value Proposition (visible on desktop when in signup mode) */}
             {isSignUp && (
-              <div className="hidden lg:flex w-[400px] bg-[var(--color-surface-elevated)] border-l border-[var(--color-border)] flex-col p-10 justify-center relative overflow-hidden">
+              <div className="hidden lg:flex w-[400px] border-l border-[var(--color-border)] flex-col p-10 justify-center relative overflow-hidden">
                 {/* Background decorations */}
 
                 <div className="relative z-10">

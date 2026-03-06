@@ -60,7 +60,7 @@
 
 /* Dark Theme */
 [data-mantine-color-scheme="dark"] {
-  --color-primary: #7c3aed;
+  --color-primary: #985cff;
   --color-primary-hover: #6b4ce6;
   --color-primary-active: #5a3dc0;
   --color-accent: #2EFFB4;
@@ -76,11 +76,11 @@
   --color-text-muted: #797979;
 
   --color-border: #ffffff;
-  --color-border-focus: #2EFFB4;
+  --color-border-focus: #d1b6ff;
 
   --color-overlay: rgba(255, 255, 255, 0.05);
-  --color-shadow: rgba(46, 255, 180, 0.15);
-  --color-shadow-hover: rgba(0, 255, 162, 0.25);
+  --color-shadow: rgba(109, 46, 255, 0.15);
+  --color-shadow-hover: rgba(93, 0, 255, 0.25);
 
   /* Card-specific */
   --color-card-bg: #11111a;
