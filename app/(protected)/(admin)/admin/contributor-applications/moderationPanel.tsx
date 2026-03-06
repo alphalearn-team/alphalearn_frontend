@@ -24,13 +24,13 @@ import {
 import { formatDateTime } from "@/lib/formatDate";
 import AdminEmptyState from "@/components/admin/emptyState";
 import { showError, showSuccess } from "@/lib/actions/notifications";
-import { useAuth } from "@/context/AuthContext";
 import {
   approveContributorApplicationAction,
   fetchContributorApplicationDetailAction,
   fetchPendingContributorApplicationsAction,
   rejectContributorApplicationAction,
-} from "./actions";
+} from "@/lib/actions/adminContributorApplications";
+import { useAuth } from "@/context/AuthContext";
 
 type ModerationPanelProps = {
   initialPending: AdminContributorApplication[];

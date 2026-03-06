@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Group, Modal, Text, Textarea } from "@mantine/core";
+import { approveLesson, rejectLesson } from "@/lib/actions/adminLessons";
 import { showError, showSuccess } from "@/lib/actions/notifications";
-import { approveLesson, rejectLesson } from "./actions";
 
 interface ReviewActionsProps {
   lessonPublicId: string;

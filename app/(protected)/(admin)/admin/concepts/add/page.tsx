@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, TextInput, Textarea, Button, Text } from "@mantine/core";
-import { addConcept } from "./actions";
+import { addConcept } from "@/lib/actions/adminConcepts";
 import { showError } from "@/lib/actions/notifications";
 import { useRouter } from "next/navigation";
 import AdminBreadcrumb from "@/components/admin/breadcrumb";

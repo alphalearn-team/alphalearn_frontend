@@ -7,8 +7,8 @@ import { useState } from "react";
 import SearchBar from "@/components/concepts/searchBar";
 import ConfirmModal from "@/components/common/confirmModal";
 import AdminEmptyState from "@/components/admin/emptyState";
+import { deleteConcept } from "@/lib/actions/adminConcepts";
 import { showSuccess, showError } from "@/lib/actions/notifications";
-import { deleteConcept } from "./actions";
 import type { AdminConcept } from "@/interfaces/interfaces";
 import { DateDisplay } from "./_components/DateDisplay";
 
