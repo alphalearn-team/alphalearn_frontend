@@ -22,8 +22,8 @@ import {
   type ContributorApplicationRole,
 } from "@/lib/contributorApplications";
 import { formatDateTime } from "@/lib/formatDate";
+import { submitContributorApplication } from "@/lib/actions/contributorApplication";
 import { showError, showSuccess } from "@/lib/actions/notifications";
-import { submitContributorApplication } from "@/app/(protected)/(user)/contributor-application/actions";
 import { useAuth } from "@/context/AuthContext";
 
 type ContributorApplicationPanelProps = {
