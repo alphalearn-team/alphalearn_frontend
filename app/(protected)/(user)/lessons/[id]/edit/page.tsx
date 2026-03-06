@@ -1,33 +1,20 @@
-import LessonEditorClient from "./LessonEditorClient";
-import { apiFetch } from "@/lib/api";
-import { Lesson, LessonSummary } from "@/interfaces/interfaces";
-import NotFound from "@/components/NotFound";
-import { Group } from "@mantine/core";
-import { getUserRole } from "@/lib/auth/rbac";
 import { redirect } from "next/navigation";
+import NotFound from "@/components/NotFound";
 import ContributorLessonEditorShell from "@/components/lessons/ContributorLessonEditorShell";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
 import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
+import { getUserRole } from "@/lib/auth/rbac";
+import { getLessonModerationMeta } from "@/lib/lessonModeration";
+import LessonEditorClient from "./LessonEditorClient";
 import {
-  getLessonModerationMeta,
-  normalizeLessonModerationStatus,
-} from "@/lib/lessonModeration";
-
-async function getOwnedLessons(): Promise<LessonSummary[] | null> {
-  try {
-    return await apiFetch<LessonSummary[]>("/lessons/mine");
-  } catch {
-    return null;
-  }
-}
-
-async function getLessonForEdit(id: string): Promise<Lesson | null> {
-  try {
-    return await apiFetch<Lesson>(`/lessons/${id}`);
-  } catch {
-    return null;
-  }
-}
+  LessonConceptChips,
+  LessonEditStatusMeta,
+} from "./_components/LessonEditHeaderMeta";
+import {
+  fetchLessonForEdit,
+  fetchOwnedLessons,
+  getLessonConceptLabels,
+  getLessonEditStatus,
+} from "./editLessonData";
 
 export default async function EditLessonPage({
   params,
@@ -45,7 +32,7 @@ export default async function EditLessonPage({
     redirect("/lessons");
   }
 
-  const myLessons = await getOwnedLessons();
+  const myLessons = await fetchOwnedLessons();
   if (!myLessons) {
     return <NotFound />;
   }
@@ -55,48 +42,25 @@ export default async function EditLessonPage({
     return <NotFound />;
   }
 
-  const lesson = await getLessonForEdit(id);
+  const lesson = await fetchLessonForEdit(id);
   if (!lesson) {
     return <NotFound />;
   }
 
-  const status = normalizeLessonModerationStatus(lesson.moderationStatus);
+  const status = getLessonEditStatus(lesson);
   const moderationMeta = getLessonModerationMeta(status);
-  const lessonConceptLabels = (lesson.concepts || [])
-    .map((concept) => concept?.title)
-    .filter(Boolean) as string[];
+  const lessonConceptLabels = getLessonConceptLabels(lesson);
 
   return (
     <ContributorLessonEditorShell
-      headerMeta={(
-        <Group gap="sm" align="center">
-          <Group gap="xs" align="center">
-            <div className="w-5 h-px bg-[var(--color-primary)]" />
-            <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[var(--color-primary)]">
-              Status
-            </span>
-          </Group>
-          <LessonModerationBadge status={status} />
-        </Group>
-      )}
-      title={(
+      headerMeta={<LessonEditStatusMeta status={status} />}
+      title={
         <>
           Edit <span className="text-[var(--color-primary)]">Lesson</span>
         </>
-      )}
+      }
       description={moderationMeta.editorDescription}
-      titleMeta={lessonConceptLabels.length > 0 ? (
-        <div className="flex flex-wrap gap-2 pt-2">
-          {lessonConceptLabels.map((label) => (
-            <span
-              key={label}
-              className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]"
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-      ) : null}
+      titleMeta={<LessonConceptChips labels={lessonConceptLabels} />}
     >
       <div className="space-y-6">
         <LessonModerationFeedbackPanel

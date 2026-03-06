@@ -1,10 +1,8 @@
-import type { Concept, LessonSummary } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { Container, Title } from "@mantine/core";
 import { notFound } from "next/navigation";
-import { Container, SimpleGrid, Text, Title } from "@mantine/core";
-import { formatDateTime } from "@/lib/formatDate";
-import LessonCard from "@/components/lessons/LessonCard";
-import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
+import ConceptDetailCard from "./_components/ConceptDetailCard";
+import RelatedLessonsSection from "./_components/RelatedLessonsSection";
+import { fetchConcept, fetchRelatedLessons } from "./conceptDetailData";
 
 export default async function ConceptPage({
   params,
@@ -12,13 +10,12 @@ export default async function ConceptPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  let concept: Concept;
-  let relatedLessons: LessonSummary[];
+  const [concept, relatedLessons] = await Promise.all([
+    fetchConcept(id),
+    fetchRelatedLessons(id),
+  ]);
 
-  try {
-    concept = await apiFetch<Concept>(`/concepts/${id}`);
-    relatedLessons = await fetchRelatedLessons(id);
-  } catch {
+  if (!concept) {
     notFound();
   }
 
@@ -31,84 +28,9 @@ export default async function ConceptPage({
           </Title>
         </div>
 
-        <div
-          className="rounded-xl border border-[var(--color-border)] overflow-hidden"
-          style={{ background: "var(--color-surface)" }}
-        >
-          <div className="p-6 flex flex-col gap-5">
-            <div>
-              <Text fw={600} mb={6}>
-                Description
-              </Text>
-              <Text style={{ whiteSpace: "pre-wrap" }}>
-                {concept.description || "No description available."}
-              </Text>
-            </div>
-
-            <div>
-              <Text fw={600} mb={6}>
-                Created
-              </Text>
-              <Text c="dimmed">
-                {concept.createdAt
-                  ? formatDateTime(concept.createdAt)
-                  : "Unknown"}
-              </Text>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <div>
-            <Title order={3} mb="xs">
-              Related Lessons
-            </Title>
-            <Text c="dimmed" size="sm">
-              Lessons connected to this concept.
-            </Text>
-          </div>
-
-          {relatedLessons.length === 0 ? (
-            <div
-              className="rounded-xl border border-[var(--color-border)] p-6"
-              style={{ background: "var(--color-surface)" }}
-            >
-              <Text c="dimmed">No related lessons found yet.</Text>
-            </div>
-          ) : (
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-              {relatedLessons.map((lesson) => (
-                <LessonCard
-                  key={lesson.lessonPublicId}
-                  {...lesson}
-                  showModerationBadge={false}
-                />
-              ))}
-            </SimpleGrid>
-          )}
-        </div>
+        <ConceptDetailCard concept={concept} />
+        <RelatedLessonsSection lessons={relatedLessons} />
       </div>
     </Container>
   );
-}
-
-async function fetchRelatedLessons(conceptId: string): Promise<LessonSummary[]> {
-  const endpoints = [
-    `/lessons?conceptPublicIds=${encodeURIComponent(conceptId)}`,
-  ];
-
-  for (const endpoint of endpoints) {
-    try {
-      const lessons = await apiFetch<LessonSummary[]>(endpoint);
-      if (Array.isArray(lessons)) {
-        return lessons.filter(
-          (lesson) => normalizeLessonModerationStatus(lesson.moderationStatus) === "APPROVED",
-        );
-      }
-    } catch {
-      // Try the next common endpoint shape.
-    }
-  }
-
-  return [];
 }
