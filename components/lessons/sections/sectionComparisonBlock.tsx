@@ -2,6 +2,10 @@
 
 import { Button, TextInput, Textarea } from "@mantine/core";
 import type { ComparisonSectionContent } from "@/interfaces/interfaces";
+import {
+  createSectionFieldStyles,
+  EditableItemCard,
+} from "./SectionBlockPrimitives";
 
 interface SectionComparisonBlockProps {
   content: ComparisonSectionContent;
@@ -78,38 +82,12 @@ export function SectionComparisonBlock({
 
         <div className="space-y-4">
           {content.items.map((item, index) => (
-            <div
+            <EditableItemCard
               key={index}
-              className="p-4 rounded-xl border space-y-3"
-              style={{
-                backgroundColor: "var(--color-surface)",
-                borderColor: "var(--color-border)",
-              }}
+              title={`Item ${index + 1}`}
+              removeLabel="Remove item"
+              onRemove={() => handleRemoveItem(index)}
             >
-              <div className="flex items-center justify-between">
-                <span
-                  className="text-xs font-bold uppercase tracking-[0.2em]"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  Item {index + 1}
-                </span>
-                <Button
-                  size="xs"
-                  variant="subtle"
-                  color="red"
-                  onClick={() => handleRemoveItem(index)}
-                  styles={{
-                    root: {
-                      color: "var(--color-error)",
-                    },
-                  }}
-                >
-                  <span className="material-symbols-outlined text-sm">
-                    delete
-                  </span>
-                </Button>
-              </div>
-
               <TextInput
                 placeholder="Label (e.g., &quot;Skibidi&quot; or &quot;Traditional way&quot;)"
                 value={item.label}
@@ -117,13 +95,7 @@ export function SectionComparisonBlock({
                   handleUpdateItem(index, "label", e.currentTarget.value)
                 }
                 required
-                styles={{
-                  input: {
-                    backgroundColor: "var(--color-surface)",
-                    borderColor: "var(--color-border)",
-                    color: "var(--color-text)",
-                  },
-                }}
+                styles={createSectionFieldStyles()}
               />
 
               <Textarea
@@ -135,15 +107,9 @@ export function SectionComparisonBlock({
                 required
                 minRows={2}
                 autosize
-                styles={{
-                  input: {
-                    backgroundColor: "var(--color-surface)",
-                    borderColor: "var(--color-border)",
-                    color: "var(--color-text)",
-                  },
-                }}
+                styles={createSectionFieldStyles()}
               />
-            </div>
+            </EditableItemCard>
           ))}
         </div>
 

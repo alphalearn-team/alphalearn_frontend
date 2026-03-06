@@ -2,6 +2,10 @@
 
 import { Button, Stack, Textarea, TextInput } from "@mantine/core";
 import type { ExampleSectionContent } from "@/interfaces/interfaces";
+import {
+  createSectionFieldStyles,
+  EditableItemCard,
+} from "./SectionBlockPrimitives";
 
 interface SectionExampleBlockProps {
   content: ExampleSectionContent;
@@ -36,28 +40,12 @@ export function SectionExampleBlock({
     return (
       <Stack gap="md">
         {content.examples.map((example, index) => (
-          <div
+          <EditableItemCard
             key={index}
-            className="rounded-xl border border-[var(--color-border)] p-4"
-            style={{ backgroundColor: "var(--color-surface)" }}
+            title={`Example ${index + 1}`}
+            removeLabel="Remove example"
+            onRemove={() => handleRemoveExample(index)}
           >
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <span
-                className="text-xs font-bold uppercase tracking-[0.2em]"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                Example {index + 1}
-              </span>
-              <button
-                onClick={() => handleRemoveExample(index)}
-                className="p-1 rounded-lg text-red-400 hover:text-red-300
-                  hover:bg-red-500/10 transition-all duration-200"
-                title="Remove example"
-              >
-                <span className="material-symbols-outlined text-lg">delete</span>
-              </button>
-            </div>
-
             <Stack gap="sm">
               <Textarea
                 placeholder="Enter the example sentence or phrase..."
@@ -67,15 +55,11 @@ export function SectionExampleBlock({
                 }
                 minRows={2}
                 autosize
-                styles={{
-                  input: {
-                    backgroundColor: "var(--color-input)",
-                    borderColor: "var(--color-border)",
-                    color: "var(--color-text)",
-                    fontSize: "15px",
-                    lineHeight: 1.6,
-                  },
-                }}
+                styles={createSectionFieldStyles({
+                  backgroundColor: "var(--color-input)",
+                  fontSize: "15px",
+                  lineHeight: 1.6,
+                })}
               />
 
               <TextInput
@@ -84,18 +68,15 @@ export function SectionExampleBlock({
                 onChange={(e) =>
                   handleUpdateExample(index, example.text, e.currentTarget.value || null)
                 }
-                styles={{
-                  input: {
-                    backgroundColor: "var(--color-input)",
-                    borderColor: "var(--color-border)",
-                    color: "var(--color-text-muted)",
-                    fontSize: "13px",
-                    fontStyle: "italic",
-                  },
-                }}
+                styles={createSectionFieldStyles({
+                  backgroundColor: "var(--color-input)",
+                  color: "var(--color-text-muted)",
+                  fontSize: "13px",
+                  fontStyle: "italic",
+                })}
               />
             </Stack>
-          </div>
+          </EditableItemCard>
         ))}
 
         <Button

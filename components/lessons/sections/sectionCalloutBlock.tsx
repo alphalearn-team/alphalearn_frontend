@@ -4,6 +4,7 @@ import { Select, TextInput } from "@mantine/core";
 import { RichTextEditor } from "@/components/texteditor/TextEditor";
 import { TextDisplayer } from "@/components/texteditor/TextDisplayer";
 import type { CalloutSectionContent, CalloutVariant } from "@/interfaces/interfaces";
+import { createSectionFieldStyles } from "./SectionBlockPrimitives";
 
 interface SectionCalloutBlockProps {
   content: CalloutSectionContent;
@@ -67,21 +68,7 @@ export function SectionCalloutBlock({
           onChange={(value) =>
             onChange?.({ ...content, variant: (value as CalloutVariant) || "info" })
           }
-          styles={{
-            label: {
-              color: "var(--color-text-muted)",
-              marginBottom: "8px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              fontSize: "0.75rem",
-              letterSpacing: "0.2em",
-            },
-            input: {
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text)",
-            },
-          }}
+          styles={createSectionFieldStyles()}
         />
 
         <TextInput
@@ -91,21 +78,7 @@ export function SectionCalloutBlock({
           onChange={(e) =>
             onChange?.({ ...content, title: e.currentTarget.value })
           }
-          styles={{
-            label: {
-              color: "var(--color-text-muted)",
-              marginBottom: "8px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              fontSize: "0.75rem",
-              letterSpacing: "0.2em",
-            },
-            input: {
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text)",
-            },
-          }}
+          styles={createSectionFieldStyles()}
         />
 
         <div>

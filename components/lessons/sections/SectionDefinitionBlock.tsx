@@ -2,6 +2,7 @@
 
 import { TextInput, Textarea } from "@mantine/core";
 import type { DefinitionSectionContent } from "@/interfaces/interfaces";
+import { createSectionFieldStyles } from "./SectionBlockPrimitives";
 
 interface SectionDefinitionBlockProps {
   content: DefinitionSectionContent;
@@ -29,22 +30,7 @@ export function SectionDefinitionBlock({
             onChange?.({ ...content, term: e.currentTarget.value })
           }
           required
-          styles={{
-            label: {
-              color: "var(--color-text-muted)",
-              marginBottom: "8px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              fontSize: "0.75rem",
-              letterSpacing: "0.2em",
-            },
-            input: {
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text)",
-              fontSize: "1rem",
-            },
-          }}
+          styles={createSectionFieldStyles({ fontSize: "1rem" })}
         />
 
         <TextInput
@@ -57,21 +43,7 @@ export function SectionDefinitionBlock({
               pronunciation: e.currentTarget.value || null,
             })
           }
-          styles={{
-            label: {
-              color: "var(--color-text-muted)",
-              marginBottom: "8px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              fontSize: "0.75rem",
-              letterSpacing: "0.2em",
-            },
-            input: {
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text)",
-            },
-          }}
+          styles={createSectionFieldStyles()}
         />
 
         <Textarea
@@ -84,21 +56,7 @@ export function SectionDefinitionBlock({
           required
           minRows={3}
           autosize
-          styles={{
-            label: {
-              color: "var(--color-text-muted)",
-              marginBottom: "8px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              fontSize: "0.75rem",
-              letterSpacing: "0.2em",
-            },
-            input: {
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text)",
-            },
-          }}
+          styles={createSectionFieldStyles()}
         />
       </div>
     );
