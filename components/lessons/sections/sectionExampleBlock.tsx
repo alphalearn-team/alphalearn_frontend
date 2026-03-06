@@ -39,7 +39,7 @@ export function SectionExampleBlock({
           <div
             key={index}
             className="rounded-xl border border-[var(--color-border)] p-4"
-            style={{ backgroundColor: "var(--color-surface-elevated)" }}
+            style={{ backgroundColor: "var(--color-surface)" }}
           >
             <div className="flex items-start justify-between gap-3 mb-3">
               <span
@@ -124,7 +124,7 @@ export function SectionExampleBlock({
   return (
     <div
       className="rounded-xl border border-[var(--color-border)] overflow-hidden"
-      style={{ backgroundColor: "var(--color-surface-elevated)" }}
+      style={{ backgroundColor: "var(--color-surface)" }}
     >
       <div
         className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2"

@@ -266,7 +266,7 @@ export default function LessonEditor({
               letterSpacing: "0.2em",
             },
             dropdown: {
-              backgroundColor: "var(--color-surface-elevated)",
+              backgroundColor: "var(--color-surface)",
               border: "1px solid var(--color-border)",
               borderRadius: "12px",
               padding: "8px",

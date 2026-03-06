@@ -119,7 +119,7 @@ export function SectionComparisonBlock({
                 required
                 styles={{
                   input: {
-                    backgroundColor: "var(--color-surface-elevated)",
+                    backgroundColor: "var(--color-surface)",
                     borderColor: "var(--color-border)",
                     color: "var(--color-text)",
                   },
@@ -137,7 +137,7 @@ export function SectionComparisonBlock({
                 autosize
                 styles={{
                   input: {
-                    backgroundColor: "var(--color-surface-elevated)",
+                    backgroundColor: "var(--color-surface)",
                     borderColor: "var(--color-border)",
                     color: "var(--color-text)",
                   },
@@ -198,7 +198,7 @@ export function SectionComparisonBlock({
             key={index}
             className="p-4 rounded-lg border"
             style={{
-              backgroundColor: "var(--color-surface-elevated)",
+              backgroundColor: "var(--color-surface)",
               borderColor: "var(--color-border)",
             }}
           >

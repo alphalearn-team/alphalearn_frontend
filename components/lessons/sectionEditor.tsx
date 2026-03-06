@@ -251,7 +251,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
                     styles={{ 
                       root: { 
                         color: "var(--color-primary)",
-                        backgroundColor: "rgba(124, 92, 255, 0.1)",
+                        backgroundColor: "var(--color-overlay)",
                       } 
                     }}
                   >

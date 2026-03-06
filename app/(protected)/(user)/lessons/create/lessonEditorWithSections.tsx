@@ -339,7 +339,7 @@ export default function LessonEditorWithSections({
               fontWeight: 600,
               fontSize: "1rem",
               padding: "0 40px",
-              boxShadow: "0 4px 12px rgba(124, 92, 255, 0.3)",
+              boxShadow: "0 4px 12px var(--color-shadow)",
             },
           }}
         >

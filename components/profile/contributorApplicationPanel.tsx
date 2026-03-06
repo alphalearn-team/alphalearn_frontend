@@ -248,7 +248,7 @@ function StatusDetail({
   monospace = false,
 }: StatusDetailProps) {
   return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-4">
+    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4">
       <Text size="xs" className="font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
         {label}
       </Text>

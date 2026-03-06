@@ -18,8 +18,8 @@ export default function ContributorLessonEditorShell({
   children,
 }: ContributorLessonEditorShellProps) {
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
-      <div className="border-b border-[var(--color-border)] bg-[var(--color-background)]">
+    <div className="min-h-screen bg-[var(--color-surface)]">
+      <div className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <Container size="md" className="py-10">
           <Stack gap="md">
             {breadcrumbs}
