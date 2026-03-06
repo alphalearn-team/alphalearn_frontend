@@ -36,7 +36,7 @@ export default function ConceptCard({
 
           <Title
             order={3}
-            className="text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-card-text)] group-hover:text-[var(--color-primary)] transition-colors"
+            className="min-w-0 break-words line-clamp-2 text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-card-text)] group-hover:text-[var(--color-primary)] transition-colors"
           >
             {title}
           </Title>

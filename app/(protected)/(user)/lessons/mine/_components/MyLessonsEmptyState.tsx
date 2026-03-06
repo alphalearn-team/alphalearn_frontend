@@ -21,7 +21,7 @@ export default function MyLessonsEmptyState({
       <Text className="text-[var(--color-text-muted)]">
         {canCreateLessons
           ? "Start your journey by creating your first lesson!"
-          : "You haven&apos;t authored any lessons yet."}
+          : "You have not authored any lessons yet."}
       </Text>
 
       {canCreateLessons && (

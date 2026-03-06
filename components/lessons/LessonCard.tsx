@@ -63,7 +63,7 @@ export default function LessonCard({
 
           <Title
             order={3}
-            className="text-lg font-bold tracking-tight leading-snug text-[var(--color-card-text)] group-hover:text-[var(--color-primary)] transition-colors"
+            className="min-w-0 break-words line-clamp-2 text-lg font-bold tracking-tight leading-snug text-[var(--color-card-text)] group-hover:text-[var(--color-primary)] transition-colors"
           >
             {title}
           </Title>

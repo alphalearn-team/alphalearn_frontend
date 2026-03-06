@@ -72,6 +72,15 @@ export interface LessonDetailViewModel {
   status: string;
 }
 
+function isDeletableLessonStatus(status: string): boolean {
+  return (
+    status === "UNPUBLISHED"
+    || status === "PENDING"
+    || status === "REJECTED"
+    || status === "APPROVED"
+  );
+}
+
 export async function getLessonDetailViewModel(
   id: string,
   role: UserRole,
@@ -90,7 +99,7 @@ export async function getLessonDetailViewModel(
   }
 
   return {
-    canDelete: ownsLesson && status === "UNPUBLISHED",
+    canDelete: ownsLesson && isDeletableLessonStatus(status),
     canEdit: role === "CONTRIBUTOR" && ownsLesson,
     lesson,
     lessonConceptLabels: getLessonConceptLabels(lesson),

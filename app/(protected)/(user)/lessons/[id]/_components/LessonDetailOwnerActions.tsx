@@ -81,7 +81,7 @@ export default function LessonDetailOwnerActions({
         onClose={() => !loading && setDeleteModalOpened(false)}
         onConfirm={handleDelete}
         title="Delete Lesson?"
-        message="You can only delete unpublished lessons. This action cannot be undone."
+        message="You can delete unpublished, pending, rejected, or approved lessons. This action cannot be undone."
         confirmText="Delete"
         confirmColor="red"
         icon="delete_forever"
