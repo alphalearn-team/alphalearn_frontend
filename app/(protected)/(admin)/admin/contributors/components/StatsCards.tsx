@@ -41,10 +41,10 @@ export function StatsCards({ stats, filter, onFilterChange }: StatsCardsProps) {
 
       <Card 
         className={`admin-card admin-stat-card cursor-pointer transition-all duration-200 ${
-          filter === "contributors" ? "ring-2 ring-teal-500" : "hover:scale-[1.02]"
+          filter === "contributors" ? "ring-2 ring-[var(--color-accent)]" : "hover:scale-[1.02]"
         }`}
         onClick={() => onFilterChange("contributors")}
-        style={{ "--stat-color": "#14b8a6" } as React.CSSProperties}
+        style={{ "--stat-color": "var(--color-accent)" } as React.CSSProperties}
       >
         <div className="flex items-center justify-between">
           <div>
@@ -58,8 +58,8 @@ export function StatsCards({ stats, filter, onFilterChange }: StatsCardsProps) {
               {stats.activeContributors} active
             </p>
           </div>
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-teal-500/10">
-            <span className="material-symbols-outlined text-2xl text-teal-500">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--color-accent)]/10">
+            <span className="material-symbols-outlined text-2xl text-[var(--color-accent)]">
               person_check
             </span>
           </div>
@@ -68,10 +68,10 @@ export function StatsCards({ stats, filter, onFilterChange }: StatsCardsProps) {
 
       <Card 
         className={`admin-card admin-stat-card cursor-pointer transition-all duration-200 ${
-          filter === "learners" ? "ring-2 ring-cyan-500" : "hover:scale-[1.02]"
+          filter === "learners" ? "ring-2 ring-[var(--color-info)]" : "hover:scale-[1.02]"
         }`}
         onClick={() => onFilterChange("learners")}
-        style={{ "--stat-color": "#06b6d4" } as React.CSSProperties}
+        style={{ "--stat-color": "var(--color-info)" } as React.CSSProperties}
       >
         <div className="flex items-center justify-between">
           <div>
@@ -82,8 +82,8 @@ export function StatsCards({ stats, filter, onFilterChange }: StatsCardsProps) {
               {stats.learners}
             </p>
           </div>
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-cyan-500/10">
-            <span className="material-symbols-outlined text-2xl text-cyan-500">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--color-info)]/10">
+            <span className="material-symbols-outlined text-2xl text-[var(--color-info)]">
               school
             </span>
           </div>

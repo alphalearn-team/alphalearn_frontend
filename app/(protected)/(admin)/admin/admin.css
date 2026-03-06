@@ -1,36 +1,9 @@
 /* ============================================
-   ADMIN THEME - Professional Blue
-   Distinct from learner/contributor purple theme
+   ADMIN THEME - Dark Only
+   Distinct from learner/contributor theme
    ============================================ */
 
 .admin-theme {
-  /* Admin Light Theme */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-active: #1e40af;
-  --color-accent: #06b6d4;
-  --color-accent-hover: #0891b2;
-
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
-  --color-input: #f1f5f9;
-  --color-background-hover: rgba(37, 99, 235, 0.04);
-
-  --color-text: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-
-  --color-border: #e2e8f0;
-  --color-border-focus: #2563eb;
-
-  --color-overlay: rgba(37, 99, 235, 0.04);
-  --color-shadow: rgba(0, 0, 0, 0.06);
-  --color-shadow-hover: rgba(37, 99, 235, 0.12);
-}
-
-/* Admin Dark Theme */
-[data-mantine-color-scheme="dark"] .admin-theme {
   --color-primary: #3b82f6;
   --color-primary-hover: #2563eb;
   --color-primary-active: #1d4ed8;
@@ -41,7 +14,7 @@
   --color-surface: #111827;
   --color-surface-elevated: #1e293b;
   --color-input: #1e293b;
-  --color-background-hover: rgba(59, 130, 246, 0.08);
+  --color-background-hover: color-mix(in srgb, var(--color-primary) 8%, transparent);
 
   --color-text: #f1f5f9;
   --color-text-secondary: #94a3b8;
@@ -50,9 +23,9 @@
   --color-border: #1e293b;
   --color-border-focus: #3b82f6;
 
-  --color-overlay: rgba(59, 130, 246, 0.06);
-  --color-shadow: rgba(59, 130, 246, 0.15);
-  --color-shadow-hover: rgba(59, 130, 246, 0.25);
+  --color-overlay: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  --color-shadow: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  --color-shadow-hover: color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 /* ============================================
@@ -73,28 +46,18 @@
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 1px 3px var(--color-shadow);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.3),
+    0 0 15px color-mix(in srgb, var(--color-primary) 12%, transparent);
   transition: all 0.3s ease-in-out;
 }
 
 .admin-card:hover {
   border-color: var(--color-primary);
   box-shadow:
-    0 4px 12px var(--color-shadow),
-    0 0 0 1px rgba(37, 99, 235, 0.1);
+    0 4px 16px rgb(0 0 0 / 0.3),
+    0 0 25px color-mix(in srgb, var(--color-primary) 20%, transparent);
   transform: translateY(-2px);
-}
-
-[data-mantine-color-scheme="dark"] .admin-card {
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.3),
-    0 0 15px rgba(59, 130, 246, 0.06);
-}
-
-[data-mantine-color-scheme="dark"] .admin-card:hover {
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    0 0 25px rgba(59, 130, 246, 0.12);
 }
 
 /* ============================================
@@ -110,43 +73,25 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .admin-badge-success {
-  background: rgba(34, 197, 94, 0.12) !important;
-  color: #16a34a !important;
-  border: 1px solid rgba(34, 197, 94, 0.25) !important;
-}
-
-[data-mantine-color-scheme="dark"] .admin-badge-success {
-  background: rgba(34, 197, 94, 0.15) !important;
-  color: #4ade80 !important;
-  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  background: color-mix(in srgb, var(--color-success) 15%, transparent) !important;
+  color: var(--color-success) !important;
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent) !important;
 }
 
 .admin-badge-warning {
-  background: rgba(251, 191, 36, 0.12) !important;
-  color: #d97706 !important;
-  border: 1px solid rgba(251, 191, 36, 0.25) !important;
-}
-
-[data-mantine-color-scheme="dark"] .admin-badge-warning {
-  background: rgba(251, 191, 36, 0.15) !important;
-  color: #fbbf24 !important;
-  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent) !important;
+  color: var(--color-warning) !important;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent) !important;
 }
 
 .admin-badge-error {
-  background: rgba(239, 68, 68, 0.12) !important;
-  color: #dc2626 !important;
-  border: 1px solid rgba(239, 68, 68, 0.25) !important;
-}
-
-[data-mantine-color-scheme="dark"] .admin-badge-error {
-  background: rgba(239, 68, 68, 0.15) !important;
-  color: #f87171 !important;
-  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  background: color-mix(in srgb, var(--color-error) 15%, transparent) !important;
+  color: var(--color-error) !important;
+  border: 1px solid color-mix(in srgb, var(--color-error) 35%, transparent) !important;
 }
 
 /* ============================================
@@ -163,7 +108,7 @@
 }
 
 .admin-table thead th {
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%);
   border-bottom: 2px solid var(--color-border);
   padding: 16px 20px;
   font-weight: 700;
@@ -198,9 +143,9 @@
    ============================================ */
 
 .admin-action-view {
-  background: rgba(59, 130, 246, 0.1) !important;
-  color: #3b82f6 !important;
-  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
+  color: var(--color-primary) !important;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
   border-radius: 8px !important;
   padding: 8px !important;
   transition: all 0.3s ease !important;
@@ -212,24 +157,18 @@
 }
 
 .admin-action-view:hover {
-  background: rgba(59, 130, 246, 0.2) !important;
-  color: #1d4ed8 !important;
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+  color: var(--color-primary-hover) !important;
   box-shadow:
-    0 0 0 2px rgba(59, 130, 246, 0.2),
-    0 0 12px rgba(59, 130, 246, 0.25) !important;
+    0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent),
+    0 0 16px color-mix(in srgb, var(--color-primary) 35%, transparent) !important;
   transform: translateY(-1px) !important;
 }
 
-[data-mantine-color-scheme="dark"] .admin-action-view:hover {
-  box-shadow:
-    0 0 0 2px rgba(59, 130, 246, 0.3),
-    0 0 16px rgba(59, 130, 246, 0.35) !important;
-}
-
 .admin-action-delete {
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: #ef4444 !important;
-  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+  background: color-mix(in srgb, var(--color-error) 12%, transparent) !important;
+  color: var(--color-error) !important;
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent) !important;
   border-radius: 8px !important;
   padding: 8px !important;
   transition: all 0.3s ease !important;
@@ -241,18 +180,12 @@
 }
 
 .admin-action-delete:hover {
-  background: rgba(239, 68, 68, 0.2) !important;
-  color: #dc2626 !important;
+  background: color-mix(in srgb, var(--color-error) 20%, transparent) !important;
+  color: var(--color-error) !important;
   box-shadow:
-    0 0 0 2px rgba(239, 68, 68, 0.2),
-    0 0 12px rgba(239, 68, 68, 0.25) !important;
+    0 0 0 2px color-mix(in srgb, var(--color-error) 35%, transparent),
+    0 0 16px color-mix(in srgb, var(--color-error) 35%, transparent) !important;
   transform: translateY(-1px) !important;
-}
-
-[data-mantine-color-scheme="dark"] .admin-action-delete:hover {
-  box-shadow:
-    0 0 0 2px rgba(239, 68, 68, 0.3),
-    0 0 16px rgba(239, 68, 68, 0.35) !important;
 }
 
 /* ============================================
@@ -319,23 +252,25 @@
 }
 
 /* ============================================
-   SUBTLE GLOW ANIMATION (dark mode only)
+   SUBTLE GLOW ANIMATION
    ============================================ */
 
 @keyframes admin-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.3),
-      0 0 15px rgba(59, 130, 246, 0.06);
+      0 1px 3px rgb(0 0 0 / 0.3),
+      0 0 15px color-mix(in srgb, var(--color-primary) 12%, transparent);
   }
+
   50% {
     box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.3),
-      0 0 25px rgba(59, 130, 246, 0.1);
+      0 1px 3px rgb(0 0 0 / 0.3),
+      0 0 25px color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
 }
 
-[data-mantine-color-scheme="dark"] .admin-card {
+.admin-card {
   animation: admin-glow 6s ease-in-out infinite;
 }
 
@@ -358,7 +293,7 @@
 }
 
 .admin-nav-link.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -12px;
   left: 0;
@@ -376,31 +311,19 @@
 }
 
 .admin-header-gradient {
-  background: linear-gradient(135deg, 
-    rgba(37, 99, 235, 0.06) 0%, 
-    rgba(6, 182, 212, 0.04) 50%, 
-    rgba(37, 99, 235, 0.02) 100%
-  );
-}
-
-[data-mantine-color-scheme="dark"] .admin-header-gradient {
-  background: linear-gradient(135deg, 
-    rgba(59, 130, 246, 0.12) 0%, 
-    rgba(34, 211, 238, 0.06) 50%, 
-    rgba(59, 130, 246, 0.04) 100%
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 20%, transparent) 0%,
+    color-mix(in srgb, var(--color-accent) 12%, transparent) 50%,
+    color-mix(in srgb, var(--color-primary) 6%, transparent) 100%
   );
 }
 
 .admin-header-icon-wrapper {
-  background: linear-gradient(135deg, #2563eb, #06b6d4);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-[data-mantine-color-scheme="dark"] .admin-header-icon-wrapper {
-  background: linear-gradient(135deg, #3b82f6, #22d3ee);
-  box-shadow: 
-    0 4px 12px rgba(59, 130, 246, 0.3),
-    0 0 20px rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  box-shadow:
+    0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent),
+    0 0 20px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* ============================================
@@ -413,7 +336,7 @@
 }
 
 .admin-stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -426,16 +349,4 @@
 .admin-stat-card:hover::before {
   opacity: 1;
   height: 3px;
-}
-
-/* ============================================
-   TABLE - Enhanced with header gradient
-   ============================================ */
-
-.admin-table thead th {
-  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
-}
-
-[data-mantine-color-scheme="dark"] .admin-table thead th {
-  background: linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%);
 }

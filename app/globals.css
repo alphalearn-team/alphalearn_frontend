@@ -9,10 +9,10 @@
   --font-sans: var(--font-roboto-mono);
   --font-mono: var(--font-geist-mono);
 
-  --color-primary: #2EFFB4;
-  --color-primary-hover: #2EFFB4;
-  --color-primary-active: #2EFFB4;
-  --color-accent: #2EFFB4;
+  --color-primary: #2effb4;
+  --color-primary-hover: #2effb4;
+  --color-primary-active: #2effb4;
+  --color-accent: #2effb4;
   --color-accent-hover: #26e5a3;
 
   --color-background: #191919;
@@ -28,6 +28,7 @@
   --color-border-focus: #d1b6ff;
 
   --color-overlay: rgba(255, 255, 255, 0.05);
+  --color-background-hover: rgba(255, 255, 255, 0.07);
   --color-shadow: rgba(109, 46, 255, 0.15);
   --color-shadow-hover: rgba(93, 0, 255, 0.25);
 
@@ -40,6 +41,7 @@
   --color-card-text: #f8fafc;
   --color-card-text-muted: #94a3b8;
   --color-card-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.7);
+  --color-card-glow-hover: 0 20px 40px -24px color-mix(in srgb, var(--color-primary) 40%, transparent);
 
   /* Ambient glow */
   --color-glow-1: transparent;
@@ -53,7 +55,7 @@
   --color-info: #60a5fa;
 
   /* Special */
-  --color-discord: #5865F2;
+  --color-discord: #5865f2;
   --color-streak: #fb923c;
 }
 
@@ -65,14 +67,11 @@ body.not-found-lock-scroll {
   touch-action: none !important;
 }
 
-/* Legacy variables for backward compatibility */
+/* Legacy aliases for backward compatibility */
 :root {
   --background: var(--color-background);
   --foreground: var(--color-text);
-  --color-background-dark: #0F0F14;
-  --color-surface-dark: #181826;
-  --color-input-dark: #29204b;
-  --color-border-dark: #3a2e6b;
+  --surface: var(--color-surface);
 }
 
 /* ============================================
@@ -85,7 +84,9 @@ body.not-found-lock-scroll {
   --color-primary-hover: var(--color-primary-hover);
   --color-accent: var(--color-accent);
   --color-background: var(--color-background);
+  --color-background-hover: var(--color-background-hover);
   --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
   --color-text: var(--color-text);
   --color-text-muted: var(--color-text-muted);
   --color-border: var(--color-border);

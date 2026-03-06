@@ -144,7 +144,7 @@ export const richTextContentStyles = `
 
   .lesson-rich-text .mantine-RichTextEditor-content mark {
     background: var(--color-primary);
-    color: #fff;
+    color: white;
     padding: 1px 4px;
     border-radius: 2px;
   }
@@ -180,7 +180,7 @@ export const richTextToolbarStyles = `
 
   .lesson-rich-text .mantine-RichTextEditor-control[data-active] {
     background: var(--color-primary);
-    color: #fff;
+    color: white;
     border-color: var(--color-primary);
   }
 

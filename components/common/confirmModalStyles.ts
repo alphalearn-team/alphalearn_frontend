@@ -25,24 +25,24 @@ const colorClassMap: Record<ConfirmColor, { bg: string; text: string }> = {
 
 const colorStyleMap: Record<ConfirmColor, { defaultBg: string; hoverBg: string }> = {
   red: {
-    defaultBg: "#ef4444",
-    hoverBg: "#dc2626",
+    defaultBg: "var(--color-error)",
+    hoverBg: "color-mix(in srgb, var(--color-error) 85%, black)",
   },
   orange: {
     defaultBg: "var(--color-primary)",
-    hoverBg: "var(--color-primary-hover)",
+    hoverBg: "color-mix(in srgb, var(--color-primary) 85%, black)",
   },
   green: {
-    defaultBg: "#22c55e",
-    hoverBg: "#16a34a",
+    defaultBg: "var(--color-success)",
+    hoverBg: "color-mix(in srgb, var(--color-success) 85%, black)",
   },
   yellow: {
-    defaultBg: "#eab308",
-    hoverBg: "#ca8a04",
+    defaultBg: "var(--color-warning)",
+    hoverBg: "color-mix(in srgb, var(--color-warning) 85%, black)",
   },
   blue: {
-    defaultBg: "#2563eb",
-    hoverBg: "#1d4ed8",
+    defaultBg: "var(--color-info)",
+    hoverBg: "color-mix(in srgb, var(--color-info) 85%, black)",
   },
 };
 
