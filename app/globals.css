@@ -7,7 +7,7 @@
 
 :root {
   /* Font Variables */
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-roboto-mono);
   --font-mono: var(--font-geist-mono);
 
   /* Light Theme */
@@ -157,7 +157,12 @@ html {
 body {
   background: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-nunito);
+  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* ── Navbar frosted glass ── */

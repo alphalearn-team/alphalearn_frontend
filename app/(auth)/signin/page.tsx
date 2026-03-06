@@ -37,7 +37,7 @@ export default function SignInPage() {
               {/* Header text */}
               <div className="mb-8">
                 <h1 className="text-4xl text-center font-black tracking-tight leading-tight mb-2 text-[var(--color-text)]">
-                  {isSignUp ? "Level Up Your Lore!" : "Welcome Back!"}
+                  {isSignUp ? "Level Up Your Lore!" : "WELCOME BACK!"}
                 </h1>
                 <p className="text-[var(--color-text-secondary)] text-center text-lg font-normal">
                   {isSignUp
