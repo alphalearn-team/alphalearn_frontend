@@ -1,5 +1,5 @@
 import "@mantine/tiptap/styles.css";
-import { TextDisplayer } from "@/components/texteditor/textDisplayer";
+import { LessonContentDisplay } from "@/components/lessons/lessonContentDisplay";
 import { apiFetch } from "@/lib/api";
 import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
 import { notFound } from "next/navigation";
@@ -14,7 +14,6 @@ import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
 import LessonModerationFeedbackPanel from "@/components/lessons/lessonModerationFeedbackPanel";
 import {
   getLessonModerationMeta,
-  normalizeLessonModerationStatus,
 } from "@/lib/lessonModeration";
 
 function normalizeLessonDetail(lesson: Lesson): Lesson {
@@ -144,12 +143,7 @@ export default async function LessonPage({
           />
         )}
 
-        <div
-          className="rounded-xl border border-[var(--color-border)] overflow-hidden"
-          style={{ background: "var(--color-surface)" }}
-        >
-          <TextDisplayer content={lessonContent.content} />
-        </div>
+        <LessonContentDisplay sections={lessonContent.sections || []} />
       </div>
     </Container>
   );
