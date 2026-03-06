@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
-import Background from "@/components/common/background";
+import Background from "./_components/Background";
 import NotFound from "@/components/notFound";
-import UserSidebar from "@/components/sidebar/userSidebar";
-import UserBreadcrumb from "@/components/user/breadcrumb";
+import UserSidebar from "./_components/UserSidebar";
+import UserBreadcrumb from "./_components/UserBreadcrumb";
 import { getUserRole } from "@/lib/auth/rbac";
 export default async function UserLayout({
   children,

@@ -9,9 +9,9 @@ import {
   Title,
 } from "@mantine/core";
 import GradientButton from "@/components/common/gradientbutton";
-import SpotlightSearch from "@/components/spotlightsearch";
 import { getUserRole } from "@/lib/auth/rbac";
-import LessonsGridSection from "@/components/lessons/lessonsGridSection";
+import LessonsGridSection from "./_components/LessonsGridSection";
+import SpotlightSearch from "./_components/SpotlightSearch";
 
 export default async function LessonsPage() {
   const [role, lessons] = await Promise.all([

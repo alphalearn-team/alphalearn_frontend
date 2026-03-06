@@ -1,5 +1,5 @@
 import "@mantine/tiptap/styles.css";
-import { LessonContentDisplay } from "@/components/lessons/lessonContentDisplay";
+import { LessonContentDisplay } from "./_components/LessonContentDisplay";
 import { apiFetch } from "@/lib/api";
 import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
 import { notFound } from "next/navigation";
@@ -9,7 +9,7 @@ import {
   Group,
 } from "@mantine/core";
 import { getUserRole } from "@/lib/auth/rbac";
-import LessonDetailOwnerActions from "@/components/lessons/lessonDetailOwnerActions";
+import LessonDetailOwnerActions from "./_components/LessonDetailOwnerActions";
 import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
 import LessonModerationFeedbackPanel from "@/components/lessons/lessonModerationFeedbackPanel";
 import {

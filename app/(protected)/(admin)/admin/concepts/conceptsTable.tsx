@@ -10,7 +10,7 @@ import AdminEmptyState from "@/components/admin/emptyState";
 import { showSuccess, showError } from "@/lib/actions/notifications";
 import { deleteConcept } from "./actions";
 import type { AdminConcept } from "@/interfaces/interfaces";
-import { DateDisplay } from "@/components/dateDisplay";
+import { DateDisplay } from "./_components/DateDisplay";
 
 interface ConceptsManagementTableProps {
   concepts: AdminConcept[];

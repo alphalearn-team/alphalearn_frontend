@@ -10,9 +10,9 @@ import {
   Stack,
   Title,
 } from "@mantine/core";
-import ConceptCard from "./conceptCard";
-import Pagination from "./pagination";
-import ConceptSpotlightSearch from "./conceptSpotlightSearch";
+import ConceptCard from "./ConceptCard";
+import Pagination from "@/components/concepts/pagination";
+import ConceptSpotlightSearch from "./ConceptSpotlightSearch";
 import SearchTrigger from "@/components/lessons/searchTrigger";
 import GradientButton from "@/components/common/gradientbutton";
 

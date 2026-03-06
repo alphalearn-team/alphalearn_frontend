@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextInput, Button, MultiSelect } from "@mantine/core";
-import { SectionEditor } from "@/components/lessons/sectionEditor";
+import { SectionEditor } from "./_components/SectionEditor";
 import type { Concept, LessonSectionInput } from "@/interfaces/interfaces";
 import { createLessonWithSections } from "@/lib/actions/lesson";
 

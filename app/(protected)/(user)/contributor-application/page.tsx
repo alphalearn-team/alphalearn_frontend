@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { Container, Stack, Text, Title } from "@mantine/core";
-import ContributorApplicationPanel from "@/components/profile/contributorApplicationPanel";
+import ContributorApplicationPanel from "./_components/ContributorApplicationPanel";
 import { getUserRole } from "@/lib/auth/rbac";
 import { fetchMyContributorApplications } from "@/lib/data/contributorApplications";
 

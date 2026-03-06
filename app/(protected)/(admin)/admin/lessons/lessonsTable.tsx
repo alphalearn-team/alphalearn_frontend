@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import SearchBar from "@/components/concepts/searchBar";
 import AdminEmptyState from "@/components/admin/emptyState";
 import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
-import { RelativeTime, getUrgencyLevel } from "@/components/relativeTime";
+import { RelativeTime, getUrgencyLevel } from "./_components/RelativeTime";
 import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 
 interface LessonsManagementTableProps {
