@@ -1,11 +1,12 @@
 import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api";
 import type { UserRole } from "@/lib/auth/rbac";
-import { getLessonModerationMeta, normalizeLessonModerationStatus } from "@/lib/lessonModeration";
+import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/lessonModeration";
 
 function normalizeLessonDetail(lesson: Lesson): Lesson {
   return {
     ...lesson,
+    moderationStatus: resolveLessonModerationStatus(lesson, "APPROVED"),
     latestModerationReasons: Array.isArray(lesson.latestModerationReasons)
       ? lesson.latestModerationReasons
       : [],
@@ -56,7 +57,7 @@ export function getLessonConceptLabels(lesson: Lesson): string[] {
 }
 
 function resolveLessonStatus(lesson: Lesson): string {
-  return normalizeLessonModerationStatus(lesson.moderationStatus);
+  return resolveLessonModerationStatus(lesson, "APPROVED");
 }
 
 export interface LessonDetailViewModel {

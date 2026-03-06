@@ -1,6 +1,6 @@
 import type { Concept, LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api";
-import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
+import { resolveLessonModerationStatus } from "@/lib/lessonModeration";
 
 export async function fetchConcept(conceptId: string): Promise<Concept | null> {
   try {
@@ -20,7 +20,7 @@ export async function fetchRelatedLessons(conceptId: string): Promise<LessonSumm
       if (Array.isArray(lessons)) {
         return lessons.filter(
           (lesson) =>
-            normalizeLessonModerationStatus(lesson.moderationStatus) === "APPROVED",
+            resolveLessonModerationStatus(lesson, "UNPUBLISHED") === "APPROVED",
         );
       }
     } catch {

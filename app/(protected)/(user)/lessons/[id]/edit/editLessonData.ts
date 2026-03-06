@@ -1,6 +1,6 @@
 import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api";
-import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
+import { resolveLessonModerationStatus } from "@/lib/lessonModeration";
 
 export async function fetchOwnedLessons(): Promise<LessonSummary[] | null> {
   try {
@@ -25,7 +25,7 @@ export function getLessonConceptLabels(lesson: Lesson): string[] {
 }
 
 export function getLessonEditStatus(lesson: Lesson): string {
-  return normalizeLessonModerationStatus(lesson.moderationStatus);
+  return resolveLessonModerationStatus(lesson);
 }
 
 export interface EditLessonViewModel {
