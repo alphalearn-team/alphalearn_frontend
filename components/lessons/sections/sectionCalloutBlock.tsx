@@ -44,7 +44,7 @@ const CALLOUT_VARIANTS: {
     label: "Note",
     icon: "edit_note",
     borderColor: "var(--color-primary)",
-    background: "rgba(124, 92, 255, 0.08)",
+    background: "rgba(156, 163, 175, 0.08)",
   },
 ];
 

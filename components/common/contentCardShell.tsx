@@ -10,6 +10,7 @@ interface ContentCardShellProps {
   background: string;
   glow: string;
   borderColor?: string;
+  hoverBorderColor?: string;
 }
 
 export default function ContentCardShell({
@@ -18,6 +19,7 @@ export default function ContentCardShell({
   background,
   glow,
   borderColor = "rgba(255,255,255,0.05)",
+  hoverBorderColor,
 }: ContentCardShellProps) {
   return (
     <Card
@@ -31,10 +33,19 @@ export default function ContentCardShell({
         boxShadow: `inset 0 0 0 1px ${borderColor}, 0 10px 30px -10px rgba(0,0,0,0.5)`,
       }}
     >
-      <div
-        className="absolute inset-0 transition-opacity duration-500 pointer-events-none opacity-0 group-hover:opacity-100"
-        style={{ background: glow }}
-      />
+      {glow !== "none" && (
+        <div
+          className="absolute inset-0 transition-opacity duration-500 pointer-events-none opacity-0 group-hover:opacity-100"
+          style={{ background: glow }}
+        />
+      )}
+
+      {hoverBorderColor && (
+        <div
+          className="absolute inset-0 rounded-[28px] transition-opacity duration-300 pointer-events-none opacity-0 group-hover:opacity-100"
+          style={{ boxShadow: `inset 0 0 0 1px ${hoverBorderColor}` }}
+        />
+      )}
 
       {children}
     </Card>

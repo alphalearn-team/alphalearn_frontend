@@ -84,7 +84,7 @@ export function SectionPicker({ opened, onClose, onSelect }: SectionPickerProps)
             key={section.type}
             onClick={() => handleSelect(section.type)}
             className="flex items-start gap-4 p-5 rounded-xl text-left
-              bg-[var(--color-surface-elevated)] border border-[var(--color-border)]
+              bg-[var(--color-surface)] border border-[var(--color-border)]
               hover:border-[var(--color-primary)] hover:bg-[var(--color-overlay)]
               transition-all duration-200 cursor-pointer group"
           >
@@ -92,7 +92,7 @@ export function SectionPicker({ opened, onClose, onSelect }: SectionPickerProps)
               className="p-3 rounded-lg"
               style={{
                 backgroundColor: "var(--color-primary)",
-                color: "white",
+                color: "var(--color-surface)",
               }}
             >
               <span className="material-symbols-outlined text-2xl">

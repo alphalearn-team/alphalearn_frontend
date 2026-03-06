@@ -196,7 +196,7 @@ export default function LessonEditorWithSections({
       {/* Basic Information Card */}
       <div className="space-y-6 p-4 sm:p-8 rounded-2xl border" style={{ backgroundColor: "rgba(156, 163, 175, 0.03)", borderColor: "var(--color-border)" }}>
         <div className="flex items-center gap-3 pb-4 border-b" style={{ borderColor: "var(--color-border)" }}>
-          <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--color-primary)", color: "white" }}>
+          <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--color-primary)", color: "var(--color-surface)" }}>
             <span className="material-symbols-outlined text-xl">info</span>
           </div>
           <div>
@@ -263,7 +263,7 @@ export default function LessonEditorWithSections({
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pb-5 border-b" style={{ borderColor: "var(--color-border)" }}>
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: "var(--color-primary)", color: "white" }}>
+            <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: "var(--color-primary)", color: "var(--color-surface)" }}>
               <span className="material-symbols-outlined text-xl">edit_note</span>
             </div>
             <div className="flex-1 min-w-0">
@@ -335,11 +335,11 @@ export default function LessonEditorWithSections({
           styles={{
             root: {
               backgroundColor: "var(--color-primary)",
-              color: "white",
+              color: "var(--color-surface)",
               fontWeight: 600,
               fontSize: "1rem",
               padding: "0 40px",
-              boxShadow: "0 4px 12px rgba(124, 92, 255, 0.3)",
+              boxShadow: "0 4px 12px var(--color-shadow)",
             },
           }}
         >

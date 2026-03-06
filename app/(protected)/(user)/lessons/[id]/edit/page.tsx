@@ -90,7 +90,7 @@ export default async function EditLessonPage({
           {lessonConceptLabels.map((label) => (
             <span
               key={label}
-              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/70"
+              className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]"
             >
               {label}
             </span>

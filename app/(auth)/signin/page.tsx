@@ -118,7 +118,7 @@ export default function SignInPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] disabled:opacity-50 disabled:cursor-not-allowed text-white text-base font-bold tracking-[0.015em] transition-all duration-200 shadow-[0_0_20px_var(--color-shadow)] hover:shadow-[0_0_30px_var(--color-shadow-hover)] transform hover:-translate-y-0.5 active:scale-[0.98]"
+                  className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] disabled:opacity-50 disabled:cursor-not-allowed text-[var(--color-surface)] text-base font-bold tracking-[0.015em] transition-all duration-200 shadow-[0_0_20px_var(--color-shadow)] hover:shadow-[0_0_30px_var(--color-shadow-hover)] transform hover:-translate-y-0.5 active:scale-[0.98]"
                 >
                   {isLoading
                     ? "Please wait..."
@@ -203,7 +203,7 @@ export default function SignInPage() {
 
             {/* Right Panel: Value Proposition (visible on desktop when in signup mode) */}
             {isSignUp && (
-              <div className="hidden lg:flex w-[400px] bg-[var(--color-surface-elevated)] border-l border-[var(--color-border)] flex-col p-10 justify-center relative overflow-hidden">
+              <div className="hidden lg:flex w-[400px] border-l border-[var(--color-border)] flex-col p-10 justify-center relative overflow-hidden">
                 {/* Background decorations */}
 
                 <div className="relative z-10">

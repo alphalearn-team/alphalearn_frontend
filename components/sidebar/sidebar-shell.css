@@ -19,7 +19,7 @@
 }
 
 [data-mantine-color-scheme="dark"] .admin-sidebar {
-  background: linear-gradient(180deg, var(--color-surface) 0%, #0d1526 100%);
+  background: var(--color-surface);
   box-shadow: -2px 0 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(59, 130, 246, 0.05);
 }
 

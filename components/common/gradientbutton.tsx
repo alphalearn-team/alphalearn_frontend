@@ -59,7 +59,7 @@ export default function GradientButton({
             relative overflow-hidden transition-all duration-300
             hover:scale-[1.03] active:scale-95
             !bg-[var(--color-primary)] hover:!bg-[var(--color-primary-hover)] active:!bg-[var(--color-primary-active)]
-            !text-white shadow-[0_0_20px_var(--color-shadow)] hover:shadow-[0_0_30px_var(--color-shadow-hover)]
+            !text-[var(--color-surface)] shadow-[0_0_20px_var(--color-shadow)] hover:shadow-[0_0_30px_var(--color-shadow-hover)]
             before:absolute before:top-0 before:-left-full before:w-full before:h-full 
             before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent 
             before:transition-all before:duration-500 hover:before:left-full

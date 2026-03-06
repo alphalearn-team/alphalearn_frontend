@@ -7,7 +7,7 @@
 
 :root {
   /* Font Variables */
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-roboto-mono);
   --font-mono: var(--font-geist-mono);
 
   /* Light Theme */
@@ -60,31 +60,31 @@
 
 /* Dark Theme */
 [data-mantine-color-scheme="dark"] {
-  --color-primary: #7c3aed;
-  --color-primary-hover: #6b4ce6;
-  --color-primary-active: #5a3dc0;
+  --color-primary: #2EFFB4;
+  --color-primary-hover: #2EFFB4;
+  --color-primary-active: #2EFFB4;
   --color-accent: #2EFFB4;
   --color-accent-hover: #26e5a3;
 
-  --color-background: #0F0F14;
-  --color-surface: #181826;
+  --color-background: #191919;
+  --color-surface: #202020;
   --color-surface-elevated: #1d1736;
-  --color-input: #29204b;
+  --color-input: #333333;
 
   --color-text: #ffffff;
   --color-text-secondary: #b3b3c6;
-  --color-text-muted: #9a8dce;
+  --color-text-muted: #797979;
 
-  --color-border: #3a2e6b;
-  --color-border-focus: #2EFFB4;
+  --color-border: #ffffff;
+  --color-border-focus: #d1b6ff;
 
   --color-overlay: rgba(255, 255, 255, 0.05);
-  --color-shadow: rgba(46, 255, 180, 0.15);
-  --color-shadow-hover: rgba(0, 255, 162, 0.25);
+  --color-shadow: rgba(109, 46, 255, 0.15);
+  --color-shadow-hover: rgba(93, 0, 255, 0.25);
 
   /* Card-specific */
-  --color-card-bg: #11111a;
-  --color-card-border: #1e1e2e;
+  --color-card-bg: #333333;
+  --color-card-border: #ffffff;
   --color-card-border-hover: rgba(255, 255, 255, 0.6);
   --color-card-shadow-hover: rgba(139, 92, 246, 0.25);
   --color-card-accent: #8b5cf6;
@@ -157,7 +157,12 @@ html {
 body {
   background: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-nunito);
+  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* ── Navbar frosted glass ── */

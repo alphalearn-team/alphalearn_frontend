@@ -18,7 +18,8 @@ export default function ConceptCard({
       href={`/concepts/${publicId}`}
       background="var(--color-card-bg)"
       borderColor="var(--color-card-border)"
-      glow="radial-gradient(circle at top right, var(--color-card-shadow-hover) 0%, transparent 70%)"
+      glow="none"
+      hoverBorderColor="var(--color-primary)"
     >
       <Stack gap="md" h="100%" justify="space-between" className="relative z-10">
         <Stack gap="xs">
@@ -35,7 +36,7 @@ export default function ConceptCard({
 
           <Title
             order={3}
-            className="text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-card-text)] group-hover:text-[var(--color-card-accent)] transition-colors"
+            className="text-2xl font-extrabold tracking-tight leading-tight text-[var(--color-card-text)] group-hover:text-[var(--color-primary)] transition-colors"
           >
             {title}
           </Title>
@@ -50,9 +51,9 @@ export default function ConceptCard({
             {formatShortDate(createdAt)}
           </span>
           <div className="flex gap-1">
-            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-30" />
-            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-50" />
-            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)]" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-30" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-50" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)]" />
           </div>
         </div>
       </Stack>

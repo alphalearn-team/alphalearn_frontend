@@ -108,7 +108,7 @@ export function SectionDefinitionBlock({
     <div
       className="rounded-xl p-6 border-l-4"
       style={{
-        backgroundColor: "var(--color-surface-elevated)",
+        backgroundColor: "var(--color-surface)",
         borderLeftColor: "var(--color-primary)",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
       }}
@@ -118,7 +118,7 @@ export function SectionDefinitionBlock({
           className="p-3 rounded-lg flex-shrink-0"
           style={{
             backgroundColor: "var(--color-primary)",
-            color: "white",
+            color: "var(--color-surface)",
           }}
         >
           <span className="material-symbols-outlined text-2xl">book</span>

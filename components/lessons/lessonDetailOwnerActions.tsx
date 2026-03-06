@@ -50,7 +50,7 @@ export default function LessonDetailOwnerActions({
         {showBackToMine && (
           <Link
             href="/lessons/mine"
-            className="inline-flex h-10 items-center rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-white/10 hover:text-[var(--color-text)]"
+            className="inline-flex h-10 items-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-overlay)] hover:text-[var(--color-text)]"
           >
             Back to My Lessons
           </Link>

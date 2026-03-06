@@ -13,7 +13,7 @@ export default async function ContributorApplicationPage() {
   const { data, error } = await fetchMyContributorApplications();
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
+    <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4 lg:px-8">
       <Container size="lg">
         <Stack gap="xl">
           <div className="space-y-3">
