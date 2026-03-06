@@ -60,13 +60,13 @@
 
 /* Dark Theme */
 [data-mantine-color-scheme="dark"] {
-  --color-primary: #985cff;
-  --color-primary-hover: #6b4ce6;
-  --color-primary-active: #5a3dc0;
+  --color-primary: #2EFFB4;
+  --color-primary-hover: #2EFFB4;
+  --color-primary-active: #2EFFB4;
   --color-accent: #2EFFB4;
   --color-accent-hover: #26e5a3;
 
-  --color-background: #0F0F14;
+  --color-background: #191919;
   --color-surface: #202020;
   --color-surface-elevated: #1d1736;
   --color-input: #333333;
