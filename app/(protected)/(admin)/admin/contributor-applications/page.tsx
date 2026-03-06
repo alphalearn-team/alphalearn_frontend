@@ -1,5 +1,5 @@
-import AdminBreadcrumb from "@/components/admin/breadcrumb";
-import AdminPageHeader from "@/components/admin/pageHeader";
+import AdminBreadcrumb from "@/components/admin/Breadcrumb";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import { fetchPendingContributorApplicationsAction } from "@/lib/actions/adminContributorApplications";
 import ContributorApplicationsModerationPanel from "./moderationPanel";
 

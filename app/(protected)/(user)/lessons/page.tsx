@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api";
 import type { LessonSummary } from "@/interfaces/interfaces";
-import NotFound from "@/components/notFound";
+import NotFound from "@/components/NotFound";
 import {
   Container,
   Text,
@@ -8,7 +8,7 @@ import {
   Stack,
   Title,
 } from "@mantine/core";
-import GradientButton from "@/components/common/gradientbutton";
+import GradientButton from "@/components/common/GradientButton";
 import { getUserRole } from "@/lib/auth/rbac";
 import LessonsGridSection from "./_components/LessonsGridSection";
 import SpotlightSearch from "./_components/SpotlightSearch";

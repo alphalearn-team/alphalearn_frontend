@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button, Card, Container, Stack, Text, Title } from "@mantine/core";
-import AdminBreadcrumb from "@/components/admin/breadcrumb";
+import AdminBreadcrumb from "@/components/admin/Breadcrumb";
 import { apiFetch } from "@/lib/api";
 import type { AdminConcept } from "@/interfaces/interfaces";
 

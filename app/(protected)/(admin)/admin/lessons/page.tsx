@@ -1,10 +1,10 @@
 import { apiFetch } from "@/lib/api";
 import { Card } from "@mantine/core";
 import { Suspense } from "react";
-import CardSkeleton from "@/components/common/cardSkeleton";
+import CardSkeleton from "@/components/common/CardSkeleton";
 import LessonsManagementTable from "./lessonsTable";
-import AdminBreadcrumb from "@/components/admin/breadcrumb";
-import AdminPageHeader from "@/components/admin/pageHeader";
+import AdminBreadcrumb from "@/components/admin/Breadcrumb";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 import { getUserRole } from "@/lib/auth/rbac";
 

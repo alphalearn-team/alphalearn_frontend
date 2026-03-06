@@ -29,6 +29,9 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Check import path casing
+        run: npm run check:import-case
+
       - name: Check orphan components
         run: npm run check:orphan-components
 

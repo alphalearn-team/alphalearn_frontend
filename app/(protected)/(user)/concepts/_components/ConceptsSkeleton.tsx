@@ -1,4 +1,4 @@
-import CardSkeleton from "@/components/common/cardSkeleton";
+import CardSkeleton from "@/components/common/CardSkeleton";
 
 /**
  * CONCEPTS SKELETON LOADER

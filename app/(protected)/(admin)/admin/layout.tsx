@@ -1,6 +1,6 @@
 import "./admin.css";
 import { getUserRole } from "@/lib/auth/rbac";
-import NotFound from "@/components/notFound";
+import NotFound from "@/components/NotFound";
 import AdminSidebar from "./_components/AdminSidebar";
 
 export default async function AdminLayout({

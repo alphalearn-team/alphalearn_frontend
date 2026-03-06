@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import ConfirmModal from "@/components/common/confirmModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import { deleteLesson } from "@/lib/actions/lesson";
 import { showError, showSuccess } from "@/lib/actions/notifications";
 

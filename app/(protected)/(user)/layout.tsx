@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import Background from "./_components/Background";
-import NotFound from "@/components/notFound";
+import NotFound from "@/components/NotFound";
 import UserSidebar from "./_components/UserSidebar";
 import UserBreadcrumb from "./_components/UserBreadcrumb";
 import { getUserRole } from "@/lib/auth/rbac";

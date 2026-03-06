@@ -4,9 +4,9 @@ import { Badge, Card, Text } from "@mantine/core";
 import { Spotlight, spotlight } from "@mantine/spotlight";
 import Link from "next/link";
 import { useMemo } from "react";
-import SearchBar from "@/components/concepts/searchBar";
-import AdminEmptyState from "@/components/admin/emptyState";
-import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
+import SearchBar from "@/components/concepts/SearchBar";
+import AdminEmptyState from "@/components/admin/EmptyState";
+import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
 import { RelativeTime, getUrgencyLevel } from "./_components/RelativeTime";
 import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 

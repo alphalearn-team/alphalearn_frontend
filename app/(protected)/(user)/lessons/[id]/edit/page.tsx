@@ -1,13 +1,13 @@
 import LessonEditor from "./lessoneditor";
 import { apiFetch } from "@/lib/api";
 import { Lesson, LessonSummary } from "@/interfaces/interfaces";
-import NotFound from "@/components/notFound";
+import NotFound from "@/components/NotFound";
 import { Group } from "@mantine/core";
 import { getUserRole } from "@/lib/auth/rbac";
 import { redirect } from "next/navigation";
-import ContributorLessonEditorShell from "@/components/lessons/contributorLessonEditorShell";
-import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
-import LessonModerationFeedbackPanel from "@/components/lessons/lessonModerationFeedbackPanel";
+import ContributorLessonEditorShell from "@/components/lessons/ContributorLessonEditorShell";
+import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
 import {
   getLessonModerationMeta,
   normalizeLessonModerationStatus,

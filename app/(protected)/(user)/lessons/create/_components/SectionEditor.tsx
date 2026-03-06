@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, TextInput, ActionIcon, Tooltip } from "@mantine/core";
-import ConfirmModal from "@/components/common/confirmModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import type {
   LessonSectionInput,
   SectionType,

@@ -5,7 +5,7 @@ import { Card, TextInput, Textarea, Button, Text } from "@mantine/core";
 import { addConcept } from "@/lib/actions/adminConcepts";
 import { showError } from "@/lib/actions/notifications";
 import { useRouter } from "next/navigation";
-import AdminBreadcrumb from "@/components/admin/breadcrumb";
+import AdminBreadcrumb from "@/components/admin/Breadcrumb";
 
 export default function AddConceptPage() {
   const router = useRouter();

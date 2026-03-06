@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { Group } from "@mantine/core";
 import { Concept } from "@/interfaces/interfaces";
 import { getUserRole } from "@/lib/auth/rbac";
-import ContributorLessonEditorShell from "@/components/lessons/contributorLessonEditorShell";
+import ContributorLessonEditorShell from "@/components/lessons/ContributorLessonEditorShell";
 
 export default async function CreateLessonPage({
   searchParams,

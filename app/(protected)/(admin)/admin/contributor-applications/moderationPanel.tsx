@@ -22,7 +22,7 @@ import {
   validateRejectionReason,
 } from "@/lib/adminContributorApplications";
 import { formatDateTime } from "@/lib/formatDate";
-import AdminEmptyState from "@/components/admin/emptyState";
+import AdminEmptyState from "@/components/admin/EmptyState";
 import { showError, showSuccess } from "@/lib/actions/notifications";
 import {
   approveContributorApplicationAction,

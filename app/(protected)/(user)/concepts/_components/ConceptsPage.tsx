@@ -11,10 +11,10 @@ import {
   Title,
 } from "@mantine/core";
 import ConceptCard from "./ConceptCard";
-import Pagination from "@/components/concepts/pagination";
+import Pagination from "@/components/concepts/Pagination";
 import ConceptSpotlightSearch from "./ConceptSpotlightSearch";
-import SearchTrigger from "@/components/lessons/searchTrigger";
-import GradientButton from "@/components/common/gradientbutton";
+import SearchTrigger from "@/components/lessons/SearchTrigger";
+import GradientButton from "@/components/common/GradientButton";
 
 interface ConceptsPageProps {
   concepts: Concept[];

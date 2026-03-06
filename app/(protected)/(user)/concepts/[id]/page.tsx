@@ -3,7 +3,7 @@ import { apiFetch } from "@/lib/api";
 import { notFound } from "next/navigation";
 import { Container, SimpleGrid, Text, Title } from "@mantine/core";
 import { formatDateTime } from "@/lib/formatDate";
-import LessonCard from "@/components/lessons/lessonCard";
+import LessonCard from "@/components/lessons/LessonCard";
 import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
 
 export default async function ConceptPage({

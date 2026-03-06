@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api";
 import type { LessonSummary } from "@/interfaces/interfaces";
-import NotFound from "@/components/notFound";
+import NotFound from "@/components/NotFound";
 import {
   SimpleGrid,
   Container,
@@ -11,8 +11,8 @@ import {
   Title,
 } from "@mantine/core";
 import Link from "next/link";
-import LessonCard from "@/components/lessons/lessonCard";
-import GradientButton from "@/components/common/gradientbutton";
+import LessonCard from "@/components/lessons/LessonCard";
+import GradientButton from "@/components/common/GradientButton";
 import { getUserRole } from "@/lib/auth/rbac";
 import { redirect } from "next/navigation";
 

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Group, SimpleGrid, Stack } from "@mantine/core";
 import type { LessonSummary } from "@/interfaces/interfaces";
-import LessonCard from "@/components/lessons/lessonCard";
-import SearchTrigger from "@/components/lessons/searchTrigger";
-import Pagination from "@/components/concepts/pagination";
+import LessonCard from "@/components/lessons/LessonCard";
+import SearchTrigger from "@/components/lessons/SearchTrigger";
+import Pagination from "@/components/concepts/Pagination";
 import Link from "next/link";
 
 const ITEMS_PER_PAGE = 6;

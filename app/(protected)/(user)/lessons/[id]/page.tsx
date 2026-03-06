@@ -10,8 +10,8 @@ import {
 } from "@mantine/core";
 import { getUserRole } from "@/lib/auth/rbac";
 import LessonDetailOwnerActions from "./_components/LessonDetailOwnerActions";
-import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
-import LessonModerationFeedbackPanel from "@/components/lessons/lessonModerationFeedbackPanel";
+import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
 import {
   getLessonModerationMeta,
 } from "@/lib/lessonModeration";

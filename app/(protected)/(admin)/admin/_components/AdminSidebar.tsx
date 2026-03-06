@@ -1,6 +1,6 @@
 "use client";
 
-import AppSidebar, { type SidebarNavSection } from "@/components/sidebar/appSidebar";
+import AppSidebar, { type SidebarNavSection } from "@/components/sidebar/AppSidebar";
 
 const sections: SidebarNavSection[] = [
   {

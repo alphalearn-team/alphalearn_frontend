@@ -1,11 +1,11 @@
 import { apiFetch } from "@/lib/api";
 import { Card } from "@mantine/core";
 import { Suspense } from "react";
-import CardSkeleton from "@/components/common/cardSkeleton";
+import CardSkeleton from "@/components/common/CardSkeleton";
 import ConceptsManagementTable from "./conceptsTable";
-import GlowIconButton from "@/components/common/glowIconButton";
-import AdminBreadcrumb from "@/components/admin/breadcrumb";
-import AdminPageHeader from "@/components/admin/pageHeader";
+import GlowIconButton from "@/components/common/GlowIconButton";
+import AdminBreadcrumb from "@/components/admin/Breadcrumb";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import type { AdminConcept } from "@/interfaces/interfaces";
 
 async function ConceptsData() {

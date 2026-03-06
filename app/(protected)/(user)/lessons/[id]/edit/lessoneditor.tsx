@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-const RichTextEditor = dynamic(() => import("@/components/texteditor/textEditor").then(m => m.RichTextEditor), { ssr: false });
+const RichTextEditor = dynamic(() => import("@/components/texteditor/TextEditor").then(m => m.RichTextEditor), { ssr: false });
 import { MultiSelect } from "@mantine/core";
 import { showSuccess, showError } from "@/lib/actions/notifications";
 import { createLesson, saveLesson, submitLesson, deleteLesson, unpublishLesson } from "@/lib/actions/lesson";
 import { Concept, CreateLessonRequest, LessonContent } from "@/interfaces/interfaces";
-import ConfirmModal from "@/components/common/confirmModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import {
   getLessonModerationSubmitToast,
   normalizeLessonModerationStatus,
