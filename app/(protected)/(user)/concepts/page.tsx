@@ -1,7 +1,7 @@
-import ConceptsPage from "@/components/concepts/conceptsPage";
+import ConceptsPage from "./_components/ConceptsPage";
 import type { Concept } from "@/interfaces/interfaces";
 import { Suspense } from "react";
-import ConceptsSkeleton from "@/components/concepts/conceptsSkeleton";
+import ConceptsSkeleton from "./_components/ConceptsSkeleton";
 import { apiFetch } from "@/lib/api";
 
 async function ConceptsData() {

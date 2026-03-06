@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button, Card, Container, Stack, Text, Title } from "@mantine/core";
-import AdminBreadcrumb from "@/components/admin/breadcrumb";
-import { apiFetch } from "@/lib/api";
-import type { AdminConcept } from "@/interfaces/interfaces";
+import { Button, Container, Stack, Title } from "@mantine/core";
+import AdminBreadcrumb from "@/components/admin/Breadcrumb";
+import AdminConceptDetailCard from "./_components/AdminConceptDetailCard";
+import { fetchAdminConceptById } from "./conceptDetailData";
 
 export default async function AdminConceptDetailPage({
   params,
@@ -11,11 +11,9 @@ export default async function AdminConceptDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  let concept: AdminConcept;
+  const concept = await fetchAdminConceptById(id);
 
-  try {
-    concept = await apiFetch<AdminConcept>(`/admin/concepts/${id}`);
-  } catch {
+  if (!concept) {
     notFound();
   }
 
@@ -33,14 +31,7 @@ export default async function AdminConceptDetailPage({
               </Link>
             </div>
 
-            <Card className="admin-card">
-              <Stack gap="sm">
-                <Text size="sm" c="dimmed">
-                  Concept ID: {concept.publicId}
-                </Text>
-                <Text>{concept.description || "No description provided."}</Text>
-              </Stack>
-            </Card>
+            <AdminConceptDetailCard concept={concept} />
           </Stack>
         </Container>
       </div>

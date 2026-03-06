@@ -1,7 +1,7 @@
-import AdminBreadcrumb from "@/components/admin/breadcrumb";
-import AdminPageHeader from "@/components/admin/pageHeader";
-import ContributorApplicationsModerationPanel from "./moderationPanel";
-import { fetchPendingContributorApplicationsAction } from "./actions";
+import AdminBreadcrumb from "@/components/admin/Breadcrumb";
+import AdminPageHeader from "@/components/admin/PageHeader";
+import { fetchPendingContributorApplicationsAction } from "@/lib/actions/adminContributorApplications";
+import ContributorApplicationsModerationPanel from "./_components/ContributorApplicationsModerationPanel";
 
 export default async function AdminContributorApplicationsPage() {
   const pendingResult = await fetchPendingContributorApplicationsAction();

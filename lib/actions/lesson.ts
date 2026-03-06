@@ -215,7 +215,7 @@ export async function deleteLesson(id: string): Promise<LessonActionResult> {
     return response;
   }
 
-  return { success: false, message: "Unable to delete lesson, check that the lesson is unpublished first" };
+  return response;
 }
 
 export async function unpublishLesson(id: string): Promise<LessonActionResult<Lesson>> {

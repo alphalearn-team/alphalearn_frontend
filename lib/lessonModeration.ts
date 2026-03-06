@@ -75,6 +75,20 @@ export function normalizeLessonModerationStatus(
   }
 }
 
+type LessonModerationStatusSource = {
+  moderationStatus?: string | null;
+  lessonModerationStatus?: string | null;
+};
+
+export function resolveLessonModerationStatus(
+  source: LessonModerationStatusSource,
+  fallback: LessonModerationStatus = "UNPUBLISHED",
+): LessonModerationStatus {
+  return normalizeLessonModerationStatus(
+    source.moderationStatus ?? source.lessonModerationStatus ?? fallback,
+  );
+}
+
 export function getLessonModerationMeta(
   status?: string | null,
 ): LessonModerationMeta {

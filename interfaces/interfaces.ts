@@ -82,6 +82,7 @@ export type Lesson = {
   title: string
   content: LessonContent // Legacy field for backward compatibility
   moderationStatus: LessonModerationStatus
+  lessonModerationStatus?: LessonModerationStatus
   author: PublicAuthor
   createdAt: string
   conceptPublicIds: string[]
@@ -96,6 +97,7 @@ export type Lesson = {
 }
 
 export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" | "createdAt" | "moderationStatus"> & {
+  lessonModerationStatus?: LessonModerationStatus;
   conceptPublicIds?: string[];
   concepts?: LessonConceptSummary[];
 }

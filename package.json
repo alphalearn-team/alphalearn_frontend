@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:import-case": "node scripts/check-import-case.mjs",
+    "check:orphan-components": "node scripts/check-orphan-components.mjs"
   },
   "dependencies": {
     "@mantine/core": "^8.3.15",
