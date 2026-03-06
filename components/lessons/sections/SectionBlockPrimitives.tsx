@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 type FieldStyleOptions = {
   backgroundColor?: string;
@@ -29,6 +29,82 @@ export function createSectionFieldStyles(options: FieldStyleOptions = {}) {
       ...(options.lineHeight ? { lineHeight: options.lineHeight } : {}),
     },
   };
+}
+
+function joinClasses(...classNames: Array<string | undefined>) {
+  return classNames.filter(Boolean).join(" ");
+}
+
+interface SectionDisplayCardProps {
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+}
+
+export function SectionDisplayCard({
+  children,
+  className,
+  style,
+}: SectionDisplayCardProps) {
+  return (
+    <div
+      className={joinClasses("rounded-xl border border-[var(--color-border)]", className)}
+      style={{
+        backgroundColor: "var(--color-surface)",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+interface SectionDisplayHeaderProps {
+  icon: string;
+  title: string;
+  className?: string;
+  titleClassName?: string;
+  iconClassName?: string;
+  iconStyle?: CSSProperties;
+  titleStyle?: CSSProperties;
+}
+
+export function SectionDisplayHeader({
+  icon,
+  title,
+  className,
+  titleClassName,
+  iconClassName,
+  iconStyle,
+  titleStyle,
+}: SectionDisplayHeaderProps) {
+  return (
+    <div className={joinClasses("flex items-center gap-2", className)}>
+      <span
+        className={joinClasses("material-symbols-outlined", iconClassName)}
+        style={iconStyle}
+      >
+        {icon}
+      </span>
+      <span className={titleClassName} style={titleStyle}>
+        {title}
+      </span>
+    </div>
+  );
+}
+
+export function SectionNumberBadge({ number }: { number: number }) {
+  return (
+    <div
+      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+      style={{
+        backgroundColor: "var(--color-primary)",
+        color: "var(--color-surface)",
+      }}
+    >
+      {number}
+    </div>
+  );
 }
 
 interface EditableItemCardProps {

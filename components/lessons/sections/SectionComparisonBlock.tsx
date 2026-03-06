@@ -5,6 +5,9 @@ import type { ComparisonSectionContent } from "@/interfaces/interfaces";
 import {
   createSectionFieldStyles,
   EditableItemCard,
+  SectionDisplayCard,
+  SectionDisplayHeader,
+  SectionNumberBadge,
 } from "./SectionBlockPrimitives";
 
 interface SectionComparisonBlockProps {
@@ -136,48 +139,22 @@ export function SectionComparisonBlock({
   }
 
   return (
-    <div
-      className="rounded-xl p-5 border"
-      style={{
-        backgroundColor: "var(--color-surface)",
-        borderColor: "var(--color-border)",
-      }}
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <span
-          className="material-symbols-outlined text-xl"
-          style={{ color: "var(--color-primary)" }}
-        >
-          compare_arrows
-        </span>
-        <h3
-          className="text-sm font-bold uppercase tracking-[0.2em]"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Comparison
-        </h3>
-      </div>
+    <SectionDisplayCard className="p-5">
+      <SectionDisplayHeader
+        icon="compare_arrows"
+        title="Comparison"
+        className="mb-4"
+        iconClassName="text-xl"
+        iconStyle={{ color: "var(--color-primary)" }}
+        titleClassName="text-sm font-bold uppercase tracking-[0.2em]"
+        titleStyle={{ color: "var(--color-text-muted)" }}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         {content.items.map((item, index) => (
-          <div
-            key={index}
-            className="p-4 rounded-lg border"
-            style={{
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-            }}
-          >
+          <SectionDisplayCard key={index} className="p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                style={{
-                  backgroundColor: "var(--color-primary)",
-                  color: "var(--color-surface)",
-                }}
-              >
-                {index + 1}
-              </div>
+              <SectionNumberBadge number={index + 1} />
               <h4
                 className="font-bold text-base"
                 style={{ color: "var(--color-text)" }}
@@ -191,9 +168,9 @@ export function SectionComparisonBlock({
             >
               {item.description}
             </p>
-          </div>
+          </SectionDisplayCard>
         ))}
       </div>
-    </div>
+    </SectionDisplayCard>
   );
 }

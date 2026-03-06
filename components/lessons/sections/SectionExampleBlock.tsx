@@ -5,6 +5,9 @@ import type { ExampleSectionContent } from "@/interfaces/interfaces";
 import {
   createSectionFieldStyles,
   EditableItemCard,
+  SectionDisplayCard,
+  SectionDisplayHeader,
+  SectionNumberBadge,
 } from "./SectionBlockPrimitives";
 
 interface SectionExampleBlockProps {
@@ -103,26 +106,16 @@ export function SectionExampleBlock({
   }
 
   return (
-    <div
-      className="rounded-xl border border-[var(--color-border)] overflow-hidden"
-      style={{ backgroundColor: "var(--color-surface)" }}
-    >
-      <div
-        className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2"
-        style={{ background: "var(--color-overlay)" }}
-      >
-        <span
-          className="material-symbols-outlined text-lg"
-          style={{ color: "var(--color-primary)" }}
-        >
-          forum
-        </span>
-        <span
-          className="text-xs font-semibold uppercase tracking-wider"
-          style={{ color: "var(--color-primary)" }}
-        >
-          Usage Examples
-        </span>
+    <SectionDisplayCard className="overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--color-border)]" style={{ background: "var(--color-overlay)" }}>
+        <SectionDisplayHeader
+          icon="forum"
+          title="Usage Examples"
+          iconClassName="text-lg"
+          iconStyle={{ color: "var(--color-primary)" }}
+          titleClassName="text-xs font-semibold uppercase tracking-wider"
+          titleStyle={{ color: "var(--color-primary)" }}
+        />
       </div>
 
       <div className="p-5 space-y-4">
@@ -132,11 +125,8 @@ export function SectionExampleBlock({
             className="pb-4 border-b border-[var(--color-border)] last:border-b-0 last:pb-0"
           >
             <div className="flex items-start gap-3">
-              <div
-                className="mt-1 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: "var(--color-primary)", color: "var(--color-surface)" }}
-              >
-                <span className="text-xs font-bold">{index + 1}</span>
+              <div className="mt-1 flex-shrink-0">
+                <SectionNumberBadge number={index + 1} />
               </div>
 
               <div className="flex-1">
@@ -169,6 +159,6 @@ export function SectionExampleBlock({
           </p>
         )}
       </div>
-    </div>
+    </SectionDisplayCard>
   );
 }

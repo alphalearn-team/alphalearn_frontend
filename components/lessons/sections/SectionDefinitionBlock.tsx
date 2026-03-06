@@ -2,7 +2,11 @@
 
 import { TextInput, Textarea } from "@mantine/core";
 import type { DefinitionSectionContent } from "@/interfaces/interfaces";
-import { createSectionFieldStyles } from "./SectionBlockPrimitives";
+import {
+  createSectionFieldStyles,
+  SectionDisplayCard,
+  SectionDisplayHeader,
+} from "./SectionBlockPrimitives";
 
 interface SectionDefinitionBlockProps {
   content: DefinitionSectionContent;
@@ -18,10 +22,15 @@ export function SectionDefinitionBlock({
   if (isEditing) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="material-symbols-outlined text-lg" style={{ color: "var(--color-primary)" }}>book</span>
-          <span className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--color-primary)" }}>Definition</span>
-        </div>
+        <SectionDisplayHeader
+          icon="book"
+          title="Definition"
+          className="mb-2"
+          iconClassName="text-lg"
+          iconStyle={{ color: "var(--color-primary)" }}
+          titleClassName="text-xs font-bold uppercase tracking-[0.2em]"
+          titleStyle={{ color: "var(--color-primary)" }}
+        />
         <TextInput
           label="Term"
           placeholder="Enter the slang term..."
@@ -63,10 +72,9 @@ export function SectionDefinitionBlock({
   }
 
   return (
-    <div
-      className="rounded-xl p-6 border-l-4"
+    <SectionDisplayCard
+      className="p-6 border-l-4"
       style={{
-        backgroundColor: "var(--color-surface)",
         borderLeftColor: "var(--color-primary)",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
       }}
@@ -108,6 +116,6 @@ export function SectionDefinitionBlock({
           </p>
         </div>
       </div>
-    </div>
+    </SectionDisplayCard>
   );
 }

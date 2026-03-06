@@ -4,7 +4,7 @@ import { Select, TextInput } from "@mantine/core";
 import { RichTextEditor } from "@/components/texteditor/TextEditor";
 import { TextDisplayer } from "@/components/texteditor/TextDisplayer";
 import type { CalloutSectionContent, CalloutVariant } from "@/interfaces/interfaces";
-import { createSectionFieldStyles } from "./SectionBlockPrimitives";
+import { createSectionFieldStyles, SectionDisplayCard } from "./SectionBlockPrimitives";
 
 interface SectionCalloutBlockProps {
   content: CalloutSectionContent;
@@ -85,24 +85,21 @@ export function SectionCalloutBlock({
           <label className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-2">
             Content
           </label>
-          <div
-            className="rounded-xl border border-[var(--color-border)]"
-            style={{ backgroundColor: "var(--color-surface)", minHeight: "auto" }}
-          >
+          <SectionDisplayCard style={{ minHeight: "auto" }}>
             <RichTextEditor
               value={content.html}
               onChange={(html) => onChange?.({ ...content, html })}
               isEditing={true}
             />
-          </div>
+          </SectionDisplayCard>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className="rounded-xl flex gap-3 p-5"
+    <SectionDisplayCard
+      className="flex gap-3 p-5 border-l-4"
       style={{
         borderLeft: `4px solid ${variantConfig.borderColor}`,
         background: variantConfig.background,
@@ -129,6 +126,6 @@ export function SectionCalloutBlock({
           <TextDisplayer content={content.html} />
         </div>
       </div>
-    </div>
+    </SectionDisplayCard>
   );
 }
