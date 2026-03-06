@@ -3,8 +3,9 @@
 import "./sidebar-shell.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Avatar } from "@mantine/core";
+import { useHotkeys } from "@mantine/hooks";
 import { useAuth } from "@/context/AuthContext";
 import NotificationBell from "../notifications/NotificationBell";
 
@@ -60,15 +61,7 @@ export default function AppSidebar({
     setMobileOpenPath((currentPath) => (currentPath === pathname ? null : pathname));
   };
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        closeMobileSidebar();
-      }
-    };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, []);
+  useHotkeys([["Escape", closeMobileSidebar]]);
 
   const isActive = (item: SidebarNavItem) => {
     if (item.exact) return pathname === item.href;

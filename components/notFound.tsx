@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 
 interface NotFoundProps {
   title?: string
@@ -14,19 +13,6 @@ export default function NotFound({
   subtitle = "We couldn't find this page. Maybe it teleported. Maybe it never existed. Who knows.",
 }: NotFoundProps) {
   const router = useRouter()
-
-  useEffect(() => {
-    const lockClass = "not-found-lock-scroll"
-
-    // prevent scrolling and restore on cleanup
-    document.body.classList.add(lockClass)
-    document.documentElement.classList.add(lockClass)
-
-    return () => {
-      document.body.classList.remove(lockClass)
-      document.documentElement.classList.remove(lockClass)
-    }
-  }, [])
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-[var(--color-background)] via-[var(--color-surface)] to-[var(--color-background)] relative overflow-hidden">
       {/* animated bg */}

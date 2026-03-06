@@ -26,12 +26,7 @@ export default function LessonsGridSection({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    const listSection = listSectionRef.current;
-    if (listSection) {
-      listSection.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    listSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (

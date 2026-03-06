@@ -19,9 +19,10 @@ interface UseLessonCreationFormParams {
 }
 
 function isHTMLEmpty(html: string): boolean {
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = html;
-  const text = tempDiv.textContent || tempDiv.innerText || "";
+  const text = html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ");
   return text.trim().length === 0;
 }
 
