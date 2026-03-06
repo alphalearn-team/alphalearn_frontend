@@ -7,7 +7,7 @@ import {
   type SectionWithId,
   withSectionIds,
   generateSectionId,
-} from "./sectionEditorUtils";
+} from "../_components/sectionEditorUtils";
 
 interface UseSectionEditorStateParams {
   sections: LessonSectionInput[];
