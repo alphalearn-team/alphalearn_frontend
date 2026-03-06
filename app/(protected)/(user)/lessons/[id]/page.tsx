@@ -1,39 +1,21 @@
 import "@mantine/tiptap/styles.css";
-import { LessonContentDisplay } from "./_components/LessonContentDisplay";
-import { apiFetch } from "@/lib/api";
-import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
+import { Container } from "@mantine/core";
 import { notFound } from "next/navigation";
-import {
-  Container,
-  Title,
-  Group,
-} from "@mantine/core";
-import { getUserRole } from "@/lib/auth/rbac";
-import LessonDetailOwnerActions from "./_components/LessonDetailOwnerActions";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import type { Lesson } from "@/interfaces/interfaces";
 import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
+import { getUserRole } from "@/lib/auth/rbac";
+import { getLessonModerationMeta } from "@/lib/lessonModeration";
+import { LessonContentDisplay } from "./_components/LessonContentDisplay";
+import LessonDetailHeader from "./_components/LessonDetailHeader";
 import {
-  getLessonModerationMeta,
-} from "@/lib/lessonModeration";
+  checkLessonOwnership,
+  fetchLessonContent,
+  getLessonConceptLabels,
+  hasModerationFeedback,
+} from "./lessonDetailData";
 
-function normalizeLessonDetail(lesson: Lesson): Lesson {
-  return {
-    ...lesson,
-    latestModerationReasons: Array.isArray(lesson.latestModerationReasons)
-      ? lesson.latestModerationReasons
-      : [],
-    adminRejectionReason: lesson.adminRejectionReason ?? null,
-  };
-}
-
-async function getLessonContent(id: string): Promise<Lesson | null> {
-  try {
-    const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
-    // console.log("normalised lesson: ", normalizeLessonDetail(lesson));
-    return normalizeLessonDetail(lesson);
-  } catch {
-    return null;
-  }
+function resolveLessonStatus(lesson: Lesson): string {
+  return lesson.moderationStatus ?? "APPROVED";
 }
 
 export default async function LessonPage({
@@ -42,108 +24,51 @@ export default async function LessonPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [role, lessonContent] = await Promise.all([
-    getUserRole(),
-    getLessonContent(id),
-  ]);
+  const [role, lesson] = await Promise.all([getUserRole(), fetchLessonContent(id)]);
 
-  if (!lessonContent) {
+  if (!lesson) {
     return notFound();
   }
 
-  const lessonPublicId = lessonContent.lessonPublicId || id;
-  let ownsLesson = false;
-  // const normalizedStatus = normalizeLessonModerationStatus(lessonContent.moderationStatus);
-  const normalizedStatus = lessonContent.moderationStatus ?? "APPROVED";
-  const moderationMeta = getLessonModerationMeta(normalizedStatus);
-  const latestReasons = lessonContent.latestModerationReasons ?? [];
-  const hasModerationFeedback =
-    latestReasons.length > 0 ||
-    Boolean(lessonContent.adminRejectionReason) ||
-    Boolean(lessonContent.latestModerationEventType) ||
-    Boolean(lessonContent.latestModeratedAt);
-  const lessonConceptLabels = (lessonContent.concepts || [])
-    .map((concept) => concept?.title)
-    .filter(Boolean) as string[];
+  const lessonId = lesson.lessonPublicId || id;
+  const status = resolveLessonStatus(lesson);
+  const ownsLesson = await checkLessonOwnership(role, lessonId);
 
-  if (role !== "ADMIN") {
-    try {
-      const myLessons = await apiFetch<LessonSummary[]>("/lessons/mine");
-      ownsLesson = myLessons.some((lesson) => lesson.lessonPublicId === lessonPublicId);
-    } catch {
-      ownsLesson = false;
-    }
-  }
-
-  if (role !== "ADMIN" && !ownsLesson && normalizedStatus !== "APPROVED") {
+  if (role !== "ADMIN" && !ownsLesson && status !== "APPROVED") {
     return notFound();
   }
 
-  const canEdit = role === "CONTRIBUTOR" && ownsLesson;
-  const canDelete = ownsLesson && normalizedStatus === "UNPUBLISHED";
-  const shouldShowModerationState = ownsLesson || (role === "CONTRIBUTOR" && hasModerationFeedback);
+  const moderationMeta = getLessonModerationMeta(status);
+  const lessonConceptLabels = getLessonConceptLabels(lesson);
+  const shouldShowModerationState =
+    ownsLesson || (role === "CONTRIBUTOR" && hasModerationFeedback(lesson));
 
   return (
     <Container size="md" py="xl">
       <div className="flex flex-col gap-8">
-        <Group justify="space-between" align="flex-start">
-          <div className="flex-1">
-            <Title order={1} mb="sm">
-              {lessonContent.title}
-            </Title>
-            {lessonConceptLabels.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {lessonConceptLabels.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-muted)]"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {shouldShowModerationState && (
-              <div
-                className="mt-5 rounded-2xl border px-5 py-4"
-                style={{
-                  background: moderationMeta.bg,
-                  borderColor: moderationMeta.border,
-                }}
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
-                    Moderation
-                  </span>
-                  <LessonModerationBadge status={normalizedStatus} />
-                </div>
-
-                <p className="mt-3 text-sm text-[var(--color-text-secondary)]">
-                  {moderationMeta.description}
-                </p>
-              </div>
-            )}
-          </div>
-          <LessonDetailOwnerActions
-            lessonId={lessonPublicId}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            showBackToMine={role === "CONTRIBUTOR" && ownsLesson}
-          />
-        </Group>
+        <LessonDetailHeader
+          title={lesson.title}
+          conceptLabels={lessonConceptLabels}
+          status={status}
+          moderationMeta={moderationMeta}
+          shouldShowModerationState={shouldShowModerationState}
+          lessonId={lessonId}
+          canEdit={role === "CONTRIBUTOR" && ownsLesson}
+          canDelete={ownsLesson && status === "UNPUBLISHED"}
+          showBackToMine={role === "CONTRIBUTOR" && ownsLesson}
+        />
 
         {shouldShowModerationState && (
           <LessonModerationFeedbackPanel
-            status={normalizedStatus}
-            reasons={lessonContent.latestModerationReasons}
-            adminRejectionReason={lessonContent.adminRejectionReason}
-            eventType={lessonContent.latestModerationEventType}
-            moderatedAt={lessonContent.latestModeratedAt}
+            status={status}
+            reasons={lesson.latestModerationReasons}
+            adminRejectionReason={lesson.adminRejectionReason}
+            eventType={lesson.latestModerationEventType}
+            moderatedAt={lesson.latestModeratedAt}
           />
         )}
 
-        <LessonContentDisplay sections={lessonContent.sections || []} />
+        <LessonContentDisplay sections={lesson.sections || []} />
       </div>
     </Container>
   );
