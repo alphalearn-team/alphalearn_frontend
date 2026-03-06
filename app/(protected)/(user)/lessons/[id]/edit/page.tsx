@@ -10,10 +10,7 @@ import {
   LessonEditStatusMeta,
 } from "./_components/LessonEditHeaderMeta";
 import {
-  fetchLessonForEdit,
-  fetchOwnedLessons,
-  getLessonConceptLabels,
-  getLessonEditStatus,
+  getEditLessonViewModel,
 } from "./editLessonData";
 
 export default async function EditLessonPage({
@@ -32,24 +29,13 @@ export default async function EditLessonPage({
     redirect("/lessons");
   }
 
-  const myLessons = await fetchOwnedLessons();
-  if (!myLessons) {
+  const viewModel = await getEditLessonViewModel(id);
+  if (!viewModel) {
     return <NotFound />;
   }
 
-  const isOwnerLesson = myLessons.some((lesson) => lesson.lessonPublicId === id);
-  if (!isOwnerLesson) {
-    return <NotFound />;
-  }
-
-  const lesson = await fetchLessonForEdit(id);
-  if (!lesson) {
-    return <NotFound />;
-  }
-
-  const status = getLessonEditStatus(lesson);
+  const { lesson, lessonConceptLabels, status } = viewModel;
   const moderationMeta = getLessonModerationMeta(status);
-  const lessonConceptLabels = getLessonConceptLabels(lesson);
 
   return (
     <ContributorLessonEditorShell

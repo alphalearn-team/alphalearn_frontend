@@ -27,3 +27,34 @@ export function getLessonConceptLabels(lesson: Lesson): string[] {
 export function getLessonEditStatus(lesson: Lesson): string {
   return normalizeLessonModerationStatus(lesson.moderationStatus);
 }
+
+export interface EditLessonViewModel {
+  lesson: Lesson;
+  lessonConceptLabels: string[];
+  status: string;
+}
+
+export async function getEditLessonViewModel(
+  id: string,
+): Promise<EditLessonViewModel | null> {
+  const myLessons = await fetchOwnedLessons();
+  if (!myLessons) {
+    return null;
+  }
+
+  const isOwnerLesson = myLessons.some((lesson) => lesson.lessonPublicId === id);
+  if (!isOwnerLesson) {
+    return null;
+  }
+
+  const lesson = await fetchLessonForEdit(id);
+  if (!lesson) {
+    return null;
+  }
+
+  return {
+    lesson,
+    lessonConceptLabels: getLessonConceptLabels(lesson),
+    status: getLessonEditStatus(lesson),
+  };
+}
