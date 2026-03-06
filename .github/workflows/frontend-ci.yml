@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Frontend CI
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
