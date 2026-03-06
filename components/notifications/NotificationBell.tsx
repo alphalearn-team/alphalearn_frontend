@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Popover } from "@mantine/core";
+import { ActionIcon, Badge, Popover } from "@mantine/core";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/context/AuthContext";
 import NotificationBellContent from "./NotificationBellContent";
-import NotificationBellTrigger from "./NotificationBellTrigger";
 
 export default function NotificationBell() {
   const { user, userRole } = useAuth();
@@ -33,10 +32,37 @@ export default function NotificationBell() {
       withArrow
     >
       <Popover.Target>
-        <NotificationBellTrigger
-          unreadCount={unreadCount}
-          onToggle={() => handleOpen(!opened)}
-        />
+        <div className="relative cursor-pointer" onClick={() => handleOpen(!opened)}>
+          <ActionIcon
+            variant="subtle"
+            size="lg"
+            radius="xl"
+            aria-label="Notifications"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+          </ActionIcon>
+
+          {unreadCount > 0 && (
+            <Badge
+              size="xs"
+              color="violet"
+              variant="filled"
+              circle
+              style={{
+                position: "absolute",
+                top: 2,
+                right: 2,
+                minWidth: 16,
+                height: 16,
+                fontSize: 9,
+                padding: 0,
+              }}
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </Badge>
+          )}
+        </div>
       </Popover.Target>
 
       <Popover.Dropdown
