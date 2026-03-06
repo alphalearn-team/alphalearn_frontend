@@ -15,3 +15,4 @@ export default function ConceptGrid({ concepts }: ConceptGridProps) {
     </SimpleGrid>
   );
 }
+const a =
