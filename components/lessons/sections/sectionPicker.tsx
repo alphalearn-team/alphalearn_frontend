@@ -92,7 +92,7 @@ export function SectionPicker({ opened, onClose, onSelect }: SectionPickerProps)
               className="p-3 rounded-lg"
               style={{
                 backgroundColor: "var(--color-primary)",
-                color: "white",
+                color: "var(--color-surface)",
               }}
             >
               <span className="material-symbols-outlined text-2xl">

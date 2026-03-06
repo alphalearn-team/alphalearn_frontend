@@ -53,7 +53,7 @@ export function SectionComparisonBlock({
             styles={{
               root: {
                 backgroundColor: "var(--color-primary)",
-                color: "white",
+                color: "var(--color-surface)",
               },
             }}
           >
@@ -207,7 +207,7 @@ export function SectionComparisonBlock({
                 className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{
                   backgroundColor: "var(--color-primary)",
-                  color: "white",
+                  color: "var(--color-surface)",
                 }}
               >
                 {index + 1}

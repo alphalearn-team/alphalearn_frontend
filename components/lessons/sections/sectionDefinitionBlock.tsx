@@ -118,7 +118,7 @@ export function SectionDefinitionBlock({
           className="p-3 rounded-lg flex-shrink-0"
           style={{
             backgroundColor: "var(--color-primary)",
-            color: "white",
+            color: "var(--color-surface)",
           }}
         >
           <span className="material-symbols-outlined text-2xl">book</span>

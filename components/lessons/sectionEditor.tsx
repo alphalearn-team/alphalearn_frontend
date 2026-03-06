@@ -171,7 +171,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
             styles={{
               root: {
                 backgroundColor: "var(--color-primary)",
-                color: "white",
+                color: "var(--color-surface)",
                 fontWeight: 600,
               },
             }}
@@ -341,7 +341,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
                       styles={{
                         root: {
                           backgroundColor: "var(--color-primary)",
-                          color: "white",
+                          color: "var(--color-surface)",
                         },
                       }}
                     >

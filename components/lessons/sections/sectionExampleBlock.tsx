@@ -153,7 +153,7 @@ export function SectionExampleBlock({
             <div className="flex items-start gap-3">
               <div
                 className="mt-1 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: "var(--color-primary)", color: "white" }}
+                style={{ backgroundColor: "var(--color-primary)", color: "var(--color-surface)" }}
               >
                 <span className="text-xs font-bold">{index + 1}</span>
               </div>
