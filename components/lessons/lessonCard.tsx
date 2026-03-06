@@ -5,7 +5,6 @@ import type { LessonSummary } from "@/interfaces/interfaces";
 import ContentCardShell from "@/components/common/contentCardShell";
 import { formatShortDate } from "@/lib/formatDate";
 import LessonModerationBadge from "@/components/lessons/lessonModerationBadge";
-import EnrollLessonButton from "@/components/lessons/enrollLessonButton";
 
 type LessonCardProps = LessonSummary;
 interface LessonCardOptions {
@@ -86,7 +85,11 @@ export default function LessonCard({
           <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-card-text-muted)] opacity-70">
             {createdAt ? formatShortDate(createdAt) : "Recent"}
           </span>
-          <EnrollLessonButton lessonPublicId={lessonPublicId} />
+          <div className="flex gap-1">
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-30" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)] opacity-50" />
+            <div className="w-1 h-1 rounded-full bg-[var(--color-card-accent)]" />
+          </div>
         </div>
       </Stack>
     </ContentCardShell>
