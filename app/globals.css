@@ -83,8 +83,8 @@
   --color-shadow-hover: rgba(93, 0, 255, 0.25);
 
   /* Card-specific */
-  --color-card-bg: #11111a;
-  --color-card-border: #1e1e2e;
+  --color-card-bg: #333333;
+  --color-card-border: #ffffff;
   --color-card-border-hover: rgba(255, 255, 255, 0.6);
   --color-card-shadow-hover: rgba(139, 92, 246, 0.25);
   --color-card-accent: #8b5cf6;
