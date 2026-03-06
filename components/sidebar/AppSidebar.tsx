@@ -1,13 +1,13 @@
 "use client";
 
 import "./sidebar-shell.css";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Avatar } from "@mantine/core";
 import { useHotkeys } from "@mantine/hooks";
 import { useAuth } from "@/context/AuthContext";
-import NotificationBell from "../notifications/NotificationBell";
+import SidebarFooter from "./SidebarFooter";
+import SidebarHeader from "./SidebarHeader";
+import SidebarNav from "./SidebarNav";
 
 export interface SidebarNavItem {
   label: string;
@@ -64,7 +64,10 @@ export default function AppSidebar({
   useHotkeys([["Escape", closeMobileSidebar]]);
 
   const isActive = (item: SidebarNavItem) => {
-    if (item.exact) return pathname === item.href;
+    if (item.exact) {
+      return pathname === item.href;
+    }
+
     return pathname.startsWith(item.href);
   };
 
@@ -87,25 +90,18 @@ export default function AppSidebar({
         />
       )}
 
-      <aside className={`admin-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}>
-        <div className="admin-sidebar-header">
-          <Link
-            href={brandHref}
-            className="admin-sidebar-brand"
-            onClick={closeMobileSidebar}
-          >
-            <div className="admin-sidebar-logo">
-              <span className="material-symbols-outlined">{brandIcon}</span>
-            </div>
-            <div className="admin-sidebar-brand-text">
-              <span className="admin-sidebar-title">{brandTitle}</span>
-              {brandSubtitle && (
-                <span className="admin-sidebar-subtitle">{brandSubtitle}</span>
-              )}
-            </div>
-          </Link>
-          <NotificationBell />
-        </div>
+      <aside
+        className={`admin-sidebar ${collapsed ? "collapsed" : ""} ${
+          mobileOpen ? "mobile-open" : ""
+        }`}
+      >
+        <SidebarHeader
+          brandHref={brandHref}
+          brandIcon={brandIcon}
+          brandTitle={brandTitle}
+          brandSubtitle={brandSubtitle}
+          onBrandClick={closeMobileSidebar}
+        />
 
         <button
           className="admin-sidebar-collapse-btn"
@@ -117,94 +113,23 @@ export default function AppSidebar({
           </span>
         </button>
 
-        <nav className="admin-sidebar-nav">
-          {sections.map((section) => (
-            <div className="admin-sidebar-nav-section" key={section.label}>
-              <span className="admin-sidebar-nav-label">{section.label}</span>
-              <ul className="admin-sidebar-nav-list">
-                {section.items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={`admin-sidebar-nav-item ${isActive(item) ? "active" : ""}`}
-                      title={collapsed ? item.label : undefined}
-                      onClick={closeMobileSidebar}
-                    >
-                      <span className="admin-sidebar-nav-icon material-symbols-outlined">
-                        {item.icon}
-                      </span>
-                      <span className="admin-sidebar-nav-text">{item.label}</span>
-                      {isActive(item) && (
-                        <span className="admin-sidebar-nav-indicator" />
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <SidebarNav
+          collapsed={collapsed}
+          isActive={isActive}
+          onItemClick={closeMobileSidebar}
+          sections={sections}
+          quickActionsSection={quickActionsSection}
+        />
 
-          {quickActionsSection && (
-            <div className="admin-sidebar-nav-section">
-              <span className="admin-sidebar-nav-label">{quickActionsSection.label}</span>
-              <ul className="admin-sidebar-nav-list">
-                {quickActionsSection.items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="admin-sidebar-nav-item"
-                      title={collapsed ? item.label : undefined}
-                      onClick={closeMobileSidebar}
-                    >
-                      <span className="admin-sidebar-nav-icon material-symbols-outlined">
-                        {item.icon}
-                      </span>
-                      <span className="admin-sidebar-nav-text">{item.label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-        </nav>
-
-        <div className="admin-sidebar-footer">
-          <div className="admin-sidebar-user">
-            <Avatar
-              src={profilePicture}
-              color="white"
-              radius="xl"
-              size="md"
-              styles={{
-                root: {
-                  backgroundColor: "var(--color-primary)",
-                  border: `2px solid ${avatarAccentBorder}`,
-                  flexShrink: 0,
-                },
-              }}
-            >
-              {avatarLetter}
-            </Avatar>
-            <div className="admin-sidebar-user-info">
-              <span className="admin-sidebar-user-email">
-                {user?.email || userFallbackLabel}
-              </span>
-              <span className="admin-sidebar-user-role">{roleLabel}</span>
-            </div>
-          </div>
-
-          <button
-            onClick={signOut}
-            className="admin-sidebar-logout"
-            title={collapsed ? "Logout" : undefined}
-          >
-            <div className="admin-sidebar-logout-content">
-              <span className="material-symbols-outlined">logout</span>
-              <span className="admin-sidebar-logout-text">Logout</span>
-            </div>
-          </button>
-        </div>
+        <SidebarFooter
+          avatarAccentBorder={avatarAccentBorder}
+          avatarLetter={avatarLetter}
+          collapsed={collapsed}
+          onSignOut={signOut}
+          profilePicture={profilePicture}
+          roleLabel={roleLabel}
+          userLabel={user?.email || userFallbackLabel}
+        />
       </aside>
     </>
   );
