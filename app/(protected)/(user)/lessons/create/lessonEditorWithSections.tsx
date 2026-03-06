@@ -21,12 +21,6 @@ function isHTMLEmpty(html: string): boolean {
   return text.trim().length === 0;
 }
 
-interface LessonEditorWithSectionsProps {
-  availableConcepts?: Concept[];
-  concepts?: Concept[];
-  initialConceptPublicIds?: string[];
-}
-
 export default function LessonEditorWithSections({
   availableConcepts,
   concepts,
@@ -164,27 +158,19 @@ export default function LessonEditorWithSections({
         submit: true, // Submit for review immediately
       };
 
-      console.log("Creating lesson with payload:", JSON.stringify(payload, null, 2));
-
       const result = await createLessonWithSections(payload);
-
-      console.log("API Response:", result);
 
       if (result.success && result.data) {
         const lessonPublicId = result.data.lessonPublicId;
         if (lessonPublicId) {
-          console.log("Navigating to lesson:", lessonPublicId);
           router.push(`/lessons/${lessonPublicId}`);
         } else {
-          console.error("No lessonPublicId in response:", result.data);
           setError("Lesson created but could not navigate to it");
         }
       } else {
-        console.error("Failed to create lesson:", result.message);
         setError(result.message || "Failed to create lesson");
       }
     } catch (err) {
-      console.error("Exception while creating lesson:", err);
       setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsSubmitting(false);

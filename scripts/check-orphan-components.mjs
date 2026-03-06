@@ -30,8 +30,13 @@ for (const root of scanRoots) {
 }
 
 const componentsRoot = path.join(projectRoot, "components") + path.sep;
+const appRoot = path.join(projectRoot, "app") + path.sep;
+const routeLocalComponentsSegment = `${path.sep}_components${path.sep}`;
 const componentFiles = allCodeFiles.filter(
-  (file) => file.startsWith(componentsRoot) && file.endsWith(".tsx"),
+  (file) =>
+    file.endsWith(".tsx") &&
+    (file.startsWith(componentsRoot) ||
+      (file.startsWith(appRoot) && file.includes(routeLocalComponentsSegment))),
 );
 const componentSet = new Set(componentFiles);
 
@@ -135,4 +140,11 @@ if (orphanComponents.length > 0) {
   process.exit(1);
 }
 
-console.log(`No orphan components found. Checked ${componentFiles.length} components.`);
+const sharedCount = componentFiles.filter((file) => file.startsWith(componentsRoot)).length;
+const routeLocalCount = componentFiles.filter(
+  (file) => file.startsWith(appRoot) && file.includes(routeLocalComponentsSegment),
+).length;
+
+console.log(
+  `No orphan components found. Checked ${componentFiles.length} components (${sharedCount} shared, ${routeLocalCount} route-local).`,
+);
