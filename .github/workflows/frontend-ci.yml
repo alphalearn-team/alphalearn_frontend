@@ -29,5 +29,8 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Check orphan components
+        run: npm run check:orphan-components
+
       - name: Build project
         run: npm run build
