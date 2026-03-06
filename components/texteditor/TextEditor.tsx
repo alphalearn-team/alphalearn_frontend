@@ -10,7 +10,7 @@ import Subscript from "@tiptap/extension-subscript";
 import StarterKit from "@tiptap/starter-kit";
 import type { LessonContent } from "@/interfaces/interfaces";
 import "@mantine/tiptap/styles.css";
-import { richTextStyles } from "./styles";
+import { richTextStyles } from "./Styles";
 
 
 interface RichTextEditorProps {

@@ -1,5 +1,5 @@
 import { Pagination as MantinePagination } from "@mantine/core";
-import styles from "./pagination.module.css";
+import styles from "./Pagination.module.css";
 
 /**
  * CONTROLLED COMPONENT (Using Mantine Pagination)

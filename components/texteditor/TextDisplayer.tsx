@@ -8,7 +8,7 @@ import Superscript from "@tiptap/extension-superscript";
 import Subscript from "@tiptap/extension-subscript";
 import StarterKit from "@tiptap/starter-kit";
 import type { LessonContent } from "@/interfaces/interfaces";
-import { richTextContentStyles } from "./styles";
+import { richTextContentStyles } from "./Styles";
 
 
 function toEditorContent(content: LessonContent): Content {
