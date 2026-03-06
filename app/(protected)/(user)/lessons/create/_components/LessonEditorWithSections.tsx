@@ -19,17 +19,20 @@ export default function LessonEditorWithSections({
   initialConceptPublicIds = [],
 }: LessonEditorWithSectionsProps) {
   const {
+    conceptFieldRef,
     conceptOptions,
     error,
     handleCancel,
     handleSubmit,
     isSubmitting,
+    registerSectionElement,
     sections,
     selectedConceptIds,
     setSections,
     setSelectedConceptIds,
     setTitle,
     title,
+    titleInputRef,
   } = useLessonCreationForm({
     availableConcepts,
     concepts,
@@ -39,14 +42,20 @@ export default function LessonEditorWithSections({
   return (
     <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 px-4 sm:px-0">
       <LessonBasicsCard
+        conceptFieldRef={conceptFieldRef}
         conceptOptions={conceptOptions}
         onConceptChange={setSelectedConceptIds}
         onTitleChange={setTitle}
         selectedConceptIds={selectedConceptIds}
         title={title}
+        titleInputRef={titleInputRef}
       />
 
-      <LessonContentSection sections={sections} onSectionsChange={setSections} />
+      <LessonContentSection
+        sections={sections}
+        onSectionsChange={setSections}
+        onRegisterSectionElement={registerSectionElement}
+      />
 
       <LessonSubmissionError error={error} />
 

@@ -4,6 +4,7 @@ import { Card, Text, ActionIcon } from "@mantine/core";
 import { Spotlight, spotlight } from "@mantine/spotlight";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import SearchBar from "@/components/concepts/SearchBar";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import AdminEmptyState from "@/components/admin/EmptyState";
@@ -17,6 +18,7 @@ interface ConceptsManagementTableProps {
 }
 
 export default function ConceptsManagementTable({ concepts }: ConceptsManagementTableProps) {
+  const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedConcept, setSelectedConcept] = useState<AdminConcept | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -64,7 +66,7 @@ export default function ConceptsManagementTable({ concepts }: ConceptsManagement
     label: concept.title,
     description: concept.description,
     onClick: () => {
-      window.location.href = `/concepts/${concept.publicId}`;
+      router.push(`/concepts/${concept.publicId}`);
     },
   }));
 

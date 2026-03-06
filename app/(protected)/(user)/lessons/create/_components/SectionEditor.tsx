@@ -11,9 +11,14 @@ import { useSectionEditorState } from "../_hooks/useSectionEditorState";
 interface SectionEditorProps {
   sections: LessonSectionInput[];
   onChange: (sections: LessonSectionInput[]) => void;
+  registerSectionElement: (index: number, element: HTMLElement | null) => void;
 }
 
-export function SectionEditor({ sections, onChange }: SectionEditorProps) {
+export function SectionEditor({
+  sections,
+  onChange,
+  registerSectionElement,
+}: SectionEditorProps) {
   const {
     deleteConfirmIndex,
     editingIndex,
@@ -54,6 +59,7 @@ export function SectionEditor({ sections, onChange }: SectionEditorProps) {
           onUpdateSection={(updated) => handleUpdateSection(index, updated)}
           onCancelEditing={handleCancelEditing}
           onSaveEditing={handleSaveEditing}
+          onRegisterElement={(element) => registerSectionElement(index, element)}
         />
       ))}
 

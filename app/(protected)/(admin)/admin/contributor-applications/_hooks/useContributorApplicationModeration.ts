@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
 import {
-  getApplicantLabel,
   sortPendingContributorApplications,
   validateRejectionReason,
 } from "@/lib/adminContributorApplications";
@@ -43,6 +42,7 @@ export function useContributorApplicationModeration({
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [approveModalOpened, setApproveModalOpened] = useState(false);
   const [rejectModalOpened, setRejectModalOpened] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectReasonError, setRejectReasonError] = useState<string | null>(null);
@@ -95,14 +95,6 @@ export function useContributorApplicationModeration({
       return;
     }
 
-    const applicantLabel = getApplicantLabel(selectedDetail);
-    const shouldApprove = window.confirm(
-      `Approve contributor application for ${applicantLabel}?`,
-    );
-    if (!shouldApprove) {
-      return;
-    }
-
     setIsApproving(true);
     try {
       const result = await approveContributorApplicationAction(selectedDetail.publicId);
@@ -119,6 +111,7 @@ export function useContributorApplicationModeration({
         loadDetail(selectedDetail.publicId),
       ]);
       router.refresh();
+      setApproveModalOpened(false);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to approve contributor application.";
@@ -126,6 +119,22 @@ export function useContributorApplicationModeration({
     } finally {
       setIsApproving(false);
     }
+  };
+
+  const handleOpenApproveModal = () => {
+    setApproveModalOpened(true);
+  };
+
+  const handleCloseApproveModal = () => {
+    if (isApproving) {
+      return;
+    }
+
+    setApproveModalOpened(false);
+  };
+
+  const handleConfirmApprove = async () => {
+    await handleApprove();
   };
 
   const handleOpenRejectModal = () => {
@@ -193,8 +202,12 @@ export function useContributorApplicationModeration({
   };
 
   return {
+    approveModalOpened,
     detailError,
     handleApprove,
+    handleCloseApproveModal,
+    handleConfirmApprove,
+    handleOpenApproveModal,
     handleCloseRejectModal,
     handleOpenRejectModal,
     handleReject,

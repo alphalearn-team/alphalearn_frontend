@@ -1,6 +1,8 @@
 "use client";
 
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { getApplicantLabel } from "@/lib/adminContributorApplications";
 import ApplicationDetailPanel from "./ApplicationDetailPanel";
 import ApplicationsTable from "./ApplicationsTable";
 import RejectApplicationModal from "./RejectApplicationModal";
@@ -16,8 +18,11 @@ export default function ContributorApplicationsModerationPanel({
   initialError,
 }: ModerationPanelProps) {
   const {
+    approveModalOpened,
     detailError,
-    handleApprove,
+    handleCloseApproveModal,
+    handleConfirmApprove,
+    handleOpenApproveModal,
     handleCloseRejectModal,
     handleOpenRejectModal,
     handleReject,
@@ -59,7 +64,7 @@ export default function ContributorApplicationsModerationPanel({
         isApproving={isApproving}
         isLoadingDetail={isLoadingDetail}
         isRejecting={isRejecting}
-        onApprove={handleApprove}
+        onOpenApproveModal={handleOpenApproveModal}
         onOpenRejectModal={handleOpenRejectModal}
         selectedApplicationId={selectedApplicationId}
         selectedDetail={selectedDetail}
@@ -74,6 +79,23 @@ export default function ContributorApplicationsModerationPanel({
         opened={rejectModalOpened}
         reason={rejectReason}
         reasonError={rejectReasonError}
+      />
+
+      <ConfirmModal
+        opened={approveModalOpened}
+        onClose={handleCloseApproveModal}
+        onConfirm={handleConfirmApprove}
+        title="Approve Contributor Application"
+        message={
+          selectedDetail
+            ? `Approve contributor application for ${getApplicantLabel(selectedDetail)}?`
+            : "Approve this contributor application?"
+        }
+        confirmText="Approve"
+        cancelText="Cancel"
+        confirmColor="green"
+        icon="check_circle"
+        loading={isApproving}
       />
     </div>
   );

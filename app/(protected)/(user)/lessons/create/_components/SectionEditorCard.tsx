@@ -18,6 +18,7 @@ interface SectionEditorCardProps {
   onStartEditing: () => void;
   onUpdateSection: (section: LessonSectionInput) => void;
   onUpdateTitle: (title: string) => void;
+  onRegisterElement: (element: HTMLDivElement | null) => void;
   section: SectionWithId;
 }
 
@@ -34,10 +35,16 @@ export default function SectionEditorCard({
   onStartEditing,
   onUpdateSection,
   onUpdateTitle,
+  onRegisterElement,
   section,
 }: SectionEditorCardProps) {
   return (
-    <div key={section._id} id={`section-${index}`} className="group relative">
+    <div
+      key={section._id}
+      id={`section-${index}`}
+      className="group relative"
+      ref={onRegisterElement}
+    >
       {!isEditing && (
         <div
           className="absolute -right-10 sm:-right-12 top-0 bottom-0 flex flex-col items-center justify-center gap-3 sm:gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200"

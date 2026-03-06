@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type {
@@ -55,6 +55,9 @@ export function useLessonCreationForm({
   initialConceptPublicIds,
 }: UseLessonCreationFormParams) {
   const router = useRouter();
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const conceptFieldRef = useRef<HTMLDivElement | null>(null);
+  const sectionElementsRef = useRef<Array<HTMLElement | null>>([]);
   const [title, setTitle] = useState("");
   const [selectedConceptIds, setSelectedConceptIds] = useState<string[]>(
     initialConceptPublicIds,
@@ -78,9 +81,7 @@ export function useLessonCreationForm({
       return null;
     }
 
-    const titleInput = document.querySelector(
-      'input[placeholder*="lesson title"]',
-    ) as HTMLElement | null;
+    const titleInput = titleInputRef.current;
     if (titleInput) {
       titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
       highlightElement(titleInput, {
@@ -97,19 +98,14 @@ export function useLessonCreationForm({
       return null;
     }
 
-    const conceptsInput = document.querySelector(
-      '[placeholder*="Select concepts"]',
-    ) as HTMLElement | null;
-    if (conceptsInput) {
-      conceptsInput.scrollIntoView({ behavior: "smooth", block: "center" });
-      const root = conceptsInput.closest(".mantine-MultiSelect-root") as HTMLElement | null;
-      if (root) {
-        highlightElement(root, {
-          borderColor: "var(--color-error)",
-          borderWidth: "2px",
-          borderRadius: "8px",
-        });
-      }
+    const conceptField = conceptFieldRef.current;
+    if (conceptField) {
+      conceptField.scrollIntoView({ behavior: "smooth", block: "center" });
+      highlightElement(conceptField, {
+        borderColor: "var(--color-error)",
+        borderWidth: "2px",
+        borderRadius: "8px",
+      });
     }
 
     return "Please select at least one concept for this lesson";
@@ -186,7 +182,7 @@ export function useLessonCreationForm({
         continue;
       }
 
-      const sectionElement = document.getElementById(`section-${index}`);
+      const sectionElement = sectionElementsRef.current[index];
       if (sectionElement) {
         sectionElement.scrollIntoView({ behavior: "smooth", block: "center" });
         highlightElement(sectionElement, {
@@ -268,17 +264,27 @@ export function useLessonCreationForm({
     router.back();
   };
 
+  const registerSectionElement = useCallback(
+    (index: number, element: HTMLElement | null) => {
+      sectionElementsRef.current[index] = element;
+    },
+    [],
+  );
+
   return {
+    conceptFieldRef,
     conceptOptions,
     error,
     handleCancel,
     handleSubmit,
     isSubmitting,
+    registerSectionElement,
     sections,
     selectedConceptIds,
     setSections,
     setSelectedConceptIds,
     setTitle,
     title,
+    titleInputRef,
   };
 }

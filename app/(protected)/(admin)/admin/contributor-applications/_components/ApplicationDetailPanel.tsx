@@ -10,7 +10,7 @@ interface ApplicationDetailPanelProps {
   isApproving: boolean;
   isLoadingDetail: boolean;
   isRejecting: boolean;
-  onApprove: () => void;
+  onOpenApproveModal: () => void;
   onOpenRejectModal: () => void;
   selectedApplicationId: string | null;
   selectedDetail: AdminContributorApplication | null;
@@ -41,7 +41,7 @@ export default function ApplicationDetailPanel({
   isApproving,
   isLoadingDetail,
   isRejecting,
-  onApprove,
+  onOpenApproveModal,
   onOpenRejectModal,
   selectedApplicationId,
   selectedDetail,
@@ -103,7 +103,7 @@ export default function ApplicationDetailPanel({
             <Group>
               <Button
                 color="green"
-                onClick={onApprove}
+                onClick={onOpenApproveModal}
                 loading={isApproving}
                 disabled={isRejecting || selectedDetail.status !== "PENDING"}
               >

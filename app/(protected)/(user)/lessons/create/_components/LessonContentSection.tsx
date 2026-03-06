@@ -4,11 +4,13 @@ import type { LessonSectionInput } from "@/interfaces/interfaces";
 import { SectionEditor } from "./SectionEditor";
 
 interface LessonContentSectionProps {
+  onRegisterSectionElement: (index: number, element: HTMLElement | null) => void;
   onSectionsChange: (sections: LessonSectionInput[]) => void;
   sections: LessonSectionInput[];
 }
 
 export default function LessonContentSection({
+  onRegisterSectionElement,
   onSectionsChange,
   sections,
 }: LessonContentSectionProps) {
@@ -45,7 +47,11 @@ export default function LessonContentSection({
         </div>
       </div>
 
-      <SectionEditor sections={sections} onChange={onSectionsChange} />
+      <SectionEditor
+        sections={sections}
+        onChange={onSectionsChange}
+        registerSectionElement={onRegisterSectionElement}
+      />
     </div>
   );
 }

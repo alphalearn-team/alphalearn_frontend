@@ -7,14 +7,13 @@ import { showError, showSuccess } from "@/lib/actions/notifications";
 
 interface UseLessonReviewActionsParams {
   lessonPublicId: string;
-  lessonTitle: string;
 }
 
 export function useLessonReviewActions({
   lessonPublicId,
-  lessonTitle,
 }: UseLessonReviewActionsParams) {
   const router = useRouter();
+  const [approveModalOpened, setApproveModalOpened] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState<string | null>(null);
   const [rejectModalOpened, setRejectModalOpened] = useState(false);
@@ -22,14 +21,6 @@ export function useLessonReviewActions({
   const [isRejecting, setIsRejecting] = useState(false);
 
   const handleApprove = async () => {
-    const shouldApprove = window.confirm(
-      `Approve "${lessonTitle}"?\n\nThis will make the lesson publicly available.`,
-    );
-
-    if (!shouldApprove) {
-      return;
-    }
-
     setIsApproving(true);
 
     try {
@@ -48,6 +39,23 @@ export function useLessonReviewActions({
     } finally {
       setIsApproving(false);
     }
+  };
+
+  const handleOpenApproveModal = () => {
+    setApproveModalOpened(true);
+  };
+
+  const handleCloseApproveModal = () => {
+    if (isApproving) {
+      return;
+    }
+
+    setApproveModalOpened(false);
+  };
+
+  const handleConfirmApprove = async () => {
+    await handleApprove();
+    setApproveModalOpened(false);
   };
 
   const handleOpenRejectModal = () => {
@@ -103,7 +111,11 @@ export function useLessonReviewActions({
   };
 
   return {
+    approveModalOpened,
     handleApprove,
+    handleCloseApproveModal,
+    handleConfirmApprove,
+    handleOpenApproveModal,
     handleCloseRejectModal,
     handleOpenRejectModal,
     handleReject,

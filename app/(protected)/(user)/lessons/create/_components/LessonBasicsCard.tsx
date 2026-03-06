@@ -1,21 +1,26 @@
 "use client";
 
 import { MultiSelect, TextInput } from "@mantine/core";
+import type { RefObject } from "react";
 
 interface LessonBasicsCardProps {
+  conceptFieldRef: RefObject<HTMLDivElement | null>;
   conceptOptions: Array<{ value: string; label: string }>;
   onConceptChange: (values: string[]) => void;
   onTitleChange: (value: string) => void;
   selectedConceptIds: string[];
   title: string;
+  titleInputRef: RefObject<HTMLInputElement | null>;
 }
 
 export default function LessonBasicsCard({
+  conceptFieldRef,
   conceptOptions,
   onConceptChange,
   onTitleChange,
   selectedConceptIds,
   title,
+  titleInputRef,
 }: LessonBasicsCardProps) {
   return (
     <div
@@ -44,6 +49,7 @@ export default function LessonBasicsCard({
 
       <div className="space-y-5">
         <TextInput
+          ref={titleInputRef}
           label="Lesson Title"
           placeholder="Enter lesson title..."
           value={title}
@@ -66,29 +72,31 @@ export default function LessonBasicsCard({
           }}
         />
 
-        <MultiSelect
-          label="Related Concepts"
-          placeholder="Select concepts this lesson teaches..."
-          data={conceptOptions}
-          value={selectedConceptIds}
-          onChange={onConceptChange}
-          searchable
-          required
-          size="lg"
-          styles={{
-            label: {
-              color: "var(--color-text)",
-              marginBottom: "10px",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-            },
-            input: {
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text)",
-            },
-          }}
-        />
+        <div ref={conceptFieldRef}>
+          <MultiSelect
+            label="Related Concepts"
+            placeholder="Select concepts this lesson teaches..."
+            data={conceptOptions}
+            value={selectedConceptIds}
+            onChange={onConceptChange}
+            searchable
+            required
+            size="lg"
+            styles={{
+              label: {
+                color: "var(--color-text)",
+                marginBottom: "10px",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+              },
+              input: {
+                backgroundColor: "var(--color-surface)",
+                borderColor: "var(--color-border)",
+                color: "var(--color-text)",
+              },
+            }}
+          />
+        </div>
       </div>
     </div>
   );

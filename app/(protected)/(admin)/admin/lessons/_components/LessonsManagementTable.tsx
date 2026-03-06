@@ -3,6 +3,7 @@
 import { Badge, Card, Text } from "@mantine/core";
 import { Spotlight, spotlight } from "@mantine/spotlight";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import SearchBar from "@/components/concepts/SearchBar";
 import AdminEmptyState from "@/components/admin/EmptyState";
@@ -24,6 +25,7 @@ const urgencyConfig = {
 export default function LessonsManagementTable({
   lessons,
 }: LessonsManagementTableProps) {
+  const router = useRouter();
   const getAutomatedReasons = (lesson: AdminLessonQueueItem) =>
     Array.isArray(lesson.automatedModerationReasons)
       ? lesson.automatedModerationReasons
@@ -55,10 +57,10 @@ export default function LessonsManagementTable({
         label: lesson.title,
         description: `By ${lesson.author.username || lesson.author.publicId}`,
         onClick: () => {
-          window.location.assign(`/admin/lessons/${lesson.lessonPublicId}`);
+          router.push(`/admin/lessons/${lesson.lessonPublicId}`);
         },
       })),
-    [sortedLessons],
+    [router, sortedLessons],
   );
 
   return (

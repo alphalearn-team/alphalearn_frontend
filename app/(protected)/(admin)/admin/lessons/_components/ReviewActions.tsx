@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@mantine/core";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import RejectLessonModal from "./RejectLessonModal";
 import { useLessonReviewActions } from "../_hooks/useLessonReviewActions";
 
@@ -14,7 +15,10 @@ export default function ReviewActions({
   lessonTitle,
 }: ReviewActionsProps) {
   const {
-    handleApprove,
+    approveModalOpened,
+    handleCloseApproveModal,
+    handleConfirmApprove,
+    handleOpenApproveModal,
     handleCloseRejectModal,
     handleOpenRejectModal,
     handleReject,
@@ -26,7 +30,6 @@ export default function ReviewActions({
     rejectReason,
   } = useLessonReviewActions({
     lessonPublicId,
-    lessonTitle,
   });
 
   return (
@@ -34,7 +37,7 @@ export default function ReviewActions({
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button
           color="green"
-          onClick={handleApprove}
+          onClick={handleOpenApproveModal}
           loading={isApproving}
           disabled={isRejecting}
         >
@@ -59,6 +62,19 @@ export default function ReviewActions({
         opened={rejectModalOpened}
         rejectError={rejectError}
         rejectReason={rejectReason}
+      />
+
+      <ConfirmModal
+        opened={approveModalOpened}
+        onClose={handleCloseApproveModal}
+        onConfirm={handleConfirmApprove}
+        title="Approve Lesson"
+        message={`Approve "${lessonTitle}"?\n\nThis will make the lesson publicly available.`}
+        confirmText="Approve"
+        cancelText="Cancel"
+        confirmColor="green"
+        icon="check_circle"
+        loading={isApproving}
       />
     </>
   );
