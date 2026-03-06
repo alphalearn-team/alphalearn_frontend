@@ -2,7 +2,7 @@
 
 import { Button } from "@mantine/core";
 import Link from "next/link";
-import type { MouseEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface GradientButtonProps {
   href: string;
@@ -21,23 +21,11 @@ export default function GradientButton({
 }: GradientButtonProps) {
   const isHashLink = href.startsWith("#");
   const Wrapper = isHashLink ? "a" : Link;
-  const handleHashClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (!isHashLink) return;
-
-    event.preventDefault();
-
-    const target = document.querySelector(href);
-    if (target instanceof HTMLElement) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-      window.history.replaceState(null, "", href);
-    }
-  };
 
   return (
     <Wrapper
       href={href}
       className="no-underline"
-      onClick={isHashLink ? handleHashClick : undefined}
     >
       <div className="relative group w-fit">
         {/* 1. THE UNDER-GLOW 

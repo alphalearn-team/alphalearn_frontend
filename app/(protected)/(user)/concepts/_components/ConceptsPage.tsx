@@ -1,7 +1,7 @@
 "use client";
 
 import type { Concept } from "@/interfaces/interfaces";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   SimpleGrid,
   Container,
@@ -24,6 +24,7 @@ const ITEMS_PER_PAGE = 6;
 
 export default function ConceptsPage({ concepts }: ConceptsPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const listSectionRef = useRef<HTMLDivElement | null>(null);
 
   const totalPages = Math.ceil(concepts.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -31,7 +32,7 @@ export default function ConceptsPage({ concepts }: ConceptsPageProps) {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    const listSection = document.getElementById("concepts-list");
+    const listSection = listSectionRef.current;
     if (listSection) {
       listSection.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
@@ -44,7 +45,12 @@ export default function ConceptsPage({ concepts }: ConceptsPageProps) {
       <div className="min-h-screen bg-[var(--color-background)]">
         <HeroSection />
 
-        <Container id="concepts-list" size="lg" className="py-14 pb-32 scroll-mt-24">
+        <Container
+          id="concepts-list"
+          ref={listSectionRef}
+          size="lg"
+          className="py-14 pb-32 scroll-mt-24"
+        >
           {concepts.length === 0 ? (
             <EmptyState />
           ) : (

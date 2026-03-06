@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Group, SimpleGrid, Stack } from "@mantine/core";
 import type { LessonSummary } from "@/interfaces/interfaces";
 import LessonCard from "@/components/lessons/LessonCard";
@@ -18,6 +18,7 @@ export default function LessonsGridSection({
   role?: string | null;
 }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const listSectionRef = useRef<HTMLDivElement | null>(null);
 
   const totalPages = Math.ceil(lessons.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -25,7 +26,7 @@ export default function LessonsGridSection({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    const listSection = document.getElementById("lessons-list");
+    const listSection = listSectionRef.current;
     if (listSection) {
       listSection.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
@@ -34,30 +35,32 @@ export default function LessonsGridSection({
   };
 
   return (
-    <Stack gap="lg">
-      <LessonsHeader count={lessons.length} role={role} />
+    <div ref={listSectionRef}>
+      <Stack gap="lg">
+        <LessonsHeader count={lessons.length} role={role} />
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-        {paginatedLessons.map((lesson) => (
-          <LessonCard
-            key={lesson.lessonPublicId}
-            {...lesson}
-            showModerationBadge={false}
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+          {paginatedLessons.map((lesson) => (
+            <LessonCard
+              key={lesson.lessonPublicId}
+              {...lesson}
+              showModerationBadge={false}
+            />
+          ))}
+        </SimpleGrid>
+
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={lessons.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={handlePageChange}
+            itemLabel="lessons"
           />
-        ))}
-      </SimpleGrid>
-
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={lessons.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={handlePageChange}
-          itemLabel="lessons"
-        />
-      )}
-    </Stack>
+        )}
+      </Stack>
+    </div>
   );
 }
 
