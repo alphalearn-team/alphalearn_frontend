@@ -8,7 +8,7 @@ import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
 import { TextDisplayer } from "@/components/texteditor/TextDisplayer";
 import { apiFetch } from "@/lib/api";
 import { formatDateTime } from "@/lib/formatDate";
-import ReviewActions from "../reviewActions";
+import ReviewActions from "../_components/ReviewActions";
 
 function normalizeReviewLesson(lesson: AdminLessonReviewDetail): AdminLessonReviewDetail {
   return {

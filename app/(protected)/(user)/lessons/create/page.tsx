@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { apiFetch } from "@/lib/api";
-import LessonEditorWithSections from "./lessonEditorWithSections";
+import LessonEditorWithSections from "./_components/LessonEditorWithSections";
 import { redirect } from "next/navigation";
 import { Group } from "@mantine/core";
 import { Concept } from "@/interfaces/interfaces";

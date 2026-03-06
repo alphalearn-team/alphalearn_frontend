@@ -1,9 +1,9 @@
 "use client";
 
 import type { AdminUser } from "@/interfaces/interfaces";
-import { useUserManagement } from "./useUserManagement";
-import { StatsCards } from "./components/StatsCards";
-import { UsersTableView } from "./components/UsersTableView";
+import { useUserManagement } from "../useUserManagement";
+import { StatsCards } from "../components/StatsCards";
+import { UsersTableView } from "../components/UsersTableView";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
 interface UsersManagementTableProps {

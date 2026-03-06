@@ -1,4 +1,4 @@
-import LessonEditor from "./lessoneditor";
+import LessonEditorClient from "./LessonEditorClient";
 import { apiFetch } from "@/lib/api";
 import { Lesson, LessonSummary } from "@/interfaces/interfaces";
 import NotFound from "@/components/NotFound";
@@ -106,7 +106,7 @@ export default async function EditLessonPage({
           eventType={lesson.latestModerationEventType}
           moderatedAt={lesson.latestModeratedAt}
         />
-        <LessonEditor
+        <LessonEditorClient
           id={id}
           initialTitle={lesson.title}
           initialContent={lesson.content}

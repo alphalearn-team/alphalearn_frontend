@@ -2,7 +2,7 @@ import { apiFetch } from "@/lib/api";
 import { Card } from "@mantine/core";
 import { Suspense } from "react";
 import CardSkeleton from "@/components/common/CardSkeleton";
-import ConceptsManagementTable from "./conceptsTable";
+import ConceptsManagementTable from "./_components/ConceptsManagementTable";
 import GlowIconButton from "@/components/common/GlowIconButton";
 import AdminBreadcrumb from "@/components/admin/Breadcrumb";
 import AdminPageHeader from "@/components/admin/PageHeader";
