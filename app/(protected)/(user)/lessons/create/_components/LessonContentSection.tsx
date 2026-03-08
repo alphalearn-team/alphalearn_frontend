@@ -1,7 +1,7 @@
 "use client";
 
 import type { LessonSectionInput } from "@/interfaces/interfaces";
-import { SectionEditor } from "./SectionEditor";
+import { SectionEditor } from "../../_shared/SectionEditor";
 
 interface LessonContentSectionProps {
   onRegisterSectionElement: (index: number, element: HTMLElement | null) => void;

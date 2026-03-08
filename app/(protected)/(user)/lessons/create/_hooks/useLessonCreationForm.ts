@@ -1,53 +1,22 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type {
-  ComparisonSectionContent,
   Concept,
-  DefinitionSectionContent,
-  ExampleSectionContent,
   LessonSectionInput,
 } from "@/interfaces/interfaces";
 import { createLessonWithSections } from "@/lib/actions/lesson";
+import {
+  getSectionValidationError,
+  highlightElement,
+} from "../../_shared/lessonValidationUtils";
 
 interface UseLessonCreationFormParams {
   availableConcepts?: Concept[];
   concepts?: Concept[];
   initialConceptPublicIds: string[];
-}
-
-function isHTMLEmpty(html: string): boolean {
-  const text = html
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/\s+/g, " ");
-  return text.trim().length === 0;
-}
-
-type HighlightStyleKey = "borderColor" | "borderWidth" | "borderRadius";
-type HighlightStyles = Partial<Record<HighlightStyleKey, string>>;
-
-function highlightElement(
-  element: HTMLElement,
-  styles: HighlightStyles,
-  timeoutMs = 3000,
-) {
-  const previousStyles: HighlightStyles = {};
-
-  for (const [key, value] of Object.entries(styles)) {
-    const styleKey = key as HighlightStyleKey;
-    previousStyles[styleKey] = element.style[styleKey];
-    element.style[styleKey] = value || "";
-  }
-
-  setTimeout(() => {
-    for (const [key, value] of Object.entries(previousStyles)) {
-      const styleKey = key as HighlightStyleKey;
-      element.style[styleKey] = value || "";
-    }
-  }, timeoutMs);
 }
 
 export function useLessonCreationForm({
@@ -65,9 +34,22 @@ export function useLessonCreationForm({
   );
   const [sections, setSections] = useState<LessonSectionInput[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const conceptList = availableConcepts || concepts || [];
+  // Clear errors when sections, title, or concepts change
+  useEffect(() => {
+    if (error) {
+      setError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections, title, selectedConceptIds]);
+
+  const conceptList = useMemo(
+    () => availableConcepts || concepts || [],
+    [availableConcepts, concepts],
+  );
+
   const conceptOptions = useMemo(
     () =>
       conceptList.map((concept) => ({
@@ -120,61 +102,6 @@ export function useLessonCreationForm({
     return "Please add at least one section to your lesson";
   };
 
-  const getSectionValidationError = (section: LessonSectionInput): string => {
-    if (section.sectionType === "text") {
-      const content = section.content as { html: string };
-      if (!content.html || isHTMLEmpty(content.html)) {
-        return "Please add content to this text section";
-      }
-      return "";
-    }
-
-    if (section.sectionType === "example") {
-      const examples = (section.content as ExampleSectionContent).examples || [];
-      if (examples.length === 0 || !examples[0].text || examples[0].text.trim() === "") {
-        return "Please add at least one example";
-      }
-      return "";
-    }
-
-    if (section.sectionType === "definition") {
-      const content = section.content as DefinitionSectionContent;
-      if (!content.term || content.term.trim() === "") {
-        return "Please enter a term";
-      }
-      if (!content.definition || content.definition.trim() === "") {
-        return "Please enter a definition";
-      }
-      return "";
-    }
-
-    if (section.sectionType === "comparison") {
-      const items = (section.content as ComparisonSectionContent).items || [];
-      if (items.length < 2) {
-        return "Please add at least 2 items to compare";
-      }
-      for (let index = 0; index < items.length; index += 1) {
-        if (!items[index].label || items[index].label.trim() === "") {
-          return `Please add a label for item ${index + 1}`;
-        }
-        if (!items[index].description || items[index].description.trim() === "") {
-          return `Please add a description for item ${index + 1}`;
-        }
-      }
-      return "";
-    }
-
-    if (section.sectionType === "callout") {
-      const content = section.content as { html: string };
-      if (!content.html || isHTMLEmpty(content.html)) {
-        return "Please add content to this callout";
-      }
-      return "";
-    }
-
-    return "";
-  };
-
   const validateSectionContent = (): string | null => {
     for (let index = 0; index < sections.length; index += 1) {
       const section = sections[index];
@@ -196,6 +123,68 @@ export function useLessonCreationForm({
     }
 
     return null;
+  };
+
+  const handleSaveDraft = async () => {
+    setError(null);
+
+    const titleError = validateTitle();
+    if (titleError) {
+      setError(titleError);
+      return;
+    }
+
+    const conceptError = validateConcepts();
+    if (conceptError) {
+      setError(conceptError);
+      return;
+    }
+
+    const sectionError = validateSections();
+    if (sectionError) {
+      setError(sectionError);
+      return;
+    }
+
+    const sectionContentError = validateSectionContent();
+    if (sectionContentError) {
+      setError(sectionContentError);
+      return;
+    }
+
+    setIsSavingDraft(true);
+
+    try {
+      const payload = {
+        title: title.trim(),
+        conceptPublicIds: selectedConceptIds,
+        sections,
+        content: {},
+        submit: false, // Save as draft
+      };
+
+      const result = await createLessonWithSections(payload);
+
+      if (result.success && result.data?.lessonPublicId) {
+        router.push(`/lessons/${result.data.lessonPublicId}`);
+        return;
+      }
+
+      if (result.success) {
+        setError("Lesson created but could not navigate to it");
+        return;
+      }
+
+      setError(result.message || "Failed to save draft");
+    } catch (submitError) {
+      setError(
+        `An unexpected error occurred: ${
+          submitError instanceof Error ? submitError.message : String(submitError)
+        }`,
+      );
+    } finally {
+      setIsSavingDraft(false);
+    }
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -277,7 +266,9 @@ export function useLessonCreationForm({
     conceptOptions,
     error,
     handleCancel,
+    handleSaveDraft,
     handleSubmit,
+    isSavingDraft,
     isSubmitting,
     registerSectionElement,
     sections,
