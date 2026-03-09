@@ -1,4 +1,4 @@
-import AdminPageHeader from "@/components/admin/pageHeader";
+import AdminPageHeader from "@/components/admin/PageHeader";
 
 export default async function AdminPage() {
   return (

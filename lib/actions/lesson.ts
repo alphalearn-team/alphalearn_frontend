@@ -2,8 +2,8 @@
 
 // server side logic that the client component can use
 
-import { ApiError, apiFetch } from "../api";
-import { CreateLessonRequest, Lesson, LessonContent } from "@/interfaces/interfaces";
+import { apiFetch } from "../api";
+import { CreateLessonRequest, CreateLessonWithSectionsRequest, Lesson, LessonContent } from "@/interfaces/interfaces";
 import { revalidatePath } from "next/cache";
 
 const headers = { "Content-Type": "application/json" };
@@ -101,41 +101,105 @@ export async function createLesson(inputs: CreateLessonRequest): Promise<LessonA
   return response;
 }
 
-export async function submitLesson(id: string): Promise<LessonActionResult<Lesson>> {
-  const successMessage = "Successfully submitted for review";
+export async function createLessonWithSections(inputs: CreateLessonWithSectionsRequest): Promise<LessonActionResult<CreateLessonResponse | Lesson>> {
+  const response = await handleRequest<CreateLessonResponse>(`/lessons`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(inputs),
+  }, inputs.submit ? "Lesson submitted successfully" : "Draft saved successfully");
 
-  try {
-    await apiFetch<void>(`/lessons/${id}/submit`, {
-      method: "POST",
-      headers,
-    });
-  } catch (error: unknown) {
-    if (error instanceof ApiError && error.status === 409) {
-      return {
-        success: false,
-        message: "Only UNPUBLISHED or REJECTED lessons can be submitted for review.",
-      };
+  if (response.success) {
+    revalidatePath("/lessons");
+    revalidatePath("/lessons/mine");
+
+    const lessonPublicId = getLessonPublicId(response.data);
+
+    if (lessonPublicId) {
+      revalidatePath(`/lessons/${lessonPublicId}`);
+      revalidatePath(`/lessons/${lessonPublicId}/edit`);
     }
 
-    return { success: false, message: getErrorMessage(error) };
+    if (inputs.submit && lessonPublicId) {
+      try {
+        const lesson = await apiFetch<Lesson>(`/lessons/${lessonPublicId}`);
+        return {
+          success: true,
+          message: response.message,
+          data: lesson,
+        };
+      } catch {
+        return response;
+      }
+    }
   }
 
-  revalidatePath("/lessons");
-  revalidatePath("/lessons/mine");
-  revalidatePath(`/lessons/${id}`);
-  revalidatePath(`/lessons/${id}/edit`);
-
-  try {
-    const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
-    return {
-      success: true,
-      message: successMessage,
-      data: lesson,
-    };
-  } catch {
-    return { success: true, message: successMessage };
-  }
+  return response;
 }
+
+export async function submitLesson(id: string): Promise<LessonActionResult<Lesson>> {
+  const response = await handleRequest<Lesson>(`/lessons/${id}/submit`, {
+    method: "POST",
+    headers,
+  }, "Successfully submitted for review");
+
+  if (response.success) {
+    revalidatePath("/lessons");
+    revalidatePath("/lessons/mine");
+    revalidatePath(`/lessons/${id}`);
+    revalidatePath(`/lessons/${id}/edit`);
+
+    try {
+      const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
+      return {
+        success: true,
+        message: response.message,
+        data: lesson,
+      };
+    } catch {
+      return response;
+    }
+  }
+
+  return response;
+}
+
+// Will be used after editLessonSections is implemented
+
+// export async function submitLesson(id: string): Promise<LessonActionResult<Lesson>> {
+//   const successMessage = "Successfully submitted for review";
+
+//   try {
+//     await apiFetch<void>(`/lessons/${id}/submit`, {
+//       method: "POST",
+//       headers,
+//     });
+//   } catch (error: unknown) {
+//     if (error instanceof ApiError && error.status === 409) {
+//       return {
+//         success: false,
+//         message: "Only UNPUBLISHED or REJECTED lessons can be submitted for review.",
+//       };
+//     }
+
+//     return { success: false, message: getErrorMessage(error) };
+//   }
+
+//   revalidatePath("/lessons");
+//   revalidatePath("/lessons/mine");
+//   revalidatePath(`/lessons/${id}`);
+//   revalidatePath(`/lessons/${id}/edit`);
+
+//   try {
+//     const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
+//     return {
+//       success: true,
+//       message: successMessage,
+//       data: lesson,
+//     };
+//   } catch {
+//     return { success: true, message: successMessage };
+//   }
+// }
 
 export async function deleteLesson(id: string): Promise<LessonActionResult> {
   const response = await handleRequest(`/lessons/${id}`, {
@@ -151,11 +215,11 @@ export async function deleteLesson(id: string): Promise<LessonActionResult> {
     return response;
   }
 
-  return { success: false, message: "Unable to delete lesson, check that the lesson is unpublished first" };
+  return response;
 }
 
-export async function unpublishLesson(id: string): Promise<LessonActionResult> {
-  const response = await handleRequest(`/lessons/${id}/unpublish`, {
+export async function unpublishLesson(id: string): Promise<LessonActionResult<Lesson>> {
+  const response = await handleRequest<Lesson>(`/lessons/${id}/unpublish`, {
     method: "POST",
     headers,
   }, "Lesson unpublished successfully");
@@ -165,24 +229,18 @@ export async function unpublishLesson(id: string): Promise<LessonActionResult> {
     revalidatePath("/lessons/mine");
     revalidatePath(`/lessons/${id}`);
     revalidatePath(`/lessons/${id}/edit`);
-    return response;
+
+    try {
+      const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
+      return {
+        success: true,
+        message: response.message,
+        data: lesson,
+      };
+    } catch {
+      return response as LessonActionResult<Lesson>;
+    }
   }
 
-  return response;
+  return response as LessonActionResult<Lesson>;
 }
-
-export async function enrollLesson(lessonPublicId: string): Promise<LessonActionResult> {
-  const response = await handleRequest(`/lessonenrollments`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ lessonPublicId }),
-  }, "Successfully enrolled in lesson");
-
-  if (response.success) {
-    revalidatePath("/lessons");
-    revalidatePath(`/lessons/${lessonPublicId}`);
-  }
-
-  return response;
-}
-

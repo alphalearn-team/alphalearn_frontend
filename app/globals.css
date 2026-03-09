@@ -1,109 +1,61 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* ============================================
-   THEME SYSTEM - Light & Dark Mode
+   THEME SYSTEM - Dark Mode Only
    ============================================ */
 
 :root {
   /* Font Variables */
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-roboto-mono);
   --font-mono: var(--font-geist-mono);
 
-  /* Light Theme */
-  --color-primary: #4f29e5;
-  --color-primary-hover: #6b4ce6;
-  --color-primary-active: #5a3dc0;
-  --color-accent: #3aa37c;
-  --color-accent-hover: #19a071;
-
-  --color-background: #f6f4f1;
-  --color-surface: #f6f4f1;
-  --color-surface-elevated: #f6f4f1;
-  --color-input: #f6f4f1;
-  --color-text: #171717;
-  --color-text-secondary: #6b6b80;
-  --color-text-muted: #9a9aaa;
-
-  --color-border: #e0e0e8;
-  --color-border-focus: #7c5cff;
-
-  --color-overlay: rgba(0, 0, 0, 0.05);
-  --color-shadow: rgba(124, 92, 255, 0.1);
-  --color-shadow-hover: rgba(124, 92, 255, 0.2);
-
-  /* Card-specific */
-  --color-card-bg: #f6f4f1;
-  --color-card-border: #e2dff0;
-  --color-card-border-hover: var(--color-card-border);
-  --color-card-shadow-hover: transparent;
-  --color-card-accent: #7c5cff;
-  --color-card-text: #1a1a2e;
-  --color-card-text-muted: #6b7280;
-  --color-card-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.08);
-
-  /* Ambient glow */
-  --color-glow-1: rgba(124, 92, 255, 0.08);
-  --color-glow-2: rgba(168, 85, 247, 0.06);
-  --color-glow-3: rgba(192, 132, 252, 0.04);
-
-  /* Status Colors */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Special */
-  --color-discord: #5865F2;
-  --color-streak: #f97316;
-}
-
-/* Dark Theme */
-[data-mantine-color-scheme="dark"] {
-  --color-primary: #7c3aed;
-  --color-primary-hover: #6b4ce6;
-  --color-primary-active: #5a3dc0;
-  --color-accent: #2EFFB4;
+  --color-primary: #2effb4;
+  --color-primary-hover: #2effb4;
+  --color-primary-active: #2effb4;
+  --color-accent: #2effb4;
   --color-accent-hover: #26e5a3;
 
-  --color-background: #0F0F14;
-  --color-surface: #181826;
+  --color-background: #191919;
+  --color-surface: #202020;
   --color-surface-elevated: #1d1736;
-  --color-input: #29204b;
+  --color-input: #333333;
 
   --color-text: #ffffff;
   --color-text-secondary: #b3b3c6;
-  --color-text-muted: #9a8dce;
+  --color-text-muted: #797979;
 
-  --color-border: #3a2e6b;
-  --color-border-focus: #2EFFB4;
+  --color-border: #ffffff;
+  --color-border-focus: #d1b6ff;
 
   --color-overlay: rgba(255, 255, 255, 0.05);
-  --color-shadow: rgba(46, 255, 180, 0.15);
-  --color-shadow-hover: rgba(0, 255, 162, 0.25);
+  --color-background-hover: rgba(255, 255, 255, 0.07);
+  --color-shadow: rgba(109, 46, 255, 0.15);
+  --color-shadow-hover: rgba(93, 0, 255, 0.25);
 
   /* Card-specific */
-  --color-card-bg: #11111a;
-  --color-card-border: #1e1e2e;
+  --color-card-bg: #333333;
+  --color-card-border: #ffffff;
   --color-card-border-hover: rgba(255, 255, 255, 0.6);
   --color-card-shadow-hover: rgba(139, 92, 246, 0.25);
   --color-card-accent: #8b5cf6;
   --color-card-text: #f8fafc;
   --color-card-text-muted: #94a3b8;
   --color-card-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.7);
+  --color-card-glow-hover: 0 20px 40px -24px color-mix(in srgb, var(--color-primary) 40%, transparent);
 
   /* Ambient glow */
   --color-glow-1: transparent;
   --color-glow-2: transparent;
   --color-glow-3: transparent;
 
-  /* Status Colors (slightly adjusted for dark) */
+  /* Status Colors */
   --color-success: #10b981;
   --color-warning: #fbbf24;
   --color-error: #f87171;
   --color-info: #60a5fa;
 
   /* Special */
+  --color-discord: #5865f2;
   --color-streak: #fb923c;
 }
 
@@ -115,15 +67,11 @@ body.not-found-lock-scroll {
   touch-action: none !important;
 }
 
-/* Legacy variables for backward compatibility */
+/* Legacy aliases for backward compatibility */
 :root {
   --background: var(--color-background);
   --foreground: var(--color-text);
-  --color-background-light: #f6f5f8;
-  --color-background-dark: #0F0F14;
-  --color-surface-dark: #181826;
-  --color-input-dark: #29204b;
-  --color-border-dark: #3a2e6b;
+  --surface: var(--color-surface);
 }
 
 /* ============================================
@@ -136,7 +84,9 @@ body.not-found-lock-scroll {
   --color-primary-hover: var(--color-primary-hover);
   --color-accent: var(--color-accent);
   --color-background: var(--color-background);
+  --color-background-hover: var(--color-background-hover);
   --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
   --color-text: var(--color-text);
   --color-text-muted: var(--color-text-muted);
   --color-border: var(--color-border);
@@ -152,26 +102,32 @@ html {
   background: var(--color-background);
   margin: 0;
   padding: 0;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
   background: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-nunito);
+  font-family: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* ── Navbar frosted glass ── */
 .navbar-glass {
-  background: rgba(240, 233, 254, 0.85);
-  /* light: --color-surface #f0e9fe */
+  background: rgba(24, 24, 38, 0.82);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-border);
-}
-
-[data-mantine-color-scheme="dark"] .navbar-glass {
-  background: rgba(24, 24, 38, 0.82);
-  /* dark: --color-surface #181826 */
 }
 
 /* Global Scrollbar - Applied to all scrollable elements */
@@ -217,24 +173,6 @@ body {
   background: var(--color-text-muted);
 }
 
-/* Smooth theme transitions
-html, body {
-  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-              color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[class*="bg-"], [style*="background"] {
-  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[class*="text-"], [style*="color"] {
-  transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[class*="border-"], [style*="border"] {
-  transition: border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-} */
-
 .lesson-rich-text .ProseMirror ul:not([data-type="taskList"]) {
   list-style-type: disc;
   padding-inline-start: 1.5rem;
@@ -256,4 +194,21 @@ html, body {
 
 .lesson-card:hover {
   box-shadow: var(--color-card-glow-hover) !important;
+}
+
+/* Callout content styling */
+.callout-content .mantine-RichTextEditor-root {
+  border: none !important;
+  background: transparent !important;
+}
+
+.callout-content .mantine-RichTextEditor-content {
+  padding: 0 !important;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.callout-content .mantine-RichTextEditor-content p:last-child {
+  margin-bottom: 0;
 }

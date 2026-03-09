@@ -13,16 +13,21 @@ export function useNotifications(enabled: boolean) {
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const refresh = useCallback(async () => {
-        if (!enabled) return;
         const data = await getNotifications();
         setNotifications(data);
-    }, [enabled]);
+    }, []);
 
     useEffect(() => {
         if (!enabled) return;
-        refresh();
+        
+        // Defer refresh call to avoid synchronous setState in effect
+        const timeoutId = setTimeout(() => {
+            refresh();
+        }, 0);
         intervalRef.current = setInterval(refresh, POLL_INTERVAL_MS);
+        
         return () => {
+            clearTimeout(timeoutId);
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
     }, [enabled, refresh]);
