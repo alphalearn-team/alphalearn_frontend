@@ -6,6 +6,10 @@ import { formatDateTime } from "@/lib/formatDate";
 import LessonCard from "@/components/lessons/lessonCard";
 import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
 
+interface LessonEnrollment {
+  lessonPublicId: string;
+}
+
 export default async function ConceptPage({
   params,
 }: {
@@ -101,9 +105,27 @@ async function fetchRelatedLessons(conceptId: string): Promise<LessonSummary[]> 
     try {
       const lessons = await apiFetch<LessonSummary[]>(endpoint);
       if (Array.isArray(lessons)) {
-        return lessons.filter(
+        const approvedLessons = lessons.filter(
           (lesson) => normalizeLessonModerationStatus(lesson.moderationStatus) === "APPROVED",
         );
+
+        let enrollments: LessonEnrollment[] = [];
+        try {
+          enrollments = await apiFetch<LessonEnrollment[]>("/lessonenrollments/me/enrollments");
+        } catch {
+          // Non-blocking: return approved lessons without enrollment metadata.
+        }
+
+        const enrolledLessonIds = new Set(
+          enrollments
+            .map((enrollment) => enrollment.lessonPublicId)
+            .filter((id): id is string => typeof id === "string" && id.length > 0),
+        );
+
+        return approvedLessons.map((lesson) => ({
+          ...lesson,
+          isEnrolled: enrolledLessonIds.has(lesson.lessonPublicId),
+        }));
       }
     } catch {
       // Try the next common endpoint shape.

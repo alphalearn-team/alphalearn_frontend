@@ -37,6 +37,7 @@ export type Lesson = {
 export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" | "createdAt" | "moderationStatus"> & {
   conceptPublicIds?: string[];
   concepts?: LessonConceptSummary[];
+  isEnrolled?: boolean;
 }
 
 export interface CreateLessonRequest {

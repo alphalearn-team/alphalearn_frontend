@@ -12,7 +12,10 @@ import GradientButton from "@/components/common/gradientbutton";
 import SpotlightSearch from "@/components/spotlightsearch";
 import { getUserRole } from "@/lib/auth/rbac";
 import LessonsGridSection from "@/components/lessons/lessonsGridSection";
-import { normalizeLessonModerationStatus } from "@/lib/lessonModeration";
+
+interface LessonEnrollment {
+  lessonPublicId: string;
+}
 
 export default async function LessonsPage() {
   const [role, lessons] = await Promise.all([
@@ -44,7 +47,24 @@ export default async function LessonsPage() {
 async function fetchLessons(): Promise<LessonSummary[] | null> {
   try {
     const lessons = await apiFetch<LessonSummary[]>("/lessons");
-    return lessons;
+    let enrollments: LessonEnrollment[] = [];
+
+    try {
+      enrollments = await apiFetch<LessonEnrollment[]>("/lessonenrollments/me/enrollments");
+    } catch {
+      // Non-blocking: lessons can still render without enrollment flags.
+    }
+
+    const enrolledLessonIds = new Set(
+      enrollments
+        .map((enrollment) => enrollment.lessonPublicId)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    );
+
+    return lessons.map((lesson) => ({
+      ...lesson,
+      isEnrolled: enrolledLessonIds.has(lesson.lessonPublicId),
+    }));
   } catch {
     return null;
   }

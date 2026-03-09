@@ -80,7 +80,7 @@ export default async function MyLessonsPage() {
         ) : (
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
             {lessons.map((lesson) => (
-              <LessonCard key={lesson.lessonPublicId} {...lesson} />
+              <LessonCard key={lesson.lessonPublicId} {...lesson} showEnrollButton={false} />
             ))}
           </SimpleGrid>
         )}

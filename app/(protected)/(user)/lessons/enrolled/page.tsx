@@ -24,6 +24,7 @@ function toLessonSummary(lesson: Lesson): LessonSummary {
         "UNPUBLISHED"),
     concepts: lesson.concepts,
     conceptPublicIds: lesson.conceptPublicIds,
+    isEnrolled: true,
   };
 }
 
@@ -86,7 +87,7 @@ export default async function EnrolledLessonsPage() {
         ) : (
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
             {lessons.map((lesson) => (
-              <LessonCard key={lesson.lessonPublicId} {...lesson} showModerationBadge={false} />
+              <LessonCard key={lesson.lessonPublicId} {...lesson} showModerationBadge={false} showEnrollButton={false} />
             ))}
           </SimpleGrid>
         )}

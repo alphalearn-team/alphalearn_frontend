@@ -32,6 +32,8 @@ export default function EnrollLessonButton({ lessonPublicId }: { lessonPublicId:
     }
   };
 
+  if (enrolled) return null;
+
   return (
     <button
       type="button"

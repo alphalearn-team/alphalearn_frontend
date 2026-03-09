@@ -10,6 +10,7 @@ import EnrollLessonButton from "@/components/lessons/enrollLessonButton";
 type LessonCardProps = LessonSummary;
 interface LessonCardOptions {
   showModerationBadge?: boolean;
+  showEnrollButton?: boolean;
 }
 
 export default function LessonCard({
@@ -19,7 +20,9 @@ export default function LessonCard({
   author,
   createdAt,
   showModerationBadge = true,
+  showEnrollButton = true,
   concepts,
+  isEnrolled,
 }: LessonCardProps & LessonCardOptions) {
   const conceptLabels = (concepts || [])
     .map((concept) => concept?.title)
@@ -86,7 +89,9 @@ export default function LessonCard({
           <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-card-text-muted)] opacity-70">
             {createdAt ? formatShortDate(createdAt) : "Recent"}
           </span>
-          <EnrollLessonButton lessonPublicId={lessonPublicId} />
+          {showEnrollButton && !isEnrolled && (
+            <EnrollLessonButton lessonPublicId={lessonPublicId} />
+          )}
         </div>
       </Stack>
     </ContentCardShell>
