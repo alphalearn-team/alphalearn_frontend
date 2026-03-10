@@ -9,6 +9,7 @@ const sections: SidebarNavSection[] = [
     items: [
       { label: "Concepts", href: "/concepts", icon: "library_books" },
       { label: "Lessons", href: "/lessons", icon: "menu_book" },
+      { label: "Enrolled Lessons", href: "/lessons/enrolled", icon: "school" },
       { label: "Profile", href: "/profile", icon: "person" },
     ],
   },

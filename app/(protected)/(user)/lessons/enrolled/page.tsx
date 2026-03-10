@@ -1,7 +1,7 @@
 import { apiFetch } from "@/lib/api";
 import type { Lesson, LessonSummary, LessonModerationStatus } from "@/interfaces/interfaces";
 import { Container, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import LessonCard from "@/components/lessons/lessonCard";
+import LessonCard from "@/components/lessons/LessonCard";
 import { getUserRole } from "@/lib/auth/rbac";
 import { redirect } from "next/navigation";
 
