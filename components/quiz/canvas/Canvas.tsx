@@ -10,6 +10,35 @@ interface CanvasProps {
     onDelete: (uid: string) => void;
 }
 
+/** Thin strip between cards — expands when a sidebar tile is dragged over it */
+function GapZone({ index }: { index: number }) {
+    const { ref, isDropTarget: isOver } = useDroppable({ id: `gap-${index}` });
+
+    return (
+        <div
+            ref={ref}
+            style={{
+                height: isOver ? 52 : 10,
+                marginBottom: isOver ? 8 : 0,
+                border: isOver ? "1px dashed var(--color-primary)" : "none",
+                borderRadius: 8,
+                background: isOver ? "rgba(46,255,180,0.05)" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--color-primary)",
+                fontSize: 12,
+                fontWeight: 600,
+                transition: "height 0.15s, border 0.15s, background 0.15s",
+                overflow: "hidden",
+            }}
+        >
+            {isOver && "+ Insert here"}
+        </div>
+    );
+}
+
+/** Bottom drop zone — handles appending to end and empty-canvas state */
 function DropZone({ isEmpty }: { isEmpty: boolean }) {
     const { ref, isDropTarget: isOver } = useDroppable({ id: "canvas" });
 
@@ -68,13 +97,16 @@ export default function Canvas({ questions, onUpdate, onDelete }: CanvasProps) {
             </p>
 
             {questions.map((q, idx) => (
-                <QuestionCard
-                    key={q.uid}
-                    question={q}
-                    index={idx}
-                    onUpdate={onUpdate}
-                    onDelete={onDelete}
-                />
+                <div key={q.uid}>
+                    {/* Gap zone before each card — allows inserting at position idx */}
+                    <GapZone index={idx} />
+                    <QuestionCard
+                        question={q}
+                        index={idx}
+                        onUpdate={onUpdate}
+                        onDelete={onDelete}
+                    />
+                </div>
             ))}
 
             <DropZone isEmpty={isEmpty} />

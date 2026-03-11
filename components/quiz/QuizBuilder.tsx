@@ -36,9 +36,25 @@ export default function QuizBuilder() {
         const { source, target } = event.operation;
         if (!source || !target) return;
 
-        // Only sidebar → canvas drops need to be handled here; cards are already reordered live
-        if (target.id === "canvas" && SIDEBAR_TYPES.some((t) => t.id === source.id)) {
-            setQuestions((prev) => [...prev, makeQuestion(source.id as QuestionType)]);
+        // Only handle sidebar tile drops (card-to-card sorting is handled live in onDragOver)
+        if (!SIDEBAR_TYPES.some((t) => t.id === source.id)) return;
+
+        const type = source.id as QuestionType;
+
+        // Dropped on a gap zone → insert at that index
+        if (typeof target.id === "string" && target.id.startsWith("gap-")) {
+            const insertAt = parseInt(target.id.split("-")[1], 10);
+            setQuestions((prev) => {
+                const next = [...prev];
+                next.splice(insertAt, 0, makeQuestion(type));
+                return next;
+            });
+            return;
+        }
+
+        // Dropped on the bottom canvas zone → append
+        if (target.id === "canvas") {
+            setQuestions((prev) => [...prev, makeQuestion(type)]);
         }
     }
 
