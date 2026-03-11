@@ -7,27 +7,30 @@ export default function QuestionTypeSidebar() {
     return (
         <aside
             style={{
-                width: 220,
+                width: "20vw",
                 flexShrink: 0,
-                borderRight: "1px solid #e5e7eb",
-                padding: 16,
+                borderRight: "1px solid var(--color-border)",
+                padding: "20px 16px",
                 overflowY: "auto",
-                background: "#f9fafb",
+                background: "var(--color-surface)",
+                display: "flex",
+                flexDirection: "column",
             }}
         >
-            <h2
+            <p
                 style={{
                     margin: "0 0 12px",
-                    fontSize: 14,
+                    fontSize: "0.65rem",
                     fontWeight: 700,
                     textTransform: "uppercase",
-                    letterSpacing: 1,
+                    letterSpacing: "0.2em",
+                    color: "var(--color-text-muted)",
                 }}
             >
                 Question Types
-            </h2>
+            </p>
             {SIDEBAR_TYPES.map((t) => (
-                <SidebarTile key={t.id} id={t.id} label={t.label} description={t.description} />
+                <SidebarTile key={t.id} id={t.id} label={t.label} description={t.description} icon={t.icon} />
             ))}
         </aside>
     );

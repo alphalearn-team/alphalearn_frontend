@@ -9,10 +9,25 @@ import Canvas from "./canvas/Canvas";
 export default function QuizBuilder() {
     const [questions, setQuestions] = useState<Question[]>([]);
 
-    // ── drag handlers ──────────────────────────────────────────────────────────
 
     function handleDragStart(_event: any) {
-        // reserved for future ghost-state logic
+
+    }
+
+    // Fires repeatedly as the dragged item moves over new targets → reorder live
+    function handleDragMove(event: any) {
+        const { source, target } = event.operation;
+        if (!source || !target) return;
+
+        setQuestions((prev) => {
+            const fromIdx = prev.findIndex((q) => q.uid === source.id);
+            const toIdx = prev.findIndex((q) => q.uid === target.id);
+            if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return prev;
+            const next = [...prev];
+            const [moved] = next.splice(fromIdx, 1);
+            next.splice(toIdx, 0, moved);
+            return next;
+        });
     }
 
     function handleDragEnd(event: any) {
@@ -21,15 +36,12 @@ export default function QuizBuilder() {
         const { source, target } = event.operation;
         if (!source || !target) return;
 
-        if (target.id === "canvas") {
-            const type = source.id as QuestionType;
-            if (SIDEBAR_TYPES.some((t) => t.id === type)) {
-                setQuestions((prev) => [...prev, makeQuestion(type)]);
-            }
+        // Only sidebar → canvas drops need to be handled here; cards are already reordered live
+        if (target.id === "canvas" && SIDEBAR_TYPES.some((t) => t.id === source.id)) {
+            setQuestions((prev) => [...prev, makeQuestion(source.id as QuestionType)]);
         }
     }
 
-    // ── question mutation helpers ──────────────────────────────────────────────
 
     function updateQuestion(uid: string, patch: Partial<Question>) {
         setQuestions((prev) =>
@@ -41,21 +53,8 @@ export default function QuizBuilder() {
         setQuestions((prev) => prev.filter((q) => q.uid !== uid));
     }
 
-    function moveQuestion(uid: string, direction: "up" | "down") {
-        setQuestions((prev) => {
-            const idx = prev.findIndex((q) => q.uid === uid);
-            if (idx === -1) return prev;
-            const next = [...prev];
-            const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-            if (swapIdx < 0 || swapIdx >= next.length) return prev;
-            [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
-            return next;
-        });
-    }
 
-    // ── serialise ──────────────────────────────────────────────────────────────
-
-    function serializeQuiz() {
+    function saveQuiz() {
         const payload = {
             questions: questions.map((q, idx) => {
                 const base = {
@@ -93,7 +92,7 @@ export default function QuizBuilder() {
         <div style={{ position: "relative", height: "100vh" }}>
             {/* Save button lives OUTSIDE DragDropProvider so dnd-kit doesn't swallow the click */}
             <button
-                onClick={serializeQuiz}
+                onClick={saveQuiz}
                 style={{
                     position: "absolute",
                     top: 20,
@@ -112,34 +111,64 @@ export default function QuizBuilder() {
                 Save quiz
             </button>
 
-            <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragMove} onDragEnd={handleDragEnd}>
                 <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
                     <QuestionTypeSidebar />
                     <Canvas
                         questions={questions}
                         onUpdate={updateQuestion}
                         onDelete={deleteQuestion}
-                        onMove={moveQuestion}
                     />
                 </div>
 
-                <DragOverlay>
-                    {(source) =>
-                        source ? (
+                <DragOverlay dropAnimation={null}>
+                    {(source) => {
+                        const tile = SIDEBAR_TYPES.find((t) => t.id === source?.id);
+                        if (!tile) return null;
+                        return (
                             <div
                                 style={{
-                                    padding: "8px 12px",
-                                    background: "#1d4ed8",
-                                    color: "#fff",
-                                    borderRadius: 6,
-                                    fontSize: 14,
+                                    width: 212,
+                                    padding: "12px",
+                                    backgroundColor: "var(--color-card-bg)",
+                                    border: "1px solid var(--color-primary)",
+                                    borderRadius: 10,
                                     pointerEvents: "none",
+                                    boxShadow: "0 8px 24px rgba(46,255,180,0.2), 0 2px 8px rgba(0,0,0,0.4)",
+                                    cursor: "grabbing",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
                                 }}
                             >
-                                {SIDEBAR_TYPES.find((t) => t.id === source.id)?.label ?? source.id}
+                                <div
+                                    style={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: 8,
+                                        background: "rgba(46,255,180,0.15)",
+                                        border: "1px solid rgba(46,255,180,0.3)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 20, color: "var(--color-primary)" }}>
+                                        {tile.icon}
+                                    </span>
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: 600, fontSize: 13, color: "var(--color-primary)" }}>
+                                        {tile.label}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>
+                                        {tile.description}
+                                    </div>
+                                </div>
                             </div>
-                        ) : null
-                    }
+                        );
+                    }}
                 </DragOverlay>
             </DragDropProvider>
         </div>

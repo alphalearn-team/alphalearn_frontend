@@ -17,7 +17,7 @@ export default function TrueFalseEditor({ question, onUpdate }: TrueFalseEditorP
                 {([true, false] as const).map((val) => (
                     <label
                         key={String(val)}
-                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
+                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "var(--color-text)" }}
                     >
                         <input
                             type="radio"

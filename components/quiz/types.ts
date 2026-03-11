@@ -19,16 +19,19 @@ export const SIDEBAR_TYPES: {
     id: QuestionType;
     label: string;
     description: string;
+    icon: string;
 }[] = [
         {
             id: "multiple-choice",
             label: "Multiple Choice",
-            description: "One correct answer from several options",
+            description: "One or more correct answers from several options",
+            icon: "checklist",
         },
         {
             id: "true-false",
             label: "True / False",
-            description: "Student picks True or False",
+            description: "True or False",
+            icon: "toggle_on",
         },
     ];
 
@@ -47,23 +50,26 @@ export function makeQuestion(type: QuestionType): Question {
 
 export const labelStyle: React.CSSProperties = {
     display: "block",
-    fontSize: 12,
-    fontWeight: 600,
-    color: "#374151",
-    marginBottom: 4,
+    fontSize: "0.7rem",
+    fontWeight: 700,
+    color: "var(--color-text)",
+    textTransform: "uppercase",
+    letterSpacing: "0.15em",
+    marginBottom: 8,
 };
 
 export const inputStyle: React.CSSProperties = {
     display: "block",
     width: "100%",
     padding: "7px 10px",
-    border: "1px solid #d1d5db",
+    border: "1px solid var(--color-border)",
     borderRadius: 6,
     fontSize: 13,
     marginBottom: 0,
     boxSizing: "border-box",
-    color: "#111827",
-    background: "#fff",
+    color: "var(--color-text)",
+    background: "var(--color-surface)",
+    outline: "none",
 };
 
 export function btnStyle(disabled: boolean, danger = false): React.CSSProperties {
@@ -73,10 +79,11 @@ export function btnStyle(disabled: boolean, danger = false): React.CSSProperties
         borderRadius: 5,
         border: "1px solid",
         cursor: disabled ? "not-allowed" : "pointer",
-        borderColor: danger ? "#fca5a5" : "#d1d5db",
-        background: disabled ? "#f3f4f6" : danger ? "#fee2e2" : "#f9fafb",
-        color: disabled ? "#9ca3af" : danger ? "#dc2626" : "#374151",
-        opacity: disabled ? 0.5 : 1,
+        borderColor: danger ? "var(--color-error)" : "var(--color-border)",
+        background: disabled ? "transparent" : danger ? "rgba(239,68,68,0.1)" : "var(--color-overlay)",
+        color: disabled ? "var(--color-text-muted)" : danger ? "var(--color-error)" : "var(--color-primary)",
+        opacity: disabled ? 0.4 : 1,
+        transition: "background 0.2s",
     };
 }
 
@@ -84,9 +91,10 @@ export const addBtnStyle: React.CSSProperties = {
     marginTop: 4,
     padding: "5px 10px",
     fontSize: 12,
-    border: "1px dashed #d1d5db",
+    border: "1px dashed rgba(255,255,255,0.2)",
     borderRadius: 6,
     background: "transparent",
     cursor: "pointer",
-    color: "#6b7280",
+    color: "var(--color-text-muted)",
+    transition: "color 0.15s, border-color 0.15s",
 };
