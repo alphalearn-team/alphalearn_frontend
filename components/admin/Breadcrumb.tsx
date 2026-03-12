@@ -20,6 +20,7 @@ const labelOverrides: BreadcrumbOverride = {
   contributors: "Users",
   "contributor-applications": "Contributor Applications",
   concepts: "Concepts",
+  "weekly-content": "Weekly Content",
   add: "Add New",
 };
 
