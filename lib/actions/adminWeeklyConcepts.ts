@@ -3,6 +3,8 @@
 import { ApiError, apiFetch } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import type {
+  AdminConcept,
+  WeeklyConceptOption,
   WeeklyConceptPayload,
   WeeklyConceptUpsertRequest,
 } from "@/interfaces/interfaces";
@@ -63,10 +65,10 @@ export async function getWeeklyConcept(
 
 export async function upsertWeeklyConcept(
   weekStartDate: string,
-  concept: string
+  conceptPublicId: string
 ): Promise<WeeklyConceptActionResult<WeeklyConceptPayload>> {
   try {
-    const payload: WeeklyConceptUpsertRequest = { concept };
+    const payload: WeeklyConceptUpsertRequest = { conceptPublicId };
     const data = await apiFetch<WeeklyConceptPayload>(
       `/admin/weekly-concepts/${weekStartDate}`,
       {
@@ -86,5 +88,26 @@ export async function upsertWeeklyConcept(
     };
   } catch (error) {
     return toFailureResult<WeeklyConceptPayload>(error);
+  }
+}
+
+export async function getWeeklyConceptOptions(): Promise<
+  WeeklyConceptActionResult<WeeklyConceptOption[]>
+> {
+  try {
+    const concepts = await apiFetch<AdminConcept[]>("/admin/concepts");
+    const data = concepts.map((concept) => ({
+      value: concept.publicId,
+      label: concept.title,
+    }));
+
+    return {
+      success: true,
+      status: 200,
+      message: "Weekly concept options loaded",
+      data,
+    };
+  } catch (error) {
+    return toFailureResult<WeeklyConceptOption[]>(error);
   }
 }

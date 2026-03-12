@@ -6,14 +6,19 @@ export interface Concept {
 }
 
 export interface WeeklyConceptUpsertRequest {
-  concept: string;
+  conceptPublicId: string;
 }
 
 export interface WeeklyConceptPayload {
   weekStartDate: string;
-  concept: string;
+  conceptPublicId: string;
   createdAt?: string | null;
   updatedAt?: string | null;
+}
+
+export interface WeeklyConceptOption {
+  value: string;
+  label: string;
 }
 
 export interface LessonConceptSummary {
