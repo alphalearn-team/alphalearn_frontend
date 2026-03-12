@@ -5,14 +5,25 @@ export interface MCQOption {
     text: string;
 }
 
-export interface Question {
+export interface BaseQuestion {
     uid: string;
     type: QuestionType;
     prompt: string;
+}
+
+export interface MCQQuestion extends BaseQuestion {
+    type: "multiple-choice";
     options: MCQOption[];
     correctOptionIds: string[];
+}
+
+export interface TrueFalseQuestion extends BaseQuestion {
+    type: "true-false";
     correctBoolean: boolean;
 }
+
+export type Question = MCQQuestion | TrueFalseQuestion;
+export type QuestionPatch = Partial<MCQQuestion> & Partial<TrueFalseQuestion>;
 
 
 export const SIDEBAR_TYPES: {
@@ -36,14 +47,22 @@ export const SIDEBAR_TYPES: {
     ];
 
 export function makeQuestion(type: QuestionType): Question {
-    const opt1: MCQOption = { id: crypto.randomUUID(), text: "Option A" };
-    const opt2: MCQOption = { id: crypto.randomUUID(), text: "Option B" };
+    if (type === "multiple-choice") {
+        const opt1: MCQOption = { id: crypto.randomUUID(), text: "Option A" };
+        const opt2: MCQOption = { id: crypto.randomUUID(), text: "Option B" };
+        return {
+            uid: crypto.randomUUID(),
+            type: "multiple-choice",
+            prompt: "",
+            options: [opt1, opt2],
+            correctOptionIds: [opt1.id],
+        };
+    }
+    
     return {
         uid: crypto.randomUUID(),
-        type,
+        type: "true-false",
         prompt: "",
-        options: [opt1, opt2],
-        correctOptionIds: [opt1.id],
         correctBoolean: true,
     };
 }

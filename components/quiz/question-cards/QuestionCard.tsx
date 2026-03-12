@@ -1,14 +1,14 @@
 "use client";
 
 import { useSortable } from "@dnd-kit/react/sortable";
-import { Question, SIDEBAR_TYPES, labelStyle, inputStyle, btnStyle } from "../types";
+import { Question, QuestionPatch, MCQQuestion, TrueFalseQuestion, SIDEBAR_TYPES, labelStyle, inputStyle, btnStyle } from "../types";
 import MCQEditor from "./MCQEditor";
 import TrueFalseEditor from "./TrueFalseEditor";
 
 interface QuestionCardProps {
     question: Question;
     index: number;
-    onUpdate: (uid: string, patch: Partial<Question>) => void;
+    onUpdate: (uid: string, patch: QuestionPatch) => void;
     onDelete: (uid: string) => void;
 }
 
@@ -83,10 +83,10 @@ export default function QuestionCard({
 
             {/* Type-specific body */}
             {type === "multiple-choice" && (
-                <MCQEditor question={question} onUpdate={onUpdate} />
+                <MCQEditor question={question as MCQQuestion} onUpdate={onUpdate} />
             )}
             {type === "true-false" && (
-                <TrueFalseEditor question={question} onUpdate={onUpdate} />
+                <TrueFalseEditor question={question as TrueFalseQuestion} onUpdate={onUpdate} />
             )}
         </div>
     );

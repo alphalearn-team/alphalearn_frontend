@@ -1,10 +1,10 @@
 "use client";
 
-import { Question, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
+import { MCQQuestion, QuestionPatch, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
 
 interface MCQEditorProps {
-    question: Question;
-    onUpdate: (uid: string, patch: Partial<Question>) => void;
+    question: MCQQuestion;
+    onUpdate: (uid: string, patch: QuestionPatch) => void;
 }
 
 export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
@@ -32,7 +32,6 @@ export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
         const next = options.filter((o) => o.id !== optId);
         onUpdate(uid, {
             options: next,
-            // keep remaining correct selections; fall back to first option if all were removed
             correctOptionIds: correctOptionIds.filter((id) => id !== optId).length > 0
                 ? correctOptionIds.filter((id) => id !== optId)
                 : next.length > 0 ? [next[0].id] : [],

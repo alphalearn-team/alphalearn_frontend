@@ -1,16 +1,15 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/react";
-import { Question } from "../types";
+import { Question, QuestionPatch } from "../types";
 import QuestionCard from "../question-cards/QuestionCard";
 
 interface CanvasProps {
     questions: Question[];
-    onUpdate: (uid: string, patch: Partial<Question>) => void;
+    onUpdate: (uid: string, patch: QuestionPatch) => void;
     onDelete: (uid: string) => void;
 }
 
-/** Thin strip between cards — expands when a sidebar tile is dragged over it */
 function GapZone({ index }: { index: number }) {
     const { ref, isDropTarget: isOver } = useDroppable({ id: `gap-${index}` });
 
@@ -38,7 +37,6 @@ function GapZone({ index }: { index: number }) {
     );
 }
 
-/** Bottom drop zone — handles appending to end and empty-canvas state */
 function DropZone({ isEmpty }: { isEmpty: boolean }) {
     const { ref, isDropTarget: isOver } = useDroppable({ id: "canvas" });
 

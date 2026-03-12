@@ -3,7 +3,7 @@
 import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Question, QuestionType, SIDEBAR_TYPES, makeQuestion } from "./types";
+import { Question, QuestionPatch, QuestionType, SIDEBAR_TYPES, makeQuestion } from "./types";
 import QuestionTypeSidebar from "./sidebar/QuestionTypeSidebar";
 import Canvas from "./canvas/Canvas";
 
@@ -68,9 +68,9 @@ export default function QuizBuilder() {
     }
 
 
-    function updateQuestion(uid: string, patch: Partial<Question>) {
+    function updateQuestion(uid: string, patch: QuestionPatch) {
         setQuestions((prev) =>
-            prev.map((q) => (q.uid === uid ? { ...q, ...patch } : q))
+            prev.map((q) => (q.uid === uid ? { ...q, ...patch } as Question : q))
         );
     }
 

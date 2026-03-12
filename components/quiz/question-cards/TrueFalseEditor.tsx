@@ -1,10 +1,10 @@
 "use client";
 
-import { Question, labelStyle } from "../types";
+import { TrueFalseQuestion, QuestionPatch, labelStyle } from "../types";
 
 interface TrueFalseEditorProps {
-    question: Question;
-    onUpdate: (uid: string, patch: Partial<Question>) => void;
+    question: TrueFalseQuestion;
+    onUpdate: (uid: string, patch: QuestionPatch) => void;
 }
 
 export default function TrueFalseEditor({ question, onUpdate }: TrueFalseEditorProps) {
