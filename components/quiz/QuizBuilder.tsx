@@ -1,13 +1,22 @@
 "use client";
 
 import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Question, QuestionType, SIDEBAR_TYPES, makeQuestion } from "./types";
 import QuestionTypeSidebar from "./sidebar/QuestionTypeSidebar";
 import Canvas from "./canvas/Canvas";
 
 export default function QuizBuilder() {
     const [questions, setQuestions] = useState<Question[]>([]);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => setMounted(true), []);
+
+    function addQuestion(type: QuestionType) {
+        setQuestions((prev) => [...prev, makeQuestion(type)]);
+    }
 
 
     function handleDragStart(_event: any) {
@@ -129,7 +138,9 @@ export default function QuizBuilder() {
 
             <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragMove} onDragEnd={handleDragEnd}>
                 <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-                    <QuestionTypeSidebar />
+                    <div className="hidden md:block">
+                        <QuestionTypeSidebar />
+                    </div>
                     <Canvas
                         questions={questions}
                         onUpdate={updateQuestion}
@@ -187,6 +198,102 @@ export default function QuizBuilder() {
                     }}
                 </DragOverlay>
             </DragDropProvider>
+
+            {/* Mobile Drawer (Portaled to body to escape all stacking contexts) */}
+            {mounted && createPortal(
+                <div className="md:hidden">
+                    {/* Floating Action Button */}
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setDrawerOpen(true);
+                        }}
+                        style={{
+                            position: "fixed", bottom: 24, right: 24, zIndex: 90,
+                            width: 56, height: 56, borderRadius: "50%",
+                            background: "var(--color-primary)", color: "#000",
+                            border: "none", cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            boxShadow: "0 4px 20px rgba(46,255,180,0.35)",
+                            touchAction: "manipulation",
+                            WebkitTapHighlightColor: "transparent"
+                        }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: 28 }}>add</span>
+                    </button>
+
+                    {/* Backdrop */}
+                    <div
+                        onClick={() => setDrawerOpen(false)}
+                        style={{
+                            position: "fixed", inset: 0,
+                            background: "rgba(0,0,0,0.6)",
+                            zIndex: 100,
+                            opacity: drawerOpen ? 1 : 0,
+                            pointerEvents: drawerOpen ? "auto" : "none",
+                            transition: "opacity 0.2s",
+                        }}
+                    />
+
+                    {/* Drawer Panel */}
+                    <div
+                        style={{
+                            position: "fixed", bottom: 0, left: 0, right: 0,
+                            zIndex: 100000,
+                            background: "var(--color-surface)",
+                            borderTop: "1px solid var(--color-border)",
+                            borderRadius: "24px 24px 0 0",
+                            padding: "24px 24px 40px",
+                            transform: drawerOpen ? "translateY(0)" : "translateY(100%)",
+                            transition: "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
+                            boxShadow: "0 -8px 40px rgba(0,0,0,0.5)",
+                        }}
+                    >
+                        <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
+                            <p style={{ margin: 0, flex: 1, fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--color-text-muted)" }}>
+                                Add Question
+                            </p>
+                            <button
+                                onClick={() => setDrawerOpen(false)}
+                                style={{ background: "none", border: "none", color: "var(--color-text-muted)", fontSize: 24, padding: 8, margin: "-8px -8px -8px 0", cursor: "pointer" }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {SIDEBAR_TYPES.map((t) => (
+                            <button
+                                key={t.id}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    addQuestion(t.id);
+                                }}
+                                style={{
+                                    width: "100%", display: "flex", alignItems: "center", gap: 16,
+                                    padding: 16, marginBottom: 12,
+                                    background: "rgba(156,163,175,0.05)",
+                                    border: "1px solid var(--color-border)",
+                                    borderRadius: 12, cursor: "pointer", textAlign: "left",
+                                    touchAction: "manipulation",
+                                }}
+                            >
+                                <div style={{
+                                    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                                    background: "rgba(46,255,180,0.1)", border: "1px solid rgba(46,255,180,0.2)",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 22, color: "var(--color-primary)" }}>{t.icon}</span>
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--color-text)" }}>{t.label}</div>
+                                    <div style={{ fontSize: 13, color: "var(--color-text-muted)", marginTop: 2 }}>{t.description}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }

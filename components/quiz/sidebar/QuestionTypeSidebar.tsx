@@ -8,6 +8,7 @@ export default function QuestionTypeSidebar() {
         <aside
             style={{
                 width: "20vw",
+                height:"100vh",
                 flexShrink: 0,
                 borderRight: "1px solid var(--color-border)",
                 padding: "20px 16px",
