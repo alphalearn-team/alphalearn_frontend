@@ -5,6 +5,17 @@ export interface Concept {
   createdAt: string;
 }
 
+export interface WeeklyConceptUpsertRequest {
+  concept: string;
+}
+
+export interface WeeklyConceptPayload {
+  weekStartDate: string;
+  concept: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
 export interface LessonConceptSummary {
   publicId: string;
   title: string;
