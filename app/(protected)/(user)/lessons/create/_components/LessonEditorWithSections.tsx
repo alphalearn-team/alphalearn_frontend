@@ -23,7 +23,9 @@ export default function LessonEditorWithSections({
     conceptOptions,
     error,
     handleCancel,
+    handleSaveDraft,
     handleSubmit,
+    isSavingDraft,
     isSubmitting,
     registerSectionElement,
     sections,
@@ -61,8 +63,10 @@ export default function LessonEditorWithSections({
 
       <LessonCreateActionBar
         hasSections={sections.length > 0}
+        isSavingDraft={isSavingDraft}
         isSubmitting={isSubmitting}
         onCancel={handleCancel}
+        onSaveDraft={handleSaveDraft}
       />
     </form>
   );

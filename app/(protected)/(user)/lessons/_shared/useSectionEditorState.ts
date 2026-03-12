@@ -7,7 +7,7 @@ import {
   type SectionWithId,
   withSectionIds,
   generateSectionId,
-} from "../_components/sectionEditorUtils";
+} from "./sectionEditorUtils";
 
 interface UseSectionEditorStateParams {
   sections: LessonSectionInput[];
@@ -73,6 +73,7 @@ export function useSectionEditorState({ sections, onChange }: UseSectionEditorSt
       updated[editingIndex] = originalSection;
       onChange(
         updated.map((section) => ({
+          sectionPublicId: section.sectionPublicId,
           sectionType: section.sectionType,
           title: section.title ?? null,
           content: section.content,

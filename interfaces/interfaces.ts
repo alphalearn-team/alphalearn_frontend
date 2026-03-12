@@ -82,8 +82,9 @@ export interface LessonSection {
   content: SectionContent;
 }
 
-// For creating/editing sections (no publicId yet)
+// For creating/editing sections (publicId optional for existing sections)
 export interface LessonSectionInput {
+  sectionPublicId?: string; // Include ID for existing sections to enable updates
   sectionType: SectionType;
   title?: string | null;
   content: SectionContent;
@@ -217,6 +218,7 @@ export interface AdminLessonReviewDetail {
   lessonPublicId: string;
   title: string;
   content: LessonContent;
+  sections?: LessonSection[];
   conceptPublicIds?: string[];
   author?: PublicAuthor | null;
   lessonModerationStatus: LessonModerationStatus;

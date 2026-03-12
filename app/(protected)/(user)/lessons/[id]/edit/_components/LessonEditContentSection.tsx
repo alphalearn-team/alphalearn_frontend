@@ -1,19 +1,19 @@
 "use client";
 
 import type { LessonSectionInput } from "@/interfaces/interfaces";
-import { SectionEditor } from "../../_shared/SectionEditor";
+import { SectionEditor } from "../../../_shared/SectionEditor";
 
-interface LessonContentSectionProps {
+interface LessonEditContentSectionProps {
   onRegisterSectionElement: (index: number, element: HTMLElement | null) => void;
   onSectionsChange: (sections: LessonSectionInput[]) => void;
   sections: LessonSectionInput[];
 }
 
-export default function LessonContentSection({
+export default function LessonEditContentSection({
   onRegisterSectionElement,
   onSectionsChange,
   sections,
-}: LessonContentSectionProps) {
+}: LessonEditContentSectionProps) {
   return (
     <div className="space-y-6">
       <div
@@ -32,7 +32,7 @@ export default function LessonContentSection({
               Lesson Content
             </h3>
             <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
-              Build your lesson with sections. Mix text, examples, definitions, and callouts for
+              Edit your lesson sections. Mix text, examples, definitions, and callouts for
               the best learning experience.
             </p>
           </div>
