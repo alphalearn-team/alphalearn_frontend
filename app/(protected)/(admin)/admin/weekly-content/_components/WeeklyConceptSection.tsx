@@ -2,41 +2,36 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { Button, Card, Text, TextInput, Textarea } from "@mantine/core";
+import { Button, Card, Select, Text, TextInput } from "@mantine/core";
 import { format, isValid, parseISO, startOfISOWeek } from "date-fns";
 import {
   getWeeklyConcept,
+  getWeeklyConceptOptions,
   upsertWeeklyConcept,
 } from "@/lib/actions/adminWeeklyConcepts";
 import { showSuccess } from "@/lib/actions/notifications";
+import type { WeeklyConceptOption } from "@/interfaces/interfaces";
 
-const MAX_CONCEPT_LENGTH = 500;
 const PERMISSION_ERROR_MESSAGE =
   "Permission denied or session expired. Sign in with an admin account and try again.";
 
-function getCurrentISOWeekStartDate(): string {
+function getCurrentWeekStartDate(): string {
   return format(startOfISOWeek(new Date()), "yyyy-MM-dd");
 }
 
-function normalizeToISOWeekStart(dateString: string): string {
+function normalizeToWeekStart(dateString: string): string {
   const parsedDate = parseISO(dateString);
 
   if (!isValid(parsedDate)) {
-    return getCurrentISOWeekStartDate();
+    return getCurrentWeekStartDate();
   }
 
   return format(startOfISOWeek(parsedDate), "yyyy-MM-dd");
 }
 
-function validateConcept(concept: string): string | null {
-  const trimmed = concept.trim();
-
-  if (!trimmed) {
-    return "Concept is required.";
-  }
-
-  if (trimmed.length > MAX_CONCEPT_LENGTH) {
-    return `Concept must be ${MAX_CONCEPT_LENGTH} characters or fewer.`;
+function validateConceptPublicId(conceptPublicId: string | null): string | null {
+  if (!conceptPublicId) {
+    return "Concept selection is required.";
   }
 
   return null;
@@ -59,21 +54,56 @@ type FormMode = "create" | "update";
 
 export default function WeeklyConceptSection() {
   const [weekStartDate, setWeekStartDate] = useState<string>(
-    getCurrentISOWeekStartDate
+    getCurrentWeekStartDate
   );
-  const [concept, setConcept] = useState("");
-  const [initialConcept, setInitialConcept] = useState("");
+  const [conceptPublicId, setConceptPublicId] = useState<string | null>(null);
+  const [initialConceptPublicId, setInitialConceptPublicId] = useState<string | null>(null);
+  const [conceptOptions, setConceptOptions] = useState<WeeklyConceptOption[]>([]);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [mode, setMode] = useState<FormMode>("create");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   const isBusy = isFetching || isSaving;
   const hasPermissionError = requestError === PERMISSION_ERROR_MESSAGE;
-  const isDirty = concept !== initialConcept;
-  const remainingChars = MAX_CONCEPT_LENGTH - concept.length;
+  const isDirty = conceptPublicId !== initialConceptPublicId;
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadConceptOptions() {
+      setIsLoadingOptions(true);
+
+      const result = await getWeeklyConceptOptions();
+      if (ignore) {
+        return;
+      }
+
+      if (result.success && result.data) {
+        setConceptOptions(result.data);
+        setIsLoadingOptions(false);
+        return;
+      }
+
+      if (result.status === 403) {
+        setRequestError(PERMISSION_ERROR_MESSAGE);
+        setIsLoadingOptions(false);
+        return;
+      }
+
+      setRequestError(result.message || "Failed to load concept options.");
+      setIsLoadingOptions(false);
+    }
+
+    loadConceptOptions();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const saveButtonLabel = useMemo(() => {
     if (isSaving) {
@@ -89,7 +119,9 @@ export default function WeeklyConceptSection() {
     async function loadWeeklyConcept() {
       setIsFetching(true);
       setFieldError(null);
-      setRequestError(null);
+      if (requestError !== PERMISSION_ERROR_MESSAGE) {
+        setRequestError(null);
+      }
       setLastSavedAt(null);
 
       const result = await getWeeklyConcept(weekStartDate);
@@ -99,25 +131,25 @@ export default function WeeklyConceptSection() {
       }
 
       if (result.success && result.data) {
-        const loadedConcept = result.data.concept ?? "";
-        setConcept(loadedConcept);
-        setInitialConcept(loadedConcept);
-        setMode("update");
+        const loadedConceptPublicId = result.data.conceptPublicId ?? null;
+        setConceptPublicId(loadedConceptPublicId);
+        setInitialConceptPublicId(loadedConceptPublicId);
+        setMode(loadedConceptPublicId ? "update" : "create");
         setIsFetching(false);
         return;
       }
 
       if (result.status === 404) {
-        setConcept("");
-        setInitialConcept("");
+        setConceptPublicId(null);
+        setInitialConceptPublicId(null);
         setMode("create");
         setIsFetching(false);
         return;
       }
 
       if (result.status === 403) {
-        setConcept("");
-        setInitialConcept("");
+        setConceptPublicId(null);
+        setInitialConceptPublicId(null);
         setMode("create");
         setFieldError(null);
         setRequestError(PERMISSION_ERROR_MESSAGE);
@@ -134,10 +166,10 @@ export default function WeeklyConceptSection() {
     return () => {
       ignore = true;
     };
-  }, [weekStartDate]);
+  }, [weekStartDate, requestError]);
 
   const handleWeekChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (isBusy) {
+    if (isBusy || isLoadingOptions) {
       return;
     }
 
@@ -146,7 +178,7 @@ export default function WeeklyConceptSection() {
       return;
     }
 
-    const normalizedWeekStart = normalizeToISOWeekStart(selectedDate);
+    const normalizedWeekStart = normalizeToWeekStart(selectedDate);
 
     if (normalizedWeekStart === weekStartDate) {
       return;
@@ -164,8 +196,8 @@ export default function WeeklyConceptSection() {
     setWeekStartDate(normalizedWeekStart);
   };
 
-  const handleConceptChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setConcept(event.currentTarget.value);
+  const handleConceptChange = (value: string | null) => {
+    setConceptPublicId(value);
 
     if (fieldError) {
       setFieldError(null);
@@ -179,7 +211,7 @@ export default function WeeklyConceptSection() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const validationError = validateConcept(concept);
+    const validationError = validateConceptPublicId(conceptPublicId);
     if (validationError) {
       setFieldError(validationError);
       setRequestError(null);
@@ -190,16 +222,15 @@ export default function WeeklyConceptSection() {
     setFieldError(null);
     setRequestError(null);
 
-    const conceptToSave = concept.trim();
-    const result = await upsertWeeklyConcept(weekStartDate, conceptToSave);
+    const result = await upsertWeeklyConcept(weekStartDate, conceptPublicId!);
 
     if (result.success) {
-      const savedConcept = result.data?.concept ?? conceptToSave;
+      const savedConceptPublicId = result.data?.conceptPublicId ?? conceptPublicId;
       const savedAt = result.data?.updatedAt ?? new Date().toISOString();
       const savedAtLabel = formatSavedAt(savedAt);
 
-      setConcept(savedConcept);
-      setInitialConcept(savedConcept);
+      setConceptPublicId(savedConceptPublicId);
+      setInitialConceptPublicId(savedConceptPublicId);
       setMode("update");
       setLastSavedAt(savedAt);
       showSuccess(`Weekly concept saved at ${savedAtLabel}.`);
@@ -230,32 +261,32 @@ export default function WeeklyConceptSection() {
         <div>
           <TextInput
             type="date"
-            label="Week Start Date (ISO)"
+            label="Week Start Date"
             value={weekStartDate}
             onChange={handleWeekChange}
-            disabled={isBusy}
+            disabled={isBusy || isLoadingOptions}
             classNames={{
               label: "text-[var(--color-text)] font-semibold mb-2",
               description: "text-[var(--color-text-secondary)] text-sm mt-1",
               input:
                 "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
             }}
-            description="Selecting any date will auto-normalize to ISO week start (Monday)."
+            description="Selecting any date will auto-normalize to week start (Monday)."
           />
         </div>
 
         <div>
-          <Textarea
-            name="concept"
+          <Select
+            name="conceptPublicId"
             label="Weekly Concept"
-            placeholder="Write this week's concept..."
-            value={concept}
+            placeholder={isLoadingOptions ? "Loading concepts..." : "Select existing concept..."}
+            data={conceptOptions}
+            value={conceptPublicId}
             onChange={handleConceptChange}
+            searchable
+            clearable
             required
-            maxLength={MAX_CONCEPT_LENGTH}
-            minRows={8}
-            autosize
-            disabled={isBusy || hasPermissionError}
+            disabled={isBusy || isLoadingOptions || hasPermissionError}
             error={fieldError}
             classNames={{
               label: "text-[var(--color-text)] font-semibold mb-2",
@@ -263,23 +294,17 @@ export default function WeeklyConceptSection() {
               input:
                 "bg-[var(--color-input)] border-[var(--color-border)] focus:border-[var(--color-border-focus)] text-[var(--color-text)]",
             }}
+            description="Pick an existing concept to assign for the selected week."
           />
-
-          <div className="mt-1 flex items-center justify-between">
-            <Text size="sm" c="dimmed">
-              Max {MAX_CONCEPT_LENGTH} characters.
-            </Text>
-            <Text
-              size="sm"
-              c={remainingChars < 0 ? "red" : "dimmed"}
-              className="tabular-nums"
-            >
-              {remainingChars} remaining
-            </Text>
-          </div>
         </div>
 
         <div className="space-y-2">
+          {isLoadingOptions && (
+            <Text size="sm" c="dimmed">
+              Loading concept options...
+            </Text>
+          )}
+
           {isFetching && (
             <Text size="sm" c="dimmed">
               Loading concept for selected week...
@@ -298,18 +323,13 @@ export default function WeeklyConceptSection() {
             </Text>
           )}
 
-          {!requestError && (
-            <Text size="sm" c="dimmed">
-              Mode: {mode === "update" ? "Update existing concept" : "Create new concept"}
-            </Text>
-          )}
         </div>
 
         <div className="flex justify-end">
           <Button
             type="submit"
             loading={isSaving}
-            disabled={isFetching || hasPermissionError}
+            disabled={isFetching || isLoadingOptions || hasPermissionError}
             className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
             leftSection={
               <span className="material-symbols-outlined text-sm">save</span>
