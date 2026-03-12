@@ -4,7 +4,7 @@ import ContributorLessonEditorShell from "@/components/lessons/ContributorLesson
 import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
 import { getUserRole } from "@/lib/auth/rbac";
 import { getLessonModerationMeta } from "@/lib/lessonModeration";
-import LessonEditorClient from "./LessonEditorClient";
+import LessonEditorWithSectionsClient from "./LessonEditorWithSectionsClient";
 import {
   LessonConceptChips,
   LessonEditStatusMeta,
@@ -56,11 +56,10 @@ export default async function EditLessonPage({
           eventType={lesson.latestModerationEventType}
           moderatedAt={lesson.latestModeratedAt}
         />
-        <LessonEditorClient
-          id={id}
+        <LessonEditorWithSectionsClient
+          lessonId={id}
           initialTitle={lesson.title}
-          initialContent={lesson.content}
-          initialConceptPublicIds={lesson.conceptPublicIds}
+          initialSections={lesson.sections || []}
           initialStatus={status}
         />
       </div>

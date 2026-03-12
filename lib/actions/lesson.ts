@@ -3,7 +3,7 @@
 // server side logic that the client component can use
 
 import { apiFetch } from "../api";
-import { CreateLessonRequest, CreateLessonWithSectionsRequest, Lesson, LessonContent } from "@/interfaces/interfaces";
+import { CreateLessonRequest, CreateLessonWithSectionsRequest, Lesson, LessonContent, LessonSectionInput } from "@/interfaces/interfaces";
 import { revalidatePath } from "next/cache";
 
 const headers = { "Content-Type": "application/json" };
@@ -55,6 +55,28 @@ export async function saveLesson({ id, title, content }: { id: string; title: st
     method: "PUT",
     headers,
     body: JSON.stringify({ title, content }),
+  }, "Successfully saved");
+
+  if (response.success) {
+    revalidatePath("/lessons/mine");
+    revalidatePath(`/lessons/${id}`);
+    revalidatePath(`/lessons/${id}/edit`);
+  }
+
+  return response;
+}
+
+export interface SaveLessonWithSectionsInput {
+  id: string;
+  title: string;
+  sections: LessonSectionInput[];
+}
+
+export async function saveLessonWithSections({ id, title, sections }: SaveLessonWithSectionsInput): Promise<LessonActionResult<Lesson>> {
+  const response = await handleRequest<Lesson>(`/lessons/${id}`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ title, sections, content: {} }),
   }, "Successfully saved");
 
   if (response.success) {

@@ -2,6 +2,7 @@
 
 import { Card, Text } from "@mantine/core";
 import { TextDisplayer } from "@/components/texteditor/TextDisplayer";
+import { SectionBlock } from "@/components/lessons/sections";
 import type { AdminLessonReviewDetail } from "@/interfaces/interfaces";
 import { formatDateTime } from "@/lib/formatDate";
 import ReviewActions from "../../_components/ReviewActions";
@@ -161,9 +162,24 @@ export default function LessonReviewContent({
         </Card>
       )}
 
-      <Card className="admin-card">
-        {lesson.content ? <TextDisplayer content={lesson.content} /> : <Text c="dimmed">No lesson content available.</Text>}
-      </Card>
+      {/* Lesson Content */}
+      {lesson.sections && lesson.sections.length > 0 ? (
+        <div className="space-y-4">
+          {lesson.sections.map((section, index) => (
+            <Card key={section.sectionPublicId || index} className="admin-card">
+              <SectionBlock section={section} isEditing={false} showTitle={true} />
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="admin-card">
+          {lesson.content ? (
+            <TextDisplayer content={lesson.content} />
+          ) : (
+            <Text c="dimmed">No lesson content available.</Text>
+          )}
+        </Card>
+      )}
     </>
   );
 }

@@ -5,6 +5,7 @@ import type {
   ComparisonSectionContent,
   DefinitionSectionContent,
   ExampleSectionContent,
+  LessonSection,
   LessonSectionInput,
   SectionType,
   TextSectionContent,
@@ -44,5 +45,26 @@ export function withSectionIds(sections: LessonSectionInput[]): SectionWithId[] 
   return sections.map((section) => ({
     ...section,
     _id: (section as { _id?: string })._id || generateSectionId(),
+  }));
+}
+
+// Convert LessonSection (with publicId) to LessonSectionInput for editing
+export function lessonSectionsToInputs(sections: LessonSection[]): LessonSectionInput[] {
+  return sections.map((section) => ({
+    sectionPublicId: section.sectionPublicId, // Preserve ID for existing sections
+    sectionType: section.sectionType,
+    title: section.title,
+    content: section.content,
+  }));
+}
+
+// Convert LessonSection to SectionWithId for editor state
+export function lessonSectionsToSectionsWithIds(sections: LessonSection[]): SectionWithId[] {
+  return sections.map((section) => ({
+    sectionPublicId: section.sectionPublicId,
+    sectionType: section.sectionType,
+    title: section.title,
+    content: section.content,
+    _id: section.sectionPublicId || generateSectionId(),
   }));
 }
