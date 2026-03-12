@@ -78,7 +78,7 @@ export async function upsertWeeklyConcept(
       }
     );
 
-    revalidatePath("/admin/weekly-content");
+    revalidatePath("/admin/weekly-concept");
 
     return {
       success: true,

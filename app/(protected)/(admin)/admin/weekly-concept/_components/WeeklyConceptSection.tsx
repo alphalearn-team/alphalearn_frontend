@@ -50,6 +50,16 @@ function formatSavedAt(value: string): string {
   }).format(parsedDate);
 }
 
+function formatWeekStartDate(value: string): string {
+  const parsedDate = parseISO(value);
+
+  if (!isValid(parsedDate)) {
+    return value;
+  }
+
+  return format(parsedDate, "MMM d, yyyy");
+}
+
 type FormMode = "create" | "update";
 
 export default function WeeklyConceptSection() {
@@ -66,10 +76,30 @@ export default function WeeklyConceptSection() {
   const [isSaving, setIsSaving] = useState(false);
   const [mode, setMode] = useState<FormMode>("create");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [loadedWeekConceptMap, setLoadedWeekConceptMap] = useState<
+    Record<string, string>
+  >({});
 
   const isBusy = isFetching || isSaving;
   const hasPermissionError = requestError === PERMISSION_ERROR_MESSAGE;
   const isDirty = conceptPublicId !== initialConceptPublicId;
+  const isWeekLocked = mode === "update" && !!initialConceptPublicId;
+  const conceptLabelById = useMemo(
+    () =>
+      conceptOptions.reduce<Record<string, string>>((acc, option) => {
+        acc[option.value] = option.label;
+        return acc;
+      }, {}),
+    [conceptOptions]
+  );
+
+  const sortedLoadedWeekConcepts = useMemo(
+    () =>
+      Object.entries(loadedWeekConceptMap).sort(([weekA], [weekB]) =>
+        weekB.localeCompare(weekA)
+      ),
+    [loadedWeekConceptMap]
+  );
 
   useEffect(() => {
     let ignore = false;
@@ -110,8 +140,8 @@ export default function WeeklyConceptSection() {
       return "Saving...";
     }
 
-    return mode === "update" ? "Save Changes" : "Save Concept";
-  }, [isSaving, mode]);
+    return isWeekLocked ? "Week Already Assigned" : "Save Concept";
+  }, [isSaving, isWeekLocked]);
 
   useEffect(() => {
     let ignore = false;
@@ -135,6 +165,12 @@ export default function WeeklyConceptSection() {
         setConceptPublicId(loadedConceptPublicId);
         setInitialConceptPublicId(loadedConceptPublicId);
         setMode(loadedConceptPublicId ? "update" : "create");
+        if (loadedConceptPublicId) {
+          setLoadedWeekConceptMap((prev) => ({
+            ...prev,
+            [weekStartDate]: loadedConceptPublicId,
+          }));
+        }
         setIsFetching(false);
         return;
       }
@@ -211,6 +247,11 @@ export default function WeeklyConceptSection() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (isWeekLocked) {
+      setFieldError("This week already has a concept. Choose another week.");
+      return;
+    }
+
     const validationError = validateConceptPublicId(conceptPublicId);
     if (validationError) {
       setFieldError(validationError);
@@ -232,6 +273,12 @@ export default function WeeklyConceptSection() {
       setConceptPublicId(savedConceptPublicId);
       setInitialConceptPublicId(savedConceptPublicId);
       setMode("update");
+      if (savedConceptPublicId) {
+        setLoadedWeekConceptMap((prev) => ({
+          ...prev,
+          [weekStartDate]: savedConceptPublicId,
+        }));
+      }
       setLastSavedAt(savedAt);
       showSuccess(`Weekly concept saved at ${savedAtLabel}.`);
       setIsSaving(false);
@@ -286,7 +333,12 @@ export default function WeeklyConceptSection() {
             searchable
             clearable
             required
-            disabled={isBusy || isLoadingOptions || hasPermissionError}
+            disabled={
+              isBusy ||
+              isLoadingOptions ||
+              hasPermissionError ||
+              isWeekLocked
+            }
             error={fieldError}
             classNames={{
               label: "text-[var(--color-text)] font-semibold mb-2",
@@ -317,6 +369,12 @@ export default function WeeklyConceptSection() {
             </Text>
           )}
 
+          {!requestError && isWeekLocked && (
+            <Text size="sm" c="yellow">
+              This week already has a concept and cannot be assigned again.
+            </Text>
+          )}
+
           {!requestError && lastSavedAt && (
             <Text size="sm" c="green">
               Last saved at {formatSavedAt(lastSavedAt)}.
@@ -329,7 +387,12 @@ export default function WeeklyConceptSection() {
           <Button
             type="submit"
             loading={isSaving}
-            disabled={isFetching || isLoadingOptions || hasPermissionError}
+            disabled={
+              isFetching ||
+              isLoadingOptions ||
+              hasPermissionError ||
+              isWeekLocked
+            }
             className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
             leftSection={
               <span className="material-symbols-outlined text-sm">save</span>
@@ -339,6 +402,39 @@ export default function WeeklyConceptSection() {
           </Button>
         </div>
       </form>
+
+      <div className="mt-10 border-t border-[var(--color-border)] pt-6">
+        <Text fw={700} className="mb-4 text-[var(--color-text)]">
+          Weekly Concept View
+        </Text>
+
+        {sortedLoadedWeekConcepts.length === 0 ? (
+          <Text size="sm" c="dimmed">
+            No loaded weekly concepts yet. Switch weeks to see mappings here.
+          </Text>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="admin-table w-full">
+              <thead>
+                <tr>
+                  <th className="text-left">Week Start</th>
+                  <th className="text-left">Concept</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedLoadedWeekConcepts.map(([loadedWeekStartDate, loadedConceptPublicId]) => (
+                  <tr key={loadedWeekStartDate}>
+                    <td>{formatWeekStartDate(loadedWeekStartDate)}</td>
+                    <td>
+                      {conceptLabelById[loadedConceptPublicId] || loadedConceptPublicId}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </Card>
   );
 }

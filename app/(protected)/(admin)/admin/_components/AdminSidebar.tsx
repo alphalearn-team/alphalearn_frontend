@@ -14,7 +14,7 @@ const sections: SidebarNavSection[] = [
         icon: "assignment_turned_in",
       },
       { label: "Concepts", href: "/admin/concepts", icon: "library_books" },
-      { label: "Weekly Content", href: "/admin/weekly-content", icon: "date_range" },
+      { label: "Weekly Concept", href: "/admin/weekly-concept", icon: "date_range" },
       { label: "Users", href: "/admin/contributors", icon: "group" },
     ],
   },
