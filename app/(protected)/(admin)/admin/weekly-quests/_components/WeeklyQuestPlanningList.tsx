@@ -98,17 +98,21 @@ export default function WeeklyQuestPlanningList({
             {optimisticWeeks.map((week) => {
               const assignment = week.officialAssignment;
               const isSelected = week.weekStartAt === selectedWeekStartAt;
-              const { reminderText, shouldHighlightReminder } = getWeeklyQuestReminderState(week);
+              const {
+                reminderText,
+                shouldHighlightReminder,
+                cardToneClassName,
+              } = getWeeklyQuestReminderState(week);
               const titleText = week.unset ? "No quest set" : assignment?.concept.title ?? "No quest set";
               const descriptionText = week.unset
                 ? reminderText ?? "This week is still unset."
                 : assignment?.questTemplate.title ?? "";
               const cardClassName = isSelected
                 ? shouldHighlightReminder
-                  ? "border-amber-400/70 bg-amber-500/10 shadow-sm ring-1 ring-amber-300/40"
+                  ? `${cardToneClassName ?? ""} shadow-sm ring-1`
                   : "border-[var(--color-primary)] bg-[var(--color-primary)]/10 shadow-sm ring-1 ring-[var(--color-primary)]/30"
                 : shouldHighlightReminder
-                  ? "border-amber-400/45 bg-amber-500/6 hover:border-amber-300/60 hover:bg-amber-500/10"
+                  ? cardToneClassName ?? ""
                   : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-background-hover)]";
 
               return (

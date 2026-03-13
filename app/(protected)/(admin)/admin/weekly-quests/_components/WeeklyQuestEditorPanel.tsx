@@ -115,7 +115,12 @@ export default function WeeklyQuestEditorPanel({
           </div>
 
           {selectedWeek.unset && reminderState?.reminderText && (
-            <Alert color="yellow" radius="lg" variant="light" title="Quest setup reminder">
+            <Alert
+              color={reminderState.alertColor ?? "yellow"}
+              radius="lg"
+              variant="light"
+              title="Quest setup reminder"
+            >
               {reminderState.reminderText}
             </Alert>
           )}
