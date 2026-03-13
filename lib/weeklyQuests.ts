@@ -28,11 +28,12 @@ function normalizeWeek(week: WeeklyQuestWeek): WeeklyQuestWeek {
 
 export async function fetchAdminWeeklyQuestWeeks(): Promise<WeeklyQuestWeek[]> {
   const weeks = await apiFetch<WeeklyQuestWeek[]>(`${WEEKLY_QUESTS_BASE_PATH}/weeks`);
-  return weeks.map(normalizeWeek);
+  return Array.isArray(weeks) ? weeks.map(normalizeWeek) : [];
 }
 
 export async function fetchWeeklyQuestTemplates(): Promise<QuestTemplate[]> {
-  return apiFetch<QuestTemplate[]>(`${WEEKLY_QUESTS_BASE_PATH}/templates`);
+  const templates = await apiFetch<QuestTemplate[]>(`${WEEKLY_QUESTS_BASE_PATH}/templates`);
+  return Array.isArray(templates) ? templates : [];
 }
 
 export async function saveWeeklyQuestOfficialAssignment(

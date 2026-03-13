@@ -10,7 +10,8 @@ export async function fetchWeeklyQuestWeeks(): Promise<WeeklyQuestWeek[]> {
 }
 
 export async function fetchWeeklyQuestConcepts(): Promise<AdminConcept[]> {
-  return fetchAdminConcepts();
+  const concepts = await fetchAdminConcepts();
+  return Array.isArray(concepts) ? concepts : [];
 }
 
 export async function fetchWeeklyQuestTemplatesList(): Promise<QuestTemplate[]> {

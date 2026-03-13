@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useOptimistic, useState } from "react";
 import { Badge, Card, Text } from "@mantine/core";
+import { useRouter } from "next/navigation";
 import type {
   AdminConcept,
   QuestTemplate,
@@ -52,10 +53,26 @@ export default function WeeklyQuestPlanningList({
   concepts: AdminConcept[];
   templates: QuestTemplate[];
 }) {
+  const router = useRouter();
   const [selectedWeekStartAt, setSelectedWeekStartAt] = useState<string | null>(
     weeks[0]?.weekStartAt ?? null,
   );
-  const selectedWeek = weeks.find((week) => week.weekStartAt === selectedWeekStartAt) ?? null;
+  const [optimisticWeeks, updateOptimisticWeeks] = useOptimistic(
+    weeks,
+    (currentWeeks, updatedWeek: WeeklyQuestWeek) =>
+      currentWeeks.map((week) =>
+        week.weekStartAt === updatedWeek.weekStartAt ? updatedWeek : week,
+      ),
+  );
+  const selectedWeek = optimisticWeeks.find((week) => week.weekStartAt === selectedWeekStartAt) ?? null;
+
+  const handleWeekSaved = (updatedWeek: WeeklyQuestWeek) => {
+    startTransition(() => {
+      updateOptimisticWeeks(updatedWeek);
+      setSelectedWeekStartAt(updatedWeek.weekStartAt);
+      router.refresh();
+    });
+  };
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_0.85fr]">
@@ -77,7 +94,7 @@ export default function WeeklyQuestPlanningList({
           />
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {weeks.map((week) => {
+            {optimisticWeeks.map((week) => {
               const assignment = week.officialAssignment;
               const isSelected = week.weekStartAt === selectedWeekStartAt;
 
@@ -127,6 +144,7 @@ export default function WeeklyQuestPlanningList({
           selectedWeek={selectedWeek}
           concepts={concepts}
           templates={templates}
+          onWeekSaved={handleWeekSaved}
         />
       </div>
     </div>

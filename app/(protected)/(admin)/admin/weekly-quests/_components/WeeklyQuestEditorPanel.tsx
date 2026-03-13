@@ -15,13 +15,17 @@ interface WeeklyQuestEditorPanelProps {
   selectedWeek: WeeklyQuestWeek | null;
   concepts: AdminConcept[];
   templates: QuestTemplate[];
+  onWeekSaved: (week: WeeklyQuestWeek) => void;
 }
 
 export default function WeeklyQuestEditorPanel({
   selectedWeek,
   concepts,
   templates,
+  onWeekSaved,
 }: WeeklyQuestEditorPanelProps) {
+  const safeConcepts = Array.isArray(concepts) ? concepts : [];
+  const safeTemplates = Array.isArray(templates) ? templates : [];
   const [selectedConceptPublicId, setSelectedConceptPublicId] = useState<string | null>(
     selectedWeek?.officialAssignment?.concept.publicId ?? null,
   );
@@ -30,17 +34,17 @@ export default function WeeklyQuestEditorPanel({
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  const conceptOptions = concepts.map((concept) => ({
+  const conceptOptions = safeConcepts.map((concept) => ({
     value: concept.publicId,
     label: concept.title,
   }));
 
-  const templateOptions = templates.map((template) => ({
+  const templateOptions = safeTemplates.map((template) => ({
     value: template.publicId,
     label: template.title,
   }));
 
-  const selectedTemplate = templates.find(
+  const selectedTemplate = safeTemplates.find(
     (template) => template.publicId === selectedTemplatePublicId,
   ) ?? null;
 
@@ -62,11 +66,12 @@ export default function WeeklyQuestEditorPanel({
 
     setIsSaving(false);
 
-    if (!result.success) {
+    if (!result.success || !result.week) {
       showError(result.message);
       return;
     }
 
+    onWeekSaved(result.week);
     showSuccess(result.message);
   };
 
