@@ -3,16 +3,39 @@
 import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
+import { Modal, Select } from "@mantine/core";
 import { Question, QuestionPatch, QuestionType, SIDEBAR_TYPES, makeQuestion } from "./types";
+import { createQuizAction } from "@/lib/actions/quiz";
+import { fetchMyLessonsAction } from "@/lib/actions/lesson";
 import QuestionTypeSidebar from "./sidebar/QuestionTypeSidebar";
 import Canvas from "./canvas/Canvas";
+import GradientButton from "../common/GradientButton";
 
 export default function QuizBuilder() {
+    const router = useRouter();
     const [questions, setQuestions] = useState<Question[]>([]);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
 
-    useEffect(() => setMounted(true), []);
+    // Save Modal State
+    const [saveModalOpen, setSaveModalOpen] = useState(false);
+    const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [availableLessons, setAvailableLessons] = useState<{ value: string; label: string }[]>([]);
+
+    useEffect(() => {
+        setMounted(true);
+        // Fetch lessons for the modal
+        fetchMyLessonsAction().then((res) => {
+            if (res.success && res.data) {
+                setAvailableLessons(res.data.map((lesson) => ({
+                    value: lesson.lessonPublicId,
+                    label: lesson.title
+                })));
+            }
+        });
+    }, []);
 
     function addQuestion(type: QuestionType) {
         setQuestions((prev) => [...prev, makeQuestion(type)]);
@@ -79,36 +102,78 @@ export default function QuizBuilder() {
     }
 
 
-    function saveQuiz() {
-        const payload = {
-            questions: questions.map((q, idx) => {
-                const base = {
-                    index: idx + 1,
-                    id: q.uid,
-                    type: q.type,
-                    prompt: q.prompt,
-                };
+    // Example mock lessons to select from (In reality, fetch from API)
+    const mockLessons = [
+        { value: "e40c07c9-ccf4-4ef6-8264-19b5c3ca905e", label: "Lesson 1: Intro to React" },
+        { value: "00000000-0000-0000-0000-000000000002", label: "Lesson 2: Advanced Hooks" }
+    ];
 
-                if (q.type === "multiple-choice") {
-                    return {
-                        ...base,
-                        options: q.options.map((o) => ({ id: o.id, text: o.text })),
-                        correctOptionIds: q.correctOptionIds,
+    async function handleSaveConfirm() {
+        if (!selectedLessonId) {
+            alert("Please select a lesson to attach this quiz to.");
+            return;
+        }
+
+        if (questions.length === 0) {
+            alert("Add at least one question before saving.");
+            return;
+        }
+
+        setIsSaving(true);
+        console.log("Saving quiz...");
+
+        try {
+            const payload = {
+                title: "New Custom Quiz", // TODO: Add title input to Quiz Builder
+                description: "Auto-generated quiz description.",
+                lessonPublicId: selectedLessonId,
+                questions: questions.map((q, idx) => {
+                    const base = {
+                        type: q.type,
+                        prompt: q.prompt || "Empty Question",
                     };
-                }
 
-                if (q.type === "true-false") {
-                    return {
-                        ...base,
-                        correctAnswer: q.correctBoolean,
-                    };
-                }
+                    if (q.type === "multiple-choice") {
+                        return {
+                            ...base,
+                            properties: {
+                                options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
+                                correctOptionIds: q.correctOptionIds.length > 0 ? q.correctOptionIds : [q.options[0]?.id],
+                            }
+                        };
+                    }
 
-                return base;
-            }),
-        };
+                    if (q.type === "true-false") {
+                        return {
+                            ...base,
+                            properties: {
+                                correctBoolean: q.correctBoolean,
+                            }
+                        };
+                    }
 
-        console.log("[Quiz JSON]", JSON.stringify(payload, null, 2));
+                    return base;
+                }),
+            };
+
+            const result = await createQuizAction(payload);
+
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+
+            alert("Quiz saved successfully!");
+            setSaveModalOpen(false);
+
+            // Optional: Redirect to a dashboard or lesson page
+            // router.push("/dashboard");
+
+        } catch (error: any) {
+            console.error(error);
+            alert(error.message || "An error occurred while saving.");
+        } finally {
+            setIsSaving(false);
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -116,25 +181,16 @@ export default function QuizBuilder() {
     return (
         <div style={{ position: "relative", height: "100vh" }}>
             {/* Save button lives OUTSIDE DragDropProvider so dnd-kit doesn't swallow the click */}
-            <button
-                onClick={saveQuiz}
-                style={{
-                    position: "absolute",
-                    top: 20,
-                    right: 24,
-                    zIndex: 10,
-                    padding: "7px 18px",
-                    background: "#1d4ed8",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 7,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                }}
-            >
-                Save quiz
-            </button>
+            {/* Save button lives OUTSIDE DragDropProvider so dnd-kit doesn't swallow the click */}
+            <div style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
+                <GradientButton
+                    onClick={() => setSaveModalOpen(true)}
+                    size="sm"
+                    icon="save"
+                >
+                    Save Quiz
+                </GradientButton>
+            </div>
 
             <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragMove} onDragEnd={handleDragEnd}>
                 <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -290,10 +346,64 @@ export default function QuizBuilder() {
                                 </div>
                             </button>
                         ))}
+                        <div style={{ marginTop: 20 }}>
+                            <GradientButton onClick={() => setDrawerOpen(false)} style={{ width: "100%", justifyContent: "center" }}>
+                                DONE
+                            </GradientButton>
+                        </div>
                     </div>
                 </div>,
                 document.body
             )}
+
+            {/* Save Quiz Modal */}
+            <Modal
+                opened={saveModalOpen}
+                onClose={() => !isSaving && setSaveModalOpen(false)}
+                title={<span style={{ fontWeight: 600, fontSize: "1.2rem", color: "var(--color-primary)" }}>Finish & Save Quiz</span>}
+                centered
+                overlayProps={{ blur: 12, backgroundOpacity: 0.7, color: "#000" }}
+                styles={{
+                    content: { backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 16 },
+                    header: { backgroundColor: "transparent" },
+                    close: { color: "var(--color-text-muted)", "&:hover": { backgroundColor: "rgba(255,255,255,0.05)" } }
+                }}
+            >
+                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <p style={{ color: "var(--color-text-dimmed)", fontSize: "0.95rem", margin: 0 }}>
+                        Select the lesson you want to attach this quiz to.
+                    </p>
+
+                    <Select
+                        label="Target Lesson"
+                        placeholder="Pick a lesson"
+                        data={availableLessons}
+                        value={selectedLessonId}
+                        onChange={setSelectedLessonId}
+                        searchable
+                        styles={{
+                            input: { backgroundColor: "var(--color-bg)", borderColor: "var(--color-border)", color: "#fff" },
+                            label: { color: "var(--color-text-muted)", marginBottom: 8 },
+                            dropdown: { backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" },
+                            option: { color: "var(--color-text)", "&[data-hovered]": { backgroundColor: "var(--color-bg)" } }
+                        }}
+                    />
+
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
+                        <GradientButton
+                            onClick={() => setSaveModalOpen(false)}
+                            style={{ background: "transparent", border: "1px solid var(--color-border)" }}
+                        >
+                            <span style={{ color: "var(--color-text-muted)" }}>Cancel</span>
+                        </GradientButton>
+                        <GradientButton
+                            onClick={handleSaveConfirm}
+                        >
+                            {isSaving ? "Saving..." : "Confirm & Save"}
+                        </GradientButton>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

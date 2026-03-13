@@ -3,7 +3,7 @@
 // server side logic that the client component can use
 
 import { apiFetch } from "../api";
-import { CreateLessonRequest, CreateLessonWithSectionsRequest, Lesson, LessonContent, LessonSectionInput } from "@/interfaces/interfaces";
+import { CreateLessonRequest, CreateLessonWithSectionsRequest, Lesson, LessonContent, LessonSectionInput, LessonSummary } from "@/interfaces/interfaces";
 import { revalidatePath } from "next/cache";
 
 const headers = { "Content-Type": "application/json" };
@@ -265,4 +265,11 @@ export async function unpublishLesson(id: string): Promise<LessonActionResult<Le
   }
 
   return response as LessonActionResult<Lesson>;
+}
+
+export async function fetchMyLessonsAction(): Promise<LessonActionResult<LessonSummary[]>> {
+  return handleRequest<LessonSummary[]>("/lessons/mine", {
+    method: "GET",
+    headers,
+  }, "Lessons fetched successfully");
 }

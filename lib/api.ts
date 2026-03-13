@@ -50,10 +50,10 @@ export async function apiFetch<T>(
     throw new ApiError(res.status, message);
   }
 
-  // Handle 204 No Content 
-  if (res.status === 204) {
+  const responseText = await res.text();
+  if (!responseText) {
     return null as T;
   }
 
-  return res.json();
+  return JSON.parse(responseText);
 }
