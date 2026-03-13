@@ -10,6 +10,7 @@ import type {
 import { formatDateTime, formatShortDate } from "@/lib/formatDate";
 import { showError, showSuccess } from "@/lib/actions/notifications";
 import { saveWeeklyQuestAssignmentAction } from "../actions";
+import { getWeeklyQuestReminderState } from "./weeklyQuestReminder";
 
 interface WeeklyQuestEditorPanelProps {
   selectedWeek: WeeklyQuestWeek | null;
@@ -26,6 +27,7 @@ export default function WeeklyQuestEditorPanel({
 }: WeeklyQuestEditorPanelProps) {
   const safeConcepts = Array.isArray(concepts) ? concepts : [];
   const safeTemplates = Array.isArray(templates) ? templates : [];
+  const reminderState = selectedWeek ? getWeeklyQuestReminderState(selectedWeek) : null;
   const [selectedConceptPublicId, setSelectedConceptPublicId] = useState<string | null>(
     selectedWeek?.officialAssignment?.concept.publicId ?? null,
   );
@@ -112,6 +114,18 @@ export default function WeeklyQuestEditorPanel({
             </Text>
           </div>
 
+          {selectedWeek.unset && reminderState?.reminderText && (
+            <Alert color="yellow" radius="lg" variant="light" title="Quest setup reminder">
+              {reminderState.reminderText}
+            </Alert>
+          )}
+
+          {selectedWeek.unset && !reminderState?.reminderText && (
+            <Alert color="gray" radius="lg" variant="light" title="No quest set">
+              This week does not have an official quest yet.
+            </Alert>
+          )}
+
           {!selectedWeek.editable && (
             <Alert color="gray" radius="lg" variant="light" title="Locked after deadline">
               This week is locked because the setup deadline has passed.
@@ -143,7 +157,7 @@ export default function WeeklyQuestEditorPanel({
           <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
             <p className="text-sm font-medium text-[var(--color-text)]">Assignment preview</p>
             <Text size="sm" c="dimmed" className="mt-2 text-[var(--color-text-secondary)]">
-              {selectedWeek.officialAssignment
+              {!selectedWeek.unset && selectedWeek.officialAssignment
                 ? `Quest scheduled: ${selectedWeek.officialAssignment.concept.title} · ${selectedWeek.officialAssignment.questTemplate.title}`
                 : "No quest set"}
             </Text>
