@@ -11,6 +11,7 @@ import type {
 import AdminEmptyState from "@/components/admin/EmptyState";
 import { formatShortDate } from "@/lib/formatDate";
 import WeeklyQuestEditorPanel from "./WeeklyQuestEditorPanel";
+import { getWeeklyQuestReminderState } from "./weeklyQuestReminder";
 
 function getWeekStateLabel(week: WeeklyQuestWeek) {
   if (week.status === "ACTIVE") {
@@ -21,7 +22,7 @@ function getWeekStateLabel(week: WeeklyQuestWeek) {
     return "Completed";
   }
 
-  if (week.officialAssignment) {
+  if (!week.unset) {
     return "Scheduled";
   }
 
@@ -37,7 +38,7 @@ function getWeekStateColor(week: WeeklyQuestWeek) {
     return "gray";
   }
 
-  if (week.officialAssignment) {
+  if (!week.unset) {
     return "blue";
   }
 
@@ -97,17 +98,25 @@ export default function WeeklyQuestPlanningList({
             {optimisticWeeks.map((week) => {
               const assignment = week.officialAssignment;
               const isSelected = week.weekStartAt === selectedWeekStartAt;
+              const { reminderText, shouldHighlightReminder } = getWeeklyQuestReminderState(week);
+              const titleText = week.unset ? "No quest set" : assignment?.concept.title ?? "No quest set";
+              const descriptionText = week.unset
+                ? reminderText ?? "This week is still unset."
+                : assignment?.questTemplate.title ?? "";
+              const cardClassName = isSelected
+                ? shouldHighlightReminder
+                  ? "border-amber-400/70 bg-amber-500/10 shadow-sm ring-1 ring-amber-300/40"
+                  : "border-[var(--color-primary)] bg-[var(--color-primary)]/10 shadow-sm ring-1 ring-[var(--color-primary)]/30"
+                : shouldHighlightReminder
+                  ? "border-amber-400/45 bg-amber-500/6 hover:border-amber-300/60 hover:bg-amber-500/10"
+                  : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-background-hover)]";
 
               return (
                 <button
                   key={week.weekStartAt}
                   type="button"
                   onClick={() => setSelectedWeekStartAt(week.weekStartAt)}
-                  className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
-                    isSelected
-                      ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 shadow-sm ring-1 ring-[var(--color-primary)]/30"
-                      : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-background-hover)]"
-                  }`}
+                  className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${cardClassName}`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -115,10 +124,10 @@ export default function WeeklyQuestPlanningList({
                         Week of {formatShortDate(week.weekStartAt)}
                       </p>
                       <p className="mt-2 text-lg font-semibold text-[var(--color-text)]">
-                        {assignment ? assignment.concept.title : "No quest set"}
+                        {titleText}
                       </p>
                       <Text size="sm" c="dimmed" className="mt-1 text-[var(--color-text-secondary)]">
-                        {assignment ? assignment.questTemplate.title : "This week is still unset."}
+                        {descriptionText}
                       </Text>
                     </div>
 
