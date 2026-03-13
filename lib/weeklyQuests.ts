@@ -1,7 +1,7 @@
 import type { WeeklyQuestWeek } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api";
 
-const WEEKLY_QUESTS_BASE_PATH = "/api/admin/weekly-quests";
+const WEEKLY_QUESTS_BASE_PATH = "/admin/weekly-quests";
 
 function normalizeWeek(week: WeeklyQuestWeek): WeeklyQuestWeek {
   return {
