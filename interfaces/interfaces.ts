@@ -256,6 +256,9 @@ export interface WeeklyQuestWeek {
   activatedAt: string | null;
   createdAt: string | null;
   editable: boolean;
+  unset: boolean;
+  daysUntilDeadline: number;
+  shouldShowReminder: boolean;
   officialAssignment: WeeklyQuestAssignment | null;
 }
 
