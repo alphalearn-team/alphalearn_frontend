@@ -47,9 +47,6 @@ export default function WeeklyQuestPlanningList({
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--color-text)]">Planning Window</h2>
-          <Text size="sm" c="dimmed" className="mt-1 text-[var(--color-text-secondary)]">
-            Placeholder weeks are shown even before a quest row exists.
-          </Text>
         </div>
         <Badge color="blue" variant="light" radius="xl">
           {weeks.length} weeks
