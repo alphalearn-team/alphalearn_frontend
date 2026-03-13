@@ -3,11 +3,26 @@ import AdminBreadcrumb from "@/components/admin/Breadcrumb";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import WeeklyQuestPlanningFallback from "./_components/WeeklyQuestPlanningFallback";
 import WeeklyQuestPlanningList from "./_components/WeeklyQuestPlanningList";
-import { fetchWeeklyQuestWeeks } from "./weeklyQuestsData";
+import {
+  fetchWeeklyQuestConcepts,
+  fetchWeeklyQuestTemplatesList,
+  fetchWeeklyQuestWeeks,
+} from "./weeklyQuestsData";
 
 async function WeeklyQuestWeeksData() {
-  const weeks = await fetchWeeklyQuestWeeks();
-  return <WeeklyQuestPlanningList weeks={weeks} />;
+  const [weeks, concepts, templates] = await Promise.all([
+    fetchWeeklyQuestWeeks(),
+    fetchWeeklyQuestConcepts(),
+    fetchWeeklyQuestTemplatesList(),
+  ]);
+
+  return (
+    <WeeklyQuestPlanningList
+      weeks={weeks}
+      concepts={concepts}
+      templates={templates}
+    />
+  );
 }
 
 export default function WeeklyQuestsPage() {

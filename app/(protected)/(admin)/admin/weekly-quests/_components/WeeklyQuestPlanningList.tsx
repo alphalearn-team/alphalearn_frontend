@@ -1,9 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { Badge, Card, Text } from "@mantine/core";
-import type { WeeklyQuestWeek } from "@/interfaces/interfaces";
+import type {
+  AdminConcept,
+  QuestTemplate,
+  WeeklyQuestWeek,
+} from "@/interfaces/interfaces";
 import AdminEmptyState from "@/components/admin/EmptyState";
 import { formatShortDate } from "@/lib/formatDate";
+import WeeklyQuestEditorPanel from "./WeeklyQuestEditorPanel";
 
 function getWeekStateLabel(week: WeeklyQuestWeek) {
   if (week.status === "ACTIVE") {
@@ -39,63 +45,90 @@ function getWeekStateColor(week: WeeklyQuestWeek) {
 
 export default function WeeklyQuestPlanningList({
   weeks,
+  concepts,
+  templates,
 }: {
   weeks: WeeklyQuestWeek[];
+  concepts: AdminConcept[];
+  templates: QuestTemplate[];
 }) {
+  const [selectedWeekStartAt, setSelectedWeekStartAt] = useState<string | null>(
+    weeks[0]?.weekStartAt ?? null,
+  );
+  const selectedWeek = weeks.find((week) => week.weekStartAt === selectedWeekStartAt) ?? null;
+
   return (
-    <Card className="admin-card">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-[var(--color-text)]">Planning Window</h2>
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_0.85fr]">
+      <Card className="admin-card">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Planning Window</h2>
+          </div>
+          <Badge color="blue" variant="light" radius="xl">
+            {weeks.length} weeks
+          </Badge>
         </div>
-        <Badge color="blue" variant="light" radius="xl">
-          {weeks.length} weeks
-        </Badge>
-      </div>
 
-      {weeks.length === 0 ? (
-        <AdminEmptyState
-          icon="generic"
-          title="No weekly quest weeks"
-          description="The backend did not return any planning weeks."
+        {weeks.length === 0 ? (
+          <AdminEmptyState
+            icon="generic"
+            title="No weekly quest weeks"
+            description="The backend did not return any planning weeks."
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {weeks.map((week) => {
+              const assignment = week.officialAssignment;
+              const isSelected = week.weekStartAt === selectedWeekStartAt;
+
+              return (
+                <button
+                  key={week.weekStartAt}
+                  type="button"
+                  onClick={() => setSelectedWeekStartAt(week.weekStartAt)}
+                  className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
+                    isSelected
+                      ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 shadow-sm ring-1 ring-[var(--color-primary)]/30"
+                      : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-background-hover)]"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                        Week of {formatShortDate(week.weekStartAt)}
+                      </p>
+                      <p className="mt-2 text-lg font-semibold text-[var(--color-text)]">
+                        {assignment ? assignment.concept.title : "No quest set"}
+                      </p>
+                      <Text size="sm" c="dimmed" className="mt-1 text-[var(--color-text-secondary)]">
+                        {assignment ? assignment.questTemplate.title : "This week is still unset."}
+                      </Text>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Badge color={getWeekStateColor(week)} variant="light" radius="xl">
+                        {getWeekStateLabel(week)}
+                      </Badge>
+                      <Badge color={week.editable ? "teal" : "gray"} variant="dot" radius="xl">
+                        {week.editable ? "Editable" : "Locked"}
+                      </Badge>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      <div className="xl:sticky xl:top-8 xl:self-start">
+        <WeeklyQuestEditorPanel
+          key={selectedWeek?.weekStartAt ?? "empty-week"}
+          selectedWeek={selectedWeek}
+          concepts={concepts}
+          templates={templates}
         />
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {weeks.map((week) => {
-            const assignment = week.officialAssignment;
-
-            return (
-              <div
-                key={week.weekStartAt}
-                className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                      Week of {formatShortDate(week.weekStartAt)}
-                    </p>
-                    <p className="mt-2 text-lg font-semibold text-[var(--color-text)]">
-                      {assignment ? assignment.concept.title : "No quest set"}
-                    </p>
-                    <Text size="sm" c="dimmed" className="mt-1 text-[var(--color-text-secondary)]">
-                      {assignment ? assignment.questTemplate.title : "This week is still unset."}
-                    </Text>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-end gap-2">
-                    <Badge color={getWeekStateColor(week)} variant="light" radius="xl">
-                      {getWeekStateLabel(week)}
-                    </Badge>
-                    <Badge color={week.editable ? "teal" : "gray"} variant="dot" radius="xl">
-                      {week.editable ? "Editable" : "Locked"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Card>
+      </div>
+    </div>
   );
 }

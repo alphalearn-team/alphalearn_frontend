@@ -258,3 +258,8 @@ export interface WeeklyQuestWeek {
   editable: boolean;
   officialAssignment: WeeklyQuestAssignment | null;
 }
+
+export interface SaveWeeklyQuestOfficialAssignmentRequest {
+  conceptPublicId: string;
+  questTemplatePublicId: string;
+}
