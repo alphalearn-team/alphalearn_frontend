@@ -6,7 +6,7 @@ import type { MouseEvent, ReactNode } from "react";
 
 interface GradientButtonProps {
   href?: string;
-  onClick?: (e?: any) => void;
+  onClick?: (e?: MouseEvent<HTMLElement>) => void;
   children: ReactNode;
   icon?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";

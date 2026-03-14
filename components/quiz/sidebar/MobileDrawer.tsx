@@ -1,3 +1,5 @@
+"use client";
+
 import { Drawer } from "@mantine/core";
 import { QuestionType, SIDEBAR_TYPES } from "../types";
 
