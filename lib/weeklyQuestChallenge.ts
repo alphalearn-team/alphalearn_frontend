@@ -20,7 +20,11 @@ export function isSupportedQuestChallengeFile(file: Pick<File, "type">) {
 }
 
 export function isSupportedQuestChallengeContentType(contentType: string | null | undefined) {
-  return Boolean(contentType) && /^(image|video)\//.test(contentType);
+  if (!contentType) {
+    return false;
+  }
+
+  return /^(image|video)\//.test(contentType);
 }
 
 export function getQuestChallengeMediaKind(contentType: string | null | undefined): QuestChallengeMediaKind {
