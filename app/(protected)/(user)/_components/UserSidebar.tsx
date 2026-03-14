@@ -10,6 +10,7 @@ const sections: SidebarNavSection[] = [
     label: "Navigation",
     items: [
       { label: "Home", href: "/", icon: "home", exact: true },
+      { label: "Weekly Quest", href: "/weekly-quest", icon: "bolt" },
       { label: "Concepts", href: "/concepts", icon: "library_books" },
       { label: "Lessons", href: "/lessons", icon: "menu_book" },
       { label: "Profile", href: "/profile", icon: "person" },
@@ -28,6 +29,7 @@ function getQuickActionsSection(
     return {
       label: "Quick Actions",
       items: [
+        { label: "Submit Quest", href: "/weekly-quest", icon: "gallery_thumbnail" },
         { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
         { label: "Create Quiz", href: "/quiz/edit", icon: "add_circle" },
       ],
@@ -37,11 +39,9 @@ function getQuickActionsSection(
   return {
     label: "Quick Actions",
     items: [
-      {
-        label: "Contributor Access",
-        href: "/contributor-application",
-        icon: "group_add",
-      },
+      { label: "Submit Quest", href: "/weekly-quest", icon: "gallery_thumbnail" },
+      { label: "Contributor Access", href: "/contributor-application", icon: "group_add" },
+      { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
     ],
   };
 }
