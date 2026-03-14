@@ -2,13 +2,7 @@ import { Container, Group, Stack, Text, Title } from "@mantine/core";
 import GradientButton from "@/components/common/GradientButton";
 import type { UserRole } from "@/lib/auth/rbac";
 
-export default function LessonsHeroSection({
-  role,
-  isConceptFiltered,
-}: {
-  role: UserRole;
-  isConceptFiltered?: boolean;
-}) {
+export default function LessonsHeroSection({ role }: { role: UserRole }) {
   return (
     <div className="border-b border-[var(--color-border)] min-h-screen flex">
       <Container className="my-auto w-full">
@@ -31,14 +25,6 @@ export default function LessonsHeroSection({
             <Text size="lg" className="max-w-xl font-light leading-relaxed">
               Farm XP with interactive lessons. Learn peak skills. Gain elite ball knowledge.
             </Text>
-
-            {isConceptFiltered ? (
-              <div className="pt-3">
-                <span className="inline-flex items-center rounded-full border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
-                  Filtered by concept
-                </span>
-              </div>
-            ) : null}
           </Stack>
 
           {role === "CONTRIBUTOR" || role === "LEARNER" ? (

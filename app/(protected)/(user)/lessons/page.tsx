@@ -7,18 +7,8 @@ import LessonsHeroSection from "./_components/LessonsHeroSection";
 import SpotlightSearch from "./_components/SpotlightSearch";
 import { fetchLessons } from "./fetchLessons";
 
-export default async function LessonsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ conceptPublicIds?: string }>;
-}) {
-  const resolvedSearchParams = await searchParams;
-  const conceptPublicIds = resolvedSearchParams.conceptPublicIds?.trim() || null;
-  const isConceptFiltered = Boolean(conceptPublicIds);
-  const [role, lessons] = await Promise.all([
-    getUserRole(),
-    fetchLessons(conceptPublicIds),
-  ]);
+export default async function LessonsPage() {
+  const [role, lessons] = await Promise.all([getUserRole(), fetchLessons()]);
 
   if (!lessons) {
     return <NotFound />;
@@ -27,17 +17,13 @@ export default async function LessonsPage({
   return (
     <>
       <div className="min-h-screen bg-[var(--color-background)]">
-        <LessonsHeroSection role={role} isConceptFiltered={isConceptFiltered} />
+        <LessonsHeroSection role={role} />
 
         <Container id="lessons-list" size="lg" className="py-14 pb-32 scroll-mt-24">
           {lessons.length === 0 ? (
-            <LessonsEmptyState isConceptFiltered={isConceptFiltered} />
+            <LessonsEmptyState />
           ) : (
-            <LessonsGridSection
-              lessons={lessons}
-              role={role}
-              isConceptFiltered={isConceptFiltered}
-            />
+            <LessonsGridSection lessons={lessons} role={role} />
           )}
         </Container>
       </div>
