@@ -21,7 +21,7 @@ export async function apiFetch<T>(
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  console.log(session.access_token);
+  // console.log(session.access_token);
   const res = await fetch(`${baseUrl}${endpoint}`, {
     ...options,
     headers: {

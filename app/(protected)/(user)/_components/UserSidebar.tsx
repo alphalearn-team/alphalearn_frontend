@@ -1,6 +1,8 @@
 "use client";
 
-import AppSidebar, { type SidebarNavSection } from "@/components/sidebar/AppSidebar";
+import AppSidebar, {
+  type SidebarNavSection,
+} from "@/components/sidebar/AppSidebar";
 import { useAuth } from "@/context/AuthContext";
 
 const sections: SidebarNavSection[] = [
@@ -15,7 +17,9 @@ const sections: SidebarNavSection[] = [
   },
 ];
 
-function getQuickActionsSection(userRole: string | null): SidebarNavSection | undefined {
+function getQuickActionsSection(
+  userRole: string | null,
+): SidebarNavSection | undefined {
   if (userRole === "ADMIN" || userRole === null) {
     return undefined;
   }
@@ -25,6 +29,7 @@ function getQuickActionsSection(userRole: string | null): SidebarNavSection | un
       label: "Quick Actions",
       items: [
         { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
+        { label: "Create Quiz", href: "/quiz/edit", icon: "add_circle" },
       ],
     };
   }
@@ -32,8 +37,11 @@ function getQuickActionsSection(userRole: string | null): SidebarNavSection | un
   return {
     label: "Quick Actions",
     items: [
-      { label: "Contributor Access", href: "/contributor-application", icon: "group_add" },
-      { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
+      {
+        label: "Contributor Access",
+        href: "/contributor-application",
+        icon: "group_add",
+      },
     ],
   };
 }

@@ -1,5 +1,5 @@
 import { Container, Group, Stack, Text, Title } from "@mantine/core";
-import GradientButton from "@/components/common/GradientButton";
+import GlowButton from "@/components/common/GlowButton";
 import type { UserRole } from "@/lib/auth/rbac";
 
 export default function LessonsHeroSection({ role }: { role: UserRole }) {
@@ -29,18 +29,18 @@ export default function LessonsHeroSection({ role }: { role: UserRole }) {
 
           {role === "CONTRIBUTOR" || role === "LEARNER" ? (
             <Stack align="flex-end" gap="sm">
-              <GradientButton href="#lessons-list" className="!w-[248px] justify-center">
+              <GlowButton href="#lessons-list" className="!w-[248px] justify-center">
                 View All Lessons
-              </GradientButton>
-              <GradientButton href="/lessons/mine" className="!w-[248px] justify-center">
+              </GlowButton>
+              <GlowButton href="/lessons/mine" className="!w-[248px] justify-center">
                 View My Lessons
-              </GradientButton>
+              </GlowButton>
             </Stack>
           ) : (
             <Group justify="flex-end">
-              <GradientButton href="#lessons-list" className="!w-[248px] justify-center">
+              <GlowButton href="#lessons-list" className="!w-[248px] justify-center">
                 View All Lessons
-              </GradientButton>
+              </GlowButton>
             </Group>
           )}
         </Stack>

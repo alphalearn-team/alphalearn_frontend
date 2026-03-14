@@ -1,5 +1,5 @@
 import { Container, Group, Stack, Text, Title } from "@mantine/core";
-import GradientButton from "@/components/common/GradientButton";
+import GlowButton from "@/components/common/GlowButton";
 
 export default function MyLessonsHeader({
   canCreateLessons,
@@ -24,9 +24,9 @@ export default function MyLessonsHeader({
             </Stack>
 
             {canCreateLessons && (
-              <GradientButton href="/lessons/create" icon="add" className="mt-1">
+              <GlowButton href="/lessons/create" icon="add" className="mt-1">
                 Create Lesson
-              </GradientButton>
+              </GlowButton>
             )}
           </Group>
         </Stack>

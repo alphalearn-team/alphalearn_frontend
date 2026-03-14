@@ -14,7 +14,7 @@ import ConceptCard from "./ConceptCard";
 import Pagination from "@/components/concepts/Pagination";
 import ConceptSpotlightSearch from "./ConceptSpotlightSearch";
 import SearchTrigger from "@/components/lessons/SearchTrigger";
-import GradientButton from "@/components/common/GradientButton";
+import GlowButton from "@/components/common/GlowButton";
 
 interface ConceptsPageProps {
   concepts: Concept[];
@@ -91,9 +91,9 @@ function HeroSection() {
           </Stack>
 
           <div className="flex flex-col items-end gap-3">
-            <GradientButton href="#concepts-list" className="!w-[248px] justify-center">
+            <GlowButton href="#concepts-list" className="!w-[248px] justify-center">
               Browse Concepts
-            </GradientButton>
+            </GlowButton>
           </div>
         </Stack>
       </Container>

@@ -6,7 +6,7 @@ import { showSuccess, showError } from "@/lib/actions/notifications";
 import { Question } from "./types";
 import { createQuizAction } from "@/lib/actions/quiz";
 import { fetchMyLessonsAction } from "@/lib/actions/lesson";
-import GradientButton from "../common/GradientButton";
+import GlowButton from "../../../../../../components/common/GlowButton";
 
 interface SaveQuizModalProps {
     opened: boolean;
@@ -186,14 +186,14 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
                 />
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
-                    <GradientButton
+                    <GlowButton
                         onClick={() => onClose()}
                     >
                         <span>Cancel</span>
-                    </GradientButton>
-                    <GradientButton onClick={handleSaveConfirm}>
+                    </GlowButton>
+                    <GlowButton onClick={handleSaveConfirm}>
                         {isSaving ? "Saving..." : "Confirm & Save"}
-                    </GradientButton>
+                    </GlowButton>
                 </div>
             </div>
         </Modal>

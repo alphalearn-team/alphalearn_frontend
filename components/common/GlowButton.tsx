@@ -4,7 +4,7 @@ import { Button } from "@mantine/core";
 import Link from "next/link";
 import type { MouseEvent, ReactNode } from "react";
 
-interface GradientButtonProps {
+interface GlowButtonProps {
   href?: string;
   onClick?: (e?: MouseEvent<HTMLElement>) => void;
   children: ReactNode;
@@ -13,14 +13,14 @@ interface GradientButtonProps {
   className?: string;
 }
 
-export default function GradientButton({
+export default function GlowButton({
   href,
   onClick,
   children,
   icon,
   size = "lg",
   className = "",
-}: GradientButtonProps) {
+}: GlowButtonProps) {
   const isHashLink = href?.startsWith("#") ?? false;
 
   const handleHashClick = (event: MouseEvent<HTMLAnchorElement>) => {
