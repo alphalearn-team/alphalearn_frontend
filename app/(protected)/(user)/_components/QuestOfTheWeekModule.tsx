@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, Skeleton, Stack, Text } from "@mantine/core";
 import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
+import QuestChallengeSubmissionSection from "./QuestChallengeSubmissionSection";
 
 interface QuestOfTheWeekModuleProps {
   weeklyQuest: LearnerCurrentWeeklyQuest | null;
@@ -78,6 +79,8 @@ export default function QuestOfTheWeekModule({
             {weeklyQuest.quest.instructionText}
           </p>
         </div>
+
+        <QuestChallengeSubmissionSection weeklyQuest={weeklyQuest} />
       </Stack>
     </Card>
   );
