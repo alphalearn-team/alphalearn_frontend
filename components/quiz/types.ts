@@ -1,4 +1,4 @@
-export type QuestionType = "multiple-choice" | "true-false";
+export type QuestionType = "multiple-choice" | "single-choice" | "true-false";
 
 export interface MCQOption {
     id: string;
@@ -22,8 +22,14 @@ export interface TrueFalseQuestion extends BaseQuestion {
     correctBoolean: boolean;
 }
 
-export type Question = MCQQuestion | TrueFalseQuestion;
-export type QuestionPatch = Partial<MCQQuestion> & Partial<TrueFalseQuestion>;
+export interface SingleChoiceQuestion extends BaseQuestion {
+    type: "single-choice";
+    options: MCQOption[];
+    correctOptionId: string;
+}
+
+export type Question = MCQQuestion | SingleChoiceQuestion | TrueFalseQuestion;
+export type QuestionPatch = Partial<MCQQuestion> & Partial<SingleChoiceQuestion> & Partial<TrueFalseQuestion>;
 
 
 export const SIDEBAR_TYPES: {
@@ -34,9 +40,15 @@ export const SIDEBAR_TYPES: {
 }[] = [
         {
             id: "multiple-choice",
-            label: "Multiple Choice",
+            label: "Multi-Select",
             description: "One or more correct answers from several options",
             icon: "checklist",
+        },
+        {
+            id: "single-choice",
+            label: "MCQ",
+            description: "A single correct answer from several options",
+            icon: "radio_button_checked",
         },
         {
             id: "true-false",
@@ -56,6 +68,18 @@ export function makeQuestion(type: QuestionType): Question {
             prompt: "",
             options: [opt1, opt2],
             correctOptionIds: [opt1.id],
+        };
+    }
+    
+    if (type === "single-choice") {
+        const opt1: MCQOption = { id: crypto.randomUUID(), text: "Option A" };
+        const opt2: MCQOption = { id: crypto.randomUUID(), text: "Option B" };
+        return {
+            uid: crypto.randomUUID(),
+            type: "single-choice",
+            prompt: "",
+            options: [opt1, opt2],
+            correctOptionId: opt1.id,
         };
     }
     

@@ -1,17 +1,20 @@
 "use client";
 
-import { SingleChoiceQuestion, QuestionPatch, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
+import { MCQQuestion, QuestionPatch, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
 
-interface MCQEditorProps {
-    question: SingleChoiceQuestion;
+interface MultiSelectEditorProps {
+    question: MCQQuestion;
     onUpdate: (uid: string, patch: QuestionPatch) => void;
 }
 
-export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
-    const { uid, options, correctOptionId } = question;
+export default function MuliSelectEditor({ question, onUpdate }: MultiSelectEditorProps) {
+    const { uid, options, correctOptionIds } = question;
 
-    function setCorrect(optId: string) {
-        onUpdate(uid, { correctOptionId: optId });
+    function toggleCorrect(optId: string, checked: boolean) {
+        const next = checked
+            ? [...correctOptionIds, optId]
+            : correctOptionIds.filter((id) => id !== optId);
+        onUpdate(uid, { correctOptionIds: next });
     }
 
     function updateOptionText(optId: string, text: string) {
@@ -27,15 +30,11 @@ export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
 
     function removeOption(optId: string) {
         const next = options.filter((o) => o.id !== optId);
-        
-        let nextCorrectId = correctOptionId;
-        if (correctOptionId === optId && next.length > 0) {
-            nextCorrectId = next[0].id;
-        }
-
         onUpdate(uid, {
             options: next,
-            correctOptionId: nextCorrectId,
+            correctOptionIds: correctOptionIds.filter((id) => id !== optId).length > 0
+                ? correctOptionIds.filter((id) => id !== optId)
+                : next.length > 0 ? [next[0].id] : [],
         });
     }
 
@@ -44,7 +43,7 @@ export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
             <label style={labelStyle}>
                 Answer options{" "}
                 <span style={{ color: "#6b7280", fontWeight: 400 }}>
-                    (select the single correct answer)
+                    (check all correct answers)
                 </span>
             </label>
             {options.map((opt) => (
@@ -53,10 +52,9 @@ export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
                     style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}
                 >
                     <input
-                        type="radio"
-                        name={`correct-option-${uid}`}
-                        checked={correctOptionId === opt.id}
-                        onChange={() => setCorrect(opt.id)}
+                        type="checkbox"
+                        checked={correctOptionIds.includes(opt.id)}
+                        onChange={(e) => toggleCorrect(opt.id, e.target.checked)}
                         title="Mark as correct answer"
                     />
                     <input

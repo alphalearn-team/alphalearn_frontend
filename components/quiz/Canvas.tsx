@@ -1,8 +1,8 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/react";
-import { Question, QuestionPatch } from "../types";
-import QuestionCard from "../question-cards/QuestionCard";
+import { Question, QuestionPatch } from "./types";
+import QuestionCard from "./question-cards/QuestionCard";
 
 interface CanvasProps {
     questions: Question[];

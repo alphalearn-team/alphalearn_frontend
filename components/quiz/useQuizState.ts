@@ -7,7 +7,7 @@ import {
   QuestionType,
   SIDEBAR_TYPES,
   makeQuestion,
-} from "../types";
+} from "./types";
 
 export function useQuizState() {
   const [questions, setQuestions] = useState<Question[]>([]);

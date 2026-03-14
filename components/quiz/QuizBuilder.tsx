@@ -2,11 +2,11 @@
 
 import { DragDropProvider } from "@dnd-kit/react";
 import { useState } from "react";
-import { useQuizState } from "./hooks/useQuizState";
+import { useQuizState } from "./useQuizState";
 import QuestionTypeSidebar from "./sidebar/QuestionTypeSidebar";
 import DraggableTileOverlay from "./sidebar/DraggableTileOverlay";
-import SaveQuizModal from "./modals/SaveQuizModal";
-import Canvas from "./canvas/Canvas";
+import SaveQuizModal from "./SaveQuizModal";
+import Canvas from "./Canvas";
 import GradientButton from "../common/GradientButton";
 
 export default function QuizBuilder() {

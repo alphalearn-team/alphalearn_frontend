@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { Modal, Select } from "@mantine/core";
 import { showSuccess, showError } from "@/lib/actions/notifications";
-import { Question } from "../types";
+import { Question } from "./types";
 import { createQuizAction } from "@/lib/actions/quiz";
 import { fetchMyLessonsAction } from "@/lib/actions/lesson";
-import GradientButton from "../../common/GradientButton";
+import GradientButton from "../common/GradientButton";
 
 interface SaveQuizModalProps {
     opened: boolean;
@@ -62,6 +62,16 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
                             properties: {
                                 options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
                                 correctOptionIds: q.correctOptionIds.length > 0 ? q.correctOptionIds : [q.options[0]?.id],
+                            }
+                        };
+                    }
+
+                    if (q.type === "single-choice") {
+                        return {
+                            ...base,
+                            properties: {
+                                options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
+                                correctOptionId: q.correctOptionId || q.options[0]?.id,
                             }
                         };
                     }

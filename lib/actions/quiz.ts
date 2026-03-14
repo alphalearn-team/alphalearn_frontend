@@ -4,6 +4,7 @@ import { apiFetch, ApiError } from "@/lib/api";
 
 export async function createQuizAction(payload: unknown) {
   try {
+    console.log(payload);
     await apiFetch("/quizzes/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
