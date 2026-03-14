@@ -22,7 +22,19 @@ type AuthContextType = {
   refreshUserRole: () => Promise<UserRole>;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const defaultAuthContextValue: AuthContextType = {
+  user: null,
+  session: null,
+  userRole: null,
+  isLoading: true,
+  signIn: async () => {},
+  signUp: async () => {},
+  signInWithGoogle: async () => {},
+  signOut: async () => {},
+  refreshUserRole: async () => null,
+};
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContextValue);
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message) {
@@ -176,9 +188,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return useContext(AuthContext);
 }
