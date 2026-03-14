@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       showSuccess("Logged in successfully!");
       // Layouts handle role-based routing (admin → /admin, etc.)
-      router.push("/lessons");
+      router.push("/");
     } catch (err: unknown) {
       showError(getErrorMessage(err, "Failed to log in"));
     }

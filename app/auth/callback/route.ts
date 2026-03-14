@@ -11,6 +11,5 @@ export async function GET(request: NextRequest) {
         await supabase.auth.exchangeCodeForSession(code);
     }
 
-    // Redirect to lessons after successful auth
-    return NextResponse.redirect(new URL("/lessons", requestUrl.origin));
+    return NextResponse.redirect(new URL("/", requestUrl.origin));
 }
