@@ -16,7 +16,7 @@ export default function MobileDrawer({ isOpen, onClose, onAdd }: MobileDrawerPro
             onClose={onClose}
             position="bottom"
             title="Add Question"
-            size="auto"
+            size="md"
             padding="md"
             styles={{
                 content: {
