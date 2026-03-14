@@ -32,14 +32,62 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
         }
     }, [opened, availableLessons.length]);
 
+    function validateQuiz(): string[] {
+        const errors: string[] = [];
+
+        if (questions.length === 0) {
+            errors.push("Add at least one question before saving.");
+        }
+
+        questions.forEach((q, idx) => {
+            const qNum = idx + 1;
+            if (!q.prompt?.trim()) {
+                errors.push(`Question ${qNum}: Prompt is required.`);
+            }
+
+            if (q.type === "multiple-choice") {
+                if (q.options.length < 2) {
+                    errors.push(`Question ${qNum} (Multi-Select): Requires at least 2 options.`);
+                }
+                if (q.correctOptionIds.length === 0) {
+                    errors.push(`Question ${qNum} (Multi-Select): Select at least one correct answer.`);
+                }
+                const hasEmptyOption = q.options.some(o => !o.text?.trim());
+                if (hasEmptyOption) {
+                    errors.push(`Question ${qNum} (Multi-Select): All options must have text.`);
+                }
+            }
+
+            if (q.type === "single-choice") {
+                if (q.options.length < 2) {
+                    errors.push(`Question ${qNum} (MCQ): Requires at least 2 options.`);
+                }
+                if (!q.correctOptionId) {
+                    errors.push(`Question ${qNum} (MCQ): Select a correct answer.`);
+                }
+                const hasEmptyOption = q.options.some(o => !o.text?.trim());
+                if (hasEmptyOption) {
+                    errors.push(`Question ${qNum} (MCQ): All options must have text.`);
+                }
+            }
+        });
+
+        return errors;
+    }
+
     async function handleSaveConfirm() {
         if (!selectedLessonId) {
             showError("Please select a lesson to attach this quiz to.");
             return;
         }
 
-        if (questions.length === 0) {
-            showError("Add at least one question before saving.");
+        const validationErrors = validateQuiz();
+        if (validationErrors.length > 0) {
+            // for now this shows one error only, can use the below code to show all at once
+            showError(validationErrors[0]);
+            // for (let error of validationErrors){
+            //     showError(error);
+            // }
             return;
         }
 
