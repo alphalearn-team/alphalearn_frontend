@@ -3,14 +3,17 @@ import type {
   QuestChallengeUploadRequest,
   QuestChallengeUploadResponse,
   SaveQuestChallengeSubmissionRequest,
-} from "@/interfaces/interfaces";
-import { ApiError } from "@/lib/api";
-import { apiClientFetch } from "@/lib/apiClient";
+} from "../interfaces/interfaces";
 
 const QUEST_CHALLENGE_UPLOAD_PATH = "/me/weekly-quest/current/quest-challenge/upload";
 const QUEST_CHALLENGE_SUBMISSION_PATH = "/me/weekly-quest/current/quest-challenge/submission";
 
 export type QuestChallengeMediaKind = "image" | "video" | "unknown";
+
+interface QuestChallengeApiLikeError {
+  status: number;
+  message?: string;
+}
 
 export function isSupportedQuestChallengeFile(file: Pick<File, "type">) {
   return isSupportedQuestChallengeContentType(file.type);
@@ -39,7 +42,7 @@ export function getQuestChallengeMediaKind(contentType: string | null | undefine
 export function toFriendlyQuestChallengeError(error: unknown) {
   const fallback = "Something went wrong while updating your quest challenge submission.";
 
-  if (error instanceof ApiError) {
+  if (isQuestChallengeApiLikeError(error)) {
     if (error.status === 400) {
       return error.message || "The selected file or submission data is invalid.";
     }
@@ -66,10 +69,16 @@ export function toFriendlyQuestChallengeError(error: unknown) {
   return fallback;
 }
 
+function isQuestChallengeApiLikeError(error: unknown): error is QuestChallengeApiLikeError {
+  return typeof error === "object" && error !== null && "status" in error;
+}
+
 export async function createQuestChallengeUpload(
   accessToken: string,
   payload: QuestChallengeUploadRequest,
 ) {
+  const { apiClientFetch } = await import("./apiClient");
+
   return apiClientFetch<QuestChallengeUploadResponse>(QUEST_CHALLENGE_UPLOAD_PATH, accessToken, {
     method: "POST",
     headers: {
@@ -83,6 +92,8 @@ export async function saveQuestChallengeSubmission(
   accessToken: string,
   payload: SaveQuestChallengeSubmissionRequest,
 ) {
+  const { apiClientFetch } = await import("./apiClient");
+
   return apiClientFetch<LearnerQuestChallengeSubmission>(
     QUEST_CHALLENGE_SUBMISSION_PATH,
     accessToken,

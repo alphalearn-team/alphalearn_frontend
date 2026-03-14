@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, Button, Card, Stack, Text, TextInput, Textarea } from "@mantine/core";
 import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
 import { useAuth } from "@/context/AuthContext";
@@ -30,14 +30,13 @@ export default function QuestChallengeSubmissionSection({
   weeklyQuest,
 }: QuestChallengeSubmissionSectionProps) {
   const { session } = useAuth();
+  const initialSubmission = weeklyQuest?.questChallengeSubmission ?? null;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [captionDraft, setCaptionDraft] = useState("");
+  const [captionDraft, setCaptionDraft] = useState(initialSubmission?.caption ?? "");
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [uploadedAsset, setUploadedAsset] = useState<UploadedQuestChallengeAsset | null>(null);
-  const [currentSubmission, setCurrentSubmission] = useState(
-    weeklyQuest?.questChallengeSubmission ?? null,
-  );
+  const [currentSubmission, setCurrentSubmission] = useState(initialSubmission);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const savedSubmission = currentSubmission;
@@ -46,14 +45,6 @@ export default function QuestChallengeSubmissionSection({
   const mediaKind = getQuestChallengeMediaKind(savedSubmission?.contentType);
   const isBusy = uploadState === "uploading" || saveState === "saving";
   const canSubmit = Boolean(session?.access_token) && !isBusy && Boolean(selectedFile || uploadedAsset);
-
-  useEffect(() => {
-    setCaptionDraft(savedSubmission?.caption ?? "");
-  }, [savedSubmission?.caption]);
-
-  useEffect(() => {
-    setCurrentSubmission(weeklyQuest?.questChallengeSubmission ?? null);
-  }, [weeklyQuest?.questChallengeSubmission]);
 
   if (!hasActiveQuest) {
     return null;
@@ -187,6 +178,7 @@ export default function QuestChallengeSubmissionSection({
 
             <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/30">
               {mediaKind === "image" ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={savedSubmission.publicUrl}
                   alt={savedSubmission.originalFilename}
