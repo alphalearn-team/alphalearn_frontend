@@ -1,9 +1,21 @@
 import type { LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api";
 
-export async function fetchLessons(): Promise<LessonSummary[] | null> {
+export async function fetchLessons(
+  conceptPublicIds?: string | null,
+): Promise<LessonSummary[] | null> {
   try {
-    return await apiFetch<LessonSummary[]>("/lessons");
+    const searchParams = new URLSearchParams();
+
+    if (conceptPublicIds) {
+      searchParams.set("conceptPublicIds", conceptPublicIds);
+    }
+
+    const endpoint = searchParams.size > 0
+      ? `/lessons?${searchParams.toString()}`
+      : "/lessons";
+
+    return await apiFetch<LessonSummary[]>(endpoint);
   } catch {
     return null;
   }
