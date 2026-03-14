@@ -42,7 +42,7 @@ export default function UserBreadcrumb() {
   });
 
   return (
-    <nav aria-label="Breadcrumb" className="px-4 pt-4 pb-2 lg:px-8 lg:pt-6 lg:pb-2">
+    <nav aria-label="Breadcrumb" className="px-4 py-4 lg:px-8 border-b">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {crumbs.map((crumb, i) => (

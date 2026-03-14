@@ -21,7 +21,7 @@ export async function apiFetch<T>(
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  console.log(session.access_token);
+  // console.log(session.access_token);
   const res = await fetch(`${baseUrl}${endpoint}`, {
     ...options,
     headers: {
@@ -50,10 +50,10 @@ export async function apiFetch<T>(
     throw new ApiError(res.status, message);
   }
 
-  // Handle 204 No Content 
-  if (res.status === 204) {
+  const responseText = await res.text();
+  if (!responseText) {
     return null as T;
   }
 
-  return res.json();
+  return JSON.parse(responseText);
 }

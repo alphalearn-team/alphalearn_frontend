@@ -4,23 +4,13 @@ import '@mantine/spotlight/styles.css';
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Roboto_Mono } from "next/font/google";
+import { Roboto_Mono } from "next/font/google";
 
 
 import { AuthProvider } from "@/context/AuthContext";
 import { Notifications } from "@mantine/notifications";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -50,7 +40,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${robotoMono.variable} antialiased`}
+        className={`${robotoMono.variable} antialiased`}
       >
         <MantineProvider 
             forceColorScheme="dark"
