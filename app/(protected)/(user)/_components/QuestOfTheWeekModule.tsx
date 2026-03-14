@@ -69,7 +69,7 @@ export default function QuestOfTheWeekModule({
           </Link>
 
           <Link
-            href={`/lessons?conceptPublicIds=${encodeURIComponent(weeklyQuest.concept.publicId)}`}
+            href={`/lessons?conceptPublicIds=${encodeURIComponent(weeklyQuest.concept.publicId)}#lessons-list`}
             className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-sky-300/55 bg-sky-300/14 px-5 text-sm font-semibold text-sky-100 transition-colors hover:bg-sky-300/20"
           >
             View lessons for this concept
