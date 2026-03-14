@@ -1,6 +1,8 @@
 import { getServerSession } from "@/lib/auth/session";
 import { throwApiErrorFromResponse } from "@/lib/apiErrors";
 
+export { ApiError } from "@/lib/apiErrors";
+
 export async function apiFetch<T>(
   endpoint: string,
   options?: RequestInit
