@@ -37,7 +37,7 @@ export default function QuestOfTheWeekModule({
     <Card
       radius="28px"
       padding="xl"
-      className="border border-[var(--color-primary)]/25 bg-[linear-gradient(160deg,rgba(214,158,46,0.18),rgba(18,18,18,0.94))] shadow-[0_24px_80px_-42px_rgba(214,158,46,0.75)]"
+      className="border border-[var(--color-primary)]/25 bg-[rgba(30,34,33,0.96)] shadow-[0_24px_80px_-42px_rgba(37,211,164,0.18)]"
     >
       <Stack gap="lg">
         <div className="flex items-start justify-between gap-4">
@@ -49,7 +49,7 @@ export default function QuestOfTheWeekModule({
               {weeklyQuest.concept.title}
             </h2>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-primary)]/30 bg-black/20 text-[var(--color-primary)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-primary)]/28 bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
             <span className="material-symbols-outlined text-2xl">bolt</span>
           </div>
         </div>
@@ -60,12 +60,21 @@ export default function QuestOfTheWeekModule({
           </Text>
         ) : null}
 
-        <Link
-          href={`/concepts/${weeklyQuest.concept.publicId}`}
-          className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-primary)]/14 px-5 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20"
-        >
-          View concept details
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/concepts/${weeklyQuest.concept.publicId}`}
+            className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-sky-500/40 bg-sky-500/10 px-5 text-sm font-semibold text-sky-200 transition-colors hover:bg-sky-500/16"
+          >
+            View concept details
+          </Link>
+
+          <Link
+            href={`/lessons?conceptPublicIds=${encodeURIComponent(weeklyQuest.concept.publicId)}#lessons-list`}
+            className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-sky-300/55 bg-sky-300/14 px-5 text-sm font-semibold text-sky-100 transition-colors hover:bg-sky-300/20"
+          >
+            View lessons for this concept
+          </Link>
+        </div>
 
         <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
