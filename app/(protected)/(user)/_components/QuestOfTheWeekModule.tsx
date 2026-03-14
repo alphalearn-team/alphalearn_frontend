@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, Skeleton, Stack, Text } from "@mantine/core";
 import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
 
@@ -18,7 +19,7 @@ export default function QuestOfTheWeekModule({
     return (
       <QuestOfTheWeekMessageCard
         icon="schedule"
-        message="Quest of the Week is not available yet."
+        message="Concept of the Week is not available yet."
       />
     );
   }
@@ -27,7 +28,7 @@ export default function QuestOfTheWeekModule({
     return (
       <QuestOfTheWeekMessageCard
         icon="error"
-        message="Quest of the Week is unavailable right now. Please check back soon."
+        message="Concept of the Week is unavailable right now. Please check back soon."
       />
     );
   }
@@ -42,7 +43,7 @@ export default function QuestOfTheWeekModule({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-              Quest of the Week
+              Concept of the Week
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
               {weeklyQuest.concept.title}
@@ -59,9 +60,16 @@ export default function QuestOfTheWeekModule({
           </Text>
         ) : null}
 
+        <Link
+          href={`/concepts/${weeklyQuest.concept.publicId}`}
+          className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-primary)]/14 px-5 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20"
+        >
+          View concept details
+        </Link>
+
         <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            Current quest
+            Weekly prompt
           </p>
           <h3 className="mt-3 text-xl font-semibold text-[var(--color-text)]">
             {weeklyQuest.quest.title}
@@ -92,7 +100,7 @@ function QuestOfTheWeekMessageCard({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-              Quest of the Week
+              Concept of the Week
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
               Weekly focus

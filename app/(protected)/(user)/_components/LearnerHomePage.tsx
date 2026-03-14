@@ -52,7 +52,7 @@ export default function LearnerHomePage({ weeklyQuestModule }: LearnerHomePagePr
                 </Title>
 
                 <Text size="lg" className="max-w-2xl font-light leading-relaxed">
-                  Check the current weekly focus, jump back into lessons, and stay on top of
+                  Check the current weekly concept, jump back into lessons, and stay on top of
                   what to learn next.
                 </Text>
               </Stack>
