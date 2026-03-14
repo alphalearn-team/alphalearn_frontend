@@ -7,6 +7,7 @@ const sections: SidebarNavSection[] = [
   {
     label: "Navigation",
     items: [
+      { label: "Home", href: "/", icon: "home", exact: true },
       { label: "Concepts", href: "/concepts", icon: "library_books" },
       { label: "Lessons", href: "/lessons", icon: "menu_book" },
       { label: "Profile", href: "/profile", icon: "person" },
@@ -52,7 +53,7 @@ export default function UserSidebar() {
     <AppSidebar
       brandTitle="AlphaLearn"
       brandSubtitle="Learning Hub"
-      brandHref="/lessons"
+      brandHref="/"
       brandIcon="bolt"
       roleLabel={toRoleLabel(userRole)}
       sections={sections}

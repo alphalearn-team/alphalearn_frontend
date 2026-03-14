@@ -266,3 +266,21 @@ export interface SaveWeeklyQuestOfficialAssignmentRequest {
   conceptPublicId: string;
   questTemplatePublicId: string;
 }
+
+export interface LearnerWeeklyQuestConcept {
+  publicId: string;
+  title: string;
+  description: string;
+}
+
+export interface LearnerWeeklyQuestDetails {
+  title: string;
+  instructionText: string;
+  submissionMode: WeeklyQuestSubmissionMode;
+}
+
+export interface LearnerCurrentWeeklyQuest {
+  weekStartAt: string;
+  concept: LearnerWeeklyQuestConcept;
+  quest: LearnerWeeklyQuestDetails;
+}
