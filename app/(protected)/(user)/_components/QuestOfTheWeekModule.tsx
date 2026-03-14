@@ -72,7 +72,7 @@ export default function QuestOfTheWeekModule({
                 {hasSubmission ? "Submission ready to manage" : "Open today’s upload flow"}
               </h3>
               <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#31413b] bg-[#19211f] px-3 py-1.5 text-xs font-semibold text-[#8ea096]">
-                <span className="material-symbols-outlined text-base">cycle</span>
+                <span className="material-symbols-outlined text-base">check_circle</span>
                 {hasSubmission ? "Posted" : "No post yet"}
               </div>
               <p className="mt-4 max-w-[24rem] text-sm leading-relaxed text-[#8e9790]">
@@ -83,16 +83,16 @@ export default function QuestOfTheWeekModule({
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Link
               href="/weekly-quest"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#19f0c2]/40 bg-[#27e0bf] px-5 text-sm font-semibold text-[#102019] transition-colors hover:bg-[#46e6c9]"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[#19f0c2]/40 bg-[#27e0bf] px-5 text-sm font-semibold text-[#102019] transition-colors hover:bg-[#46e6c9]"
             >
-              {hasSubmission ? "Open submission page" : "Start upload"}
+              {hasSubmission ? "View submission" : "Start upload"}
             </Link>
             <Link
               href={`/concepts/${weeklyQuest.concept.publicId}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#2d3632] bg-[#222926] px-5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-[#2a322e]"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[#2d3632] bg-[#222926] px-5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-[#2a322e]"
             >
               Concept details
             </Link>
