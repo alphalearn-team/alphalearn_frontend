@@ -60,12 +60,21 @@ export default function QuestOfTheWeekModule({
           </Text>
         ) : null}
 
-        <Link
-          href={`/concepts/${weeklyQuest.concept.publicId}`}
-          className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-primary)]/14 px-5 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20"
-        >
-          View concept details
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/concepts/${weeklyQuest.concept.publicId}`}
+            className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-primary)]/14 px-5 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20"
+          >
+            View concept details
+          </Link>
+
+          <Link
+            href={`/lessons?conceptPublicIds=${encodeURIComponent(weeklyQuest.concept.publicId)}`}
+            className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-white/12 bg-black/20 px-5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-primary)]/25 hover:bg-black/30"
+          >
+            View lessons for this concept
+          </Link>
+        </div>
 
         <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
