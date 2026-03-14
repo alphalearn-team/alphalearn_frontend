@@ -4,10 +4,18 @@ import { useEffect, useState } from "react";
 import { Alert, Button, Card, Stack, Text, TextInput, Textarea } from "@mantine/core";
 import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
 import { useAuth } from "@/context/AuthContext";
+import { showSuccess } from "@/lib/actions/notifications";
 import { formatDateTime } from "@/lib/formatDate";
-import { getQuestChallengeMediaKind } from "@/lib/weeklyQuestChallenge";
+import {
+  createQuestChallengeUpload,
+  getQuestChallengeMediaKind,
+  isSupportedQuestChallengeFile,
+  saveQuestChallengeSubmission,
+  toFriendlyQuestChallengeError,
+} from "@/lib/weeklyQuestChallenge";
 
-type SubmissionUiState = "idle" | "uploading" | "uploadFailed" | "uploaded" | "saving" | "saved";
+type UploadState = "idle" | "uploading" | "uploadFailed" | "uploaded";
+type SaveState = "idle" | "saving" | "saveFailed" | "saved";
 
 interface UploadedQuestChallengeAsset {
   objectKey: string;
@@ -24,26 +32,131 @@ export default function QuestChallengeSubmissionSection({
   const { session } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [captionDraft, setCaptionDraft] = useState("");
-  const [uploadState, setUploadState] = useState<SubmissionUiState>("idle");
-  const [saveState, setSaveState] = useState<SubmissionUiState>("idle");
+  const [uploadState, setUploadState] = useState<UploadState>("idle");
+  const [saveState, setSaveState] = useState<SaveState>("idle");
   const [uploadedAsset, setUploadedAsset] = useState<UploadedQuestChallengeAsset | null>(null);
+  const [currentSubmission, setCurrentSubmission] = useState(
+    weeklyQuest?.questChallengeSubmission ?? null,
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const savedSubmission = weeklyQuest?.questChallengeSubmission ?? null;
+  const savedSubmission = currentSubmission;
   const hasActiveQuest = Boolean(weeklyQuest);
   const isSubmitted = Boolean(savedSubmission);
   const mediaKind = getQuestChallengeMediaKind(savedSubmission?.contentType);
-  const canSubmit = Boolean(selectedFile && session?.access_token) && uploadState !== "uploading" && saveState !== "saving";
+  const isBusy = uploadState === "uploading" || saveState === "saving";
+  const canSubmit = Boolean(session?.access_token) && !isBusy && Boolean(selectedFile || uploadedAsset);
 
   useEffect(() => {
     setCaptionDraft(savedSubmission?.caption ?? "");
   }, [savedSubmission?.caption]);
+
+  useEffect(() => {
+    setCurrentSubmission(weeklyQuest?.questChallengeSubmission ?? null);
+  }, [weeklyQuest?.questChallengeSubmission]);
 
   if (!hasActiveQuest) {
     return null;
   }
 
   const submissionStateLabel = isSubmitted ? "Submitted" : "Not submitted";
+
+  const handleFileChange = (file: File | null) => {
+    setSelectedFile(file);
+    setUploadState("idle");
+    setSaveState("idle");
+    setUploadedAsset(null);
+    setErrorMessage(null);
+  };
+
+  const uploadSelectedFile = async (file: File, accessToken: string) => {
+    const uploadInstruction = await createQuestChallengeUpload(accessToken, {
+      filename: file.name,
+      contentType: file.type,
+      fileSizeBytes: file.size,
+    });
+
+    const uploadResponse = await fetch(uploadInstruction.uploadUrl, {
+      method: "PUT",
+      headers: uploadInstruction.requiredHeaders,
+      body: file,
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error("File upload failed. Please retry the upload.");
+    }
+
+    return {
+      objectKey: uploadInstruction.objectKey,
+      originalFilename: file.name,
+    };
+  };
+
+  const handleSubmit = async () => {
+    const accessToken = session?.access_token;
+    let activeStep: "upload" | "save" | null = null;
+
+    if (!accessToken) {
+      setErrorMessage("Your session is still loading. Please try again in a moment.");
+      return;
+    }
+
+    if (!uploadedAsset && !selectedFile) {
+      setErrorMessage("Select one image or video before submitting.");
+      return;
+    }
+
+    if (selectedFile && !isSupportedQuestChallengeFile(selectedFile)) {
+      setErrorMessage("Only image and video files are supported for quest challenge submissions.");
+      setUploadState("uploadFailed");
+      return;
+    }
+
+    setErrorMessage(null);
+
+    try {
+      let nextUploadedAsset = uploadedAsset;
+
+      if (!nextUploadedAsset && selectedFile) {
+        activeStep = "upload";
+        setUploadState("uploading");
+        nextUploadedAsset = await uploadSelectedFile(selectedFile, accessToken);
+        setUploadedAsset(nextUploadedAsset);
+        setUploadState("uploaded");
+      }
+
+      if (!nextUploadedAsset) {
+        setErrorMessage("The upload did not complete. Please try again.");
+        return;
+      }
+
+      activeStep = "save";
+      setSaveState("saving");
+
+      const saved = await saveQuestChallengeSubmission(accessToken, {
+        objectKey: nextUploadedAsset.objectKey,
+        originalFilename: nextUploadedAsset.originalFilename,
+        caption: captionDraft.trim() ? captionDraft.trim() : null,
+      });
+
+      setCurrentSubmission(saved);
+      setSaveState("saved");
+      setUploadState("idle");
+      setUploadedAsset(null);
+      setSelectedFile(null);
+      setCaptionDraft(saved.caption ?? "");
+      showSuccess(isSubmitted ? "Quest challenge submission replaced." : "Quest challenge submission saved.");
+    } catch (error) {
+      const message = toFriendlyQuestChallengeError(error);
+      setErrorMessage(message);
+
+      if (activeStep === "save") {
+        setSaveState("saveFailed");
+      } else if (activeStep === "upload") {
+        setUploadState("uploadFailed");
+      }
+    }
+  };
 
   return (
     <Card
@@ -117,9 +230,39 @@ export default function QuestChallengeSubmissionSection({
           </Alert>
         ) : null}
 
+        {uploadState === "uploading" ? (
+          <Alert color="blue" radius="lg" variant="light" title="Uploading">
+            Uploading your file to quest challenge storage.
+          </Alert>
+        ) : null}
+
+        {uploadState === "uploadFailed" ? (
+          <Alert color="red" radius="lg" variant="light" title="Upload failed">
+            Your file is still selected. Fix the issue and retry the upload.
+          </Alert>
+        ) : null}
+
         {uploadedAsset ? (
           <Alert color="blue" radius="lg" variant="light" title="Upload ready">
             Your file upload is ready to save to the quest challenge.
+          </Alert>
+        ) : null}
+
+        {saveState === "saving" ? (
+          <Alert color="blue" radius="lg" variant="light" title="Saving">
+            Saving your quest challenge submission.
+          </Alert>
+        ) : null}
+
+        {saveState === "saveFailed" ? (
+          <Alert color="red" radius="lg" variant="light" title="Save failed">
+            Your uploaded file is still ready. Retry save without reselecting the file.
+          </Alert>
+        ) : null}
+
+        {saveState === "saved" ? (
+          <Alert color="green" radius="lg" variant="light" title="Submitted">
+            Your quest challenge submission has been saved.
           </Alert>
         ) : null}
 
@@ -133,14 +276,8 @@ export default function QuestChallengeSubmissionSection({
         <input
           type="file"
           accept="image/*,video/*"
-          onChange={(event) => {
-            const file = event.currentTarget.files?.[0] ?? null;
-            setSelectedFile(file);
-            setUploadState("idle");
-            setSaveState("idle");
-            setUploadedAsset(null);
-            setErrorMessage(null);
-          }}
+          disabled={isBusy}
+          onChange={(event) => handleFileChange(event.currentTarget.files?.[0] ?? null)}
         />
 
         <Textarea
@@ -149,12 +286,18 @@ export default function QuestChallengeSubmissionSection({
           value={captionDraft}
           onChange={(event) => setCaptionDraft(event.currentTarget.value)}
           minRows={3}
+          disabled={isBusy}
         />
 
         <div className="flex flex-wrap gap-3">
-          <Button disabled={!canSubmit}>
+          <Button disabled={!canSubmit} loading={isBusy} onClick={handleSubmit}>
             {isSubmitted ? "Replace submission" : "Save submission"}
           </Button>
+          {saveState === "saveFailed" && uploadedAsset ? (
+            <Button variant="light" disabled={isBusy} onClick={handleSubmit}>
+              Retry save
+            </Button>
+          ) : null}
           {!session?.access_token ? (
             <Text size="sm" className="self-center text-[var(--color-text-muted)]">
               Waiting for your session to load before submission is enabled.
