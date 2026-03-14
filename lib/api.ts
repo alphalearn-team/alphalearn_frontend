@@ -1,14 +1,7 @@
 import { getServerSession } from "@/lib/auth/session";
+import { throwApiErrorFromResponse } from "@/lib/apiErrors";
 
-export class ApiError extends Error {
-  status: number;
-
-  constructor(status: number, message: string) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-  }
-}
+export { ApiError } from "@/lib/apiErrors";
 
 export async function apiFetch<T>(
   endpoint: string,
@@ -32,22 +25,7 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    const statusFallback = `Request failed (${res.status}${res.statusText ? ` ${res.statusText}` : ""})`;
-    const rawBody = await res.text();
-
-    if (!rawBody) {
-      throw new ApiError(res.status, statusFallback);
-    }
-
-    let message = statusFallback;
-    try {
-      const errbody = JSON.parse(rawBody) as { message?: string };
-      message = errbody.message || statusFallback;
-    } catch {
-      message = rawBody || statusFallback;
-    }
-
-    throw new ApiError(res.status, message);
+    await throwApiErrorFromResponse(res);
   }
 
   const responseText = await res.text();

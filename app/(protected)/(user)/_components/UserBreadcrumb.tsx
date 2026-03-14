@@ -7,6 +7,7 @@ const labelOverrides: Record<string, string> = {
   lessons: "Lessons",
   concepts: "Concepts",
   profile: "Profile",
+  "weekly-quest": "Weekly Quest",
   mine: "My Lessons",
   create: "Create Lesson",
   edit: "Edit",

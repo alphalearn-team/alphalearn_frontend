@@ -279,8 +279,43 @@ export interface LearnerWeeklyQuestDetails {
   submissionMode: WeeklyQuestSubmissionMode;
 }
 
+export interface LearnerQuestChallengeSubmission {
+  publicId: string;
+  assignmentPublicId: string;
+  objectKey: string;
+  publicUrl: string;
+  contentType: string;
+  originalFilename: string;
+  fileSizeBytes: number;
+  caption: string | null;
+  submittedAt: string;
+  updatedAt: string;
+}
+
+export interface QuestChallengeUploadRequest {
+  filename: string;
+  contentType: string;
+  fileSizeBytes: number;
+}
+
+export interface QuestChallengeUploadResponse {
+  assignmentPublicId: string;
+  objectKey: string;
+  publicUrl: string;
+  uploadUrl: string;
+  expiresAt: string;
+  requiredHeaders: Record<string, string>;
+}
+
+export interface SaveQuestChallengeSubmissionRequest {
+  objectKey: string;
+  originalFilename: string;
+  caption: string | null;
+}
+
 export interface LearnerCurrentWeeklyQuest {
   weekStartAt: string;
   concept: LearnerWeeklyQuestConcept;
   quest: LearnerWeeklyQuestDetails;
+  questChallengeSubmission: LearnerQuestChallengeSubmission | null;
 }
