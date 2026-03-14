@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { Card, Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
+import type { ReactNode } from "react";
 
 interface LearnerHomePageProps {
-  weeklyQuest: LearnerCurrentWeeklyQuest | null;
+  weeklyQuestModule: ReactNode;
 }
 
 const quickLinks = [
@@ -32,7 +32,7 @@ const quickLinks = [
   },
 ];
 
-export default function LearnerHomePage({ weeklyQuest }: LearnerHomePageProps) {
+export default function LearnerHomePage({ weeklyQuestModule }: LearnerHomePageProps) {
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       <section className="border-b border-[var(--color-border)]">
@@ -57,8 +57,7 @@ export default function LearnerHomePage({ weeklyQuest }: LearnerHomePageProps) {
                 </Text>
               </Stack>
             </Stack>
-
-            <QuestOfTheWeekCard weeklyQuest={weeklyQuest} />
+            {weeklyQuestModule}
           </div>
         </Container>
       </section>
@@ -104,53 +103,5 @@ export default function LearnerHomePage({ weeklyQuest }: LearnerHomePageProps) {
         </Stack>
       </Container>
     </div>
-  );
-}
-
-function QuestOfTheWeekCard({ weeklyQuest }: LearnerHomePageProps) {
-  if (!weeklyQuest) {
-    return null;
-  }
-
-  return (
-    <Card
-      radius="28px"
-      padding="xl"
-      className="border border-[var(--color-primary)]/25 bg-[linear-gradient(160deg,rgba(214,158,46,0.18),rgba(18,18,18,0.94))] shadow-[0_24px_80px_-42px_rgba(214,158,46,0.75)]"
-    >
-      <Stack gap="lg">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-              Quest of the Week
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
-              {weeklyQuest.concept.title}
-            </h2>
-          </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-primary)]/30 bg-black/20 text-[var(--color-primary)]">
-            <span className="material-symbols-outlined text-2xl">bolt</span>
-          </div>
-        </div>
-
-        {weeklyQuest.concept.description ? (
-          <Text size="sm" className="leading-relaxed text-[var(--color-text-secondary)]">
-            {weeklyQuest.concept.description}
-          </Text>
-        ) : null}
-
-        <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            Current quest
-          </p>
-          <h3 className="mt-3 text-xl font-semibold text-[var(--color-text)]">
-            {weeklyQuest.quest.title}
-          </h3>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-            {weeklyQuest.quest.instructionText}
-          </p>
-        </div>
-      </Stack>
-    </Card>
   );
 }
