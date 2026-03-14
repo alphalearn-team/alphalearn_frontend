@@ -1,9 +1,9 @@
 "use client";
 
-import { SingleChoiceQuestion, QuestionPatch, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
+import { MCQ, QuestionPatch, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
 
 interface MCQEditorProps {
-    question: SingleChoiceQuestion;
+    question: MCQ;
     onUpdate: (uid: string, patch: QuestionPatch) => void;
 }
 
@@ -16,7 +16,7 @@ export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
 
     function updateOptionText(optId: string, text: string) {
         onUpdate(uid, {
-            options: options.map((o) => (o.id === optId ? { ...o, text } : o)),
+            options: options.map((o: MCQOption) => (o.id === optId ? { ...o, text } : o)),
         });
     }
 
@@ -26,7 +26,7 @@ export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
     }
 
     function removeOption(optId: string) {
-        const next = options.filter((o) => o.id !== optId);
+        const next = options.filter((o: MCQOption) => o.id !== optId);
         
         let nextCorrectId = correctOptionId;
         if (correctOptionId === optId && next.length > 0) {
@@ -47,7 +47,7 @@ export default function MCQEditor({ question, onUpdate }: MCQEditorProps) {
                     (select the single correct answer)
                 </span>
             </label>
-            {options.map((opt) => (
+            {options.map((opt: MCQOption) => (
                 <div
                     key={opt.id}
                     style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}

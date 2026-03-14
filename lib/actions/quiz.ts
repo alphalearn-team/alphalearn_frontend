@@ -4,7 +4,7 @@ import { apiFetch, ApiError } from "@/lib/api";
 
 export async function createQuizAction(payload: unknown) {
   try {
-    console.log(payload);
+    // console.log("general quiz structure:",payload);
     await apiFetch("/quizzes/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -15,7 +15,8 @@ export async function createQuizAction(payload: unknown) {
     console.error("Failed to create quiz:", err);
     return {
       success: false,
-      error: err instanceof ApiError ? err.message : "An unexpected error occurred",
+      error:
+        err instanceof ApiError ? err.message : "An unexpected error occurred",
     };
   }
 }

@@ -11,7 +11,7 @@ export interface BaseQuestion {
     prompt: string;
 }
 
-export interface MCQQuestion extends BaseQuestion {
+export interface MultiSelect extends BaseQuestion {
     type: "multiple-choice";
     options: MCQOption[];
     correctOptionIds: string[];
@@ -22,14 +22,14 @@ export interface TrueFalseQuestion extends BaseQuestion {
     correctBoolean: boolean;
 }
 
-export interface SingleChoiceQuestion extends BaseQuestion {
+export interface MCQ extends BaseQuestion {
     type: "single-choice";
     options: MCQOption[];
     correctOptionId: string;
 }
 
-export type Question = MCQQuestion | SingleChoiceQuestion | TrueFalseQuestion;
-export type QuestionPatch = Partial<MCQQuestion> & Partial<SingleChoiceQuestion> & Partial<TrueFalseQuestion>;
+export type Question = MultiSelect | MCQ | TrueFalseQuestion;
+export type QuestionPatch = Partial<MultiSelect> & Partial<MCQ> & Partial<TrueFalseQuestion>;
 
 
 export const SIDEBAR_TYPES: {

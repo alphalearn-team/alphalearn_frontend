@@ -47,8 +47,6 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
 
         try {
             const payload = {
-                title: "New Custom Quiz", // TODO: Add title input
-                description: "Auto-generated quiz description.",
                 lessonPublicId: selectedLessonId,
                 questions: questions.map((q) => {
                     const base = {
@@ -88,7 +86,7 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
                     return base;
                 }),
             };
-
+            // console.log(JSON.stringify(payload));
             const result = await createQuizAction(payload);
 
             if (!result.success) {
@@ -116,7 +114,7 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
             styles={{
                 content: { backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 16 },
                 header: { backgroundColor: "transparent" },
-                close: { color: "var(--color-text-muted)", "&:hover": { backgroundColor: "rgba(255,255,255,0.05)" } }
+                close: { color: "var(--color-text-muted)" }
             }}
         >
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -135,7 +133,7 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
                         input: { backgroundColor: "var(--color-bg)", borderColor: "var(--color-border)", color: "#fff" },
                         label: { color: "var(--color-text-muted)", marginBottom: 8 },
                         dropdown: { backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" },
-                        option: { color: "var(--color-text)", "&[data-hovered]": { backgroundColor: "var(--color-bg)" } }
+                        option: { color: "var(--color-text)" }
                     }}
                 />
 

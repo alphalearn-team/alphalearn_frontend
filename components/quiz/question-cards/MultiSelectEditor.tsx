@@ -1,13 +1,13 @@
 "use client";
 
-import { MCQQuestion, QuestionPatch, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
+import { MultiSelect, QuestionPatch, labelStyle, inputStyle, btnStyle, addBtnStyle, MCQOption } from "../types";
 
 interface MultiSelectEditorProps {
-    question: MCQQuestion;
+    question: MultiSelect;
     onUpdate: (uid: string, patch: QuestionPatch) => void;
 }
 
-export default function MuliSelectEditor({ question, onUpdate }: MultiSelectEditorProps) {
+export default function MultiSelectEditor({ question, onUpdate }: MultiSelectEditorProps) {
     const { uid, options, correctOptionIds } = question;
 
     function toggleCorrect(optId: string, checked: boolean) {
@@ -19,7 +19,7 @@ export default function MuliSelectEditor({ question, onUpdate }: MultiSelectEdit
 
     function updateOptionText(optId: string, text: string) {
         onUpdate(uid, {
-            options: options.map((o) => (o.id === optId ? { ...o, text } : o)),
+            options: options.map((o: MCQOption) => (o.id === optId ? { ...o, text } : o)),
         });
     }
 
@@ -29,7 +29,7 @@ export default function MuliSelectEditor({ question, onUpdate }: MultiSelectEdit
     }
 
     function removeOption(optId: string) {
-        const next = options.filter((o) => o.id !== optId);
+        const next = options.filter((o: MCQOption) => o.id !== optId);
         onUpdate(uid, {
             options: next,
             correctOptionIds: correctOptionIds.filter((id) => id !== optId).length > 0
@@ -46,7 +46,7 @@ export default function MuliSelectEditor({ question, onUpdate }: MultiSelectEdit
                     (check all correct answers)
                 </span>
             </label>
-            {options.map((opt) => (
+            {options.map((opt: MCQOption) => (
                 <div
                     key={opt.id}
                     style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}
