@@ -4,7 +4,8 @@ import type {
   SaveWeeklyQuestOfficialAssignmentRequest,
   WeeklyQuestWeek,
 } from "@/interfaces/interfaces";
-import { ApiError, apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { ApiError } from "@/lib/apiErrors";
 
 const WEEKLY_QUESTS_BASE_PATH = "/admin/weekly-quests";
 const LEARNER_WEEKLY_QUEST_PATH = "/me/weekly-quest/current";
