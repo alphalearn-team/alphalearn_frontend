@@ -1,19 +1,23 @@
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { fetchAdminDashboardSummaryAction } from "@/lib/actions/adminDashboard";
+import AdminDashboardSummaryPanel from "./_components/AdminDashboardSummaryPanel";
 
 export default async function AdminPage() {
+  const dashboardSummaryResult = await fetchAdminDashboardSummaryAction();
+
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <AdminPageHeader
           title="Admin Dashboard"
-          description="Welcome to the AlphaLearn admin panel"
+          description="Overview of platform activity and concept performance"
           icon="dashboard"
         />
 
-        {/* Dashboard content will go here */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Placeholder for dashboard widgets */}
-        </div>
+        <AdminDashboardSummaryPanel
+          summary={dashboardSummaryResult.success ? dashboardSummaryResult.data : null}
+          error={dashboardSummaryResult.success ? null : dashboardSummaryResult.message}
+        />
       </div>
     </div>
   );
