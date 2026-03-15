@@ -211,6 +211,20 @@ export interface AdminLessonReviewDetail {
   adminRejectionReason: string | null;
 }
 
+export interface AdminDashboardTopConcept {
+  conceptPublicId: string;
+  title: string;
+  lessonCount: number;
+}
+
+export interface AdminDashboardSummary {
+  lessonsCreated: number;
+  usersSignedUp: number;
+  lessonsEnrolled: number;
+  newContributors: number;
+  topConcepts: AdminDashboardTopConcept[];
+}
+
 export type WeeklyQuestWeekStatus = "UNSET" | "SCHEDULED" | "ACTIVE" | "COMPLETED";
 
 export type WeeklyQuestActivationSource = "ADMIN" | "FALLBACK";
