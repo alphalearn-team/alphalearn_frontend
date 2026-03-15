@@ -217,12 +217,40 @@ export interface AdminDashboardTopConcept {
   lessonCount: number;
 }
 
+export interface AdminDashboardMetricDeltas {
+  lessonsCreated: number;
+  usersSignedUp: number;
+  lessonsEnrolled: number;
+  newContributors: number;
+}
+
+export interface AdminDashboardTrendPoint {
+  label: string;
+  lessonsCreated: number;
+  usersSignedUp: number;
+  lessonsEnrolled: number;
+  newContributors: number;
+}
+
+export type AdminDashboardAlertLevel = "INFO" | "WARNING" | "CRITICAL";
+
+export interface AdminDashboardAlert {
+  code: string;
+  level: AdminDashboardAlertLevel;
+  message: string;
+}
+
 export interface AdminDashboardSummary {
   lessonsCreated: number;
   usersSignedUp: number;
   lessonsEnrolled: number;
   newContributors: number;
   topConcepts: AdminDashboardTopConcept[];
+  lowPerformingConcepts?: AdminDashboardTopConcept[];
+  pendingModerationCount?: number;
+  deltas?: AdminDashboardMetricDeltas;
+  trends?: AdminDashboardTrendPoint[];
+  alerts?: AdminDashboardAlert[];
 }
 
 export type WeeklyQuestWeekStatus = "UNSET" | "SCHEDULED" | "ACTIVE" | "COMPLETED";
