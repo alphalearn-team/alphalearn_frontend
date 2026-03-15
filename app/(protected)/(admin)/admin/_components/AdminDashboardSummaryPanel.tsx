@@ -45,6 +45,15 @@ export default function AdminDashboardSummaryPanel({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
+  const metrics = useMemo(
+    () => (dashboardSummary ? getDashboardMetrics(dashboardSummary) : []),
+    [dashboardSummary],
+  );
+  const derivedAlerts = useMemo(
+    () => (dashboardSummary ? toDerivedAlerts(dashboardSummary) : []),
+    [dashboardSummary],
+  );
+
   if (error) {
     return (
       <div className="admin-card">
@@ -67,9 +76,6 @@ export default function AdminDashboardSummaryPanel({
       </div>
     );
   }
-
-  const metrics = useMemo(() => getDashboardMetrics(dashboardSummary), [dashboardSummary]);
-  const derivedAlerts = useMemo(() => toDerivedAlerts(dashboardSummary), [dashboardSummary]);
 
   const loadSummary = async (range: Exclude<DateRangeSelection, "custom">) => {
     try {
