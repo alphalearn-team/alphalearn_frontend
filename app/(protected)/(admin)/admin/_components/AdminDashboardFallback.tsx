@@ -11,6 +11,14 @@ export default function AdminDashboardFallback() {
         ))}
       </div>
 
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {[...Array(2)].map((_, index) => (
+          <div key={index} className="admin-card">
+            <CardSkeleton count={4} cols={1} showBookmark={false} lines={2} />
+          </div>
+        ))}
+      </div>
+
       <div className="admin-card">
         <CardSkeleton count={5} cols={1} showBookmark={false} lines={2} />
       </div>

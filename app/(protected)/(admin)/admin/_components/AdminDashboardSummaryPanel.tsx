@@ -1,19 +1,50 @@
-import type { AdminDashboardSummary } from "@/interfaces/interfaces";
+"use client";
+
+import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
+import type {
+  AdminDashboardSummary,
+} from "@/interfaces/interfaces";
 import AdminEmptyState from "@/components/admin/EmptyState";
+import { fetchAdminDashboardSummaryByQueryAction } from "@/lib/actions/adminDashboard";
+import {
+  getDashboardMetrics,
+} from "./dashboardViewModel";
+import type { DashboardChartType } from "./AdminDashboardCharts";
+import type { DateRangeSelection } from "./dashboardPanelTypes";
+import { exportDashboardCsv, toDerivedAlerts } from "./dashboardPanelUtils";
+import AdminDashboardControls from "./AdminDashboardControls";
+import AdminDashboardKpiCards from "./AdminDashboardKpiCards";
+import AdminDashboardInsights from "./AdminDashboardInsights";
+
+const LazyAdminDashboardCharts = dynamic(() => import("./AdminDashboardCharts"), {
+  ssr: false,
+  loading: () => (
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <section className="admin-card h-[340px] animate-pulse" />
+      <section className="admin-card h-[340px] animate-pulse" />
+    </div>
+  ),
+});
 
 type AdminDashboardSummaryPanelProps = {
   summary: AdminDashboardSummary | null;
   error: string | null;
 };
 
-function formatMetric(value: number) {
-  return value.toLocaleString();
-}
-
 export default function AdminDashboardSummaryPanel({
   summary,
   error,
 }: AdminDashboardSummaryPanelProps) {
+  const [dashboardSummary, setDashboardSummary] = useState<AdminDashboardSummary | null>(summary);
+  const [activeRange, setActiveRange] = useState<DateRangeSelection>("30d");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const [metricChartType, setMetricChartType] = useState<DashboardChartType>("bar");
+  const [conceptsChartType, setConceptsChartType] = useState<DashboardChartType>("pie");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+
   if (error) {
     return (
       <div className="admin-card">
@@ -25,7 +56,7 @@ export default function AdminDashboardSummaryPanel({
     );
   }
 
-  if (!summary) {
+  if (!dashboardSummary) {
     return (
       <div className="admin-card">
         <AdminEmptyState
@@ -37,95 +68,118 @@ export default function AdminDashboardSummaryPanel({
     );
   }
 
-  const kpiCards = [
-    {
-      title: "Lessons Created",
-      value: summary.lessonsCreated,
-      icon: "menu_book",
-      helpText: "Total lessons created",
-    },
-    {
-      title: "Users Signed Up",
-      value: summary.usersSignedUp,
-      icon: "group_add",
-      helpText: "New and existing user sign-ups",
-    },
-    {
-      title: "Lessons Enrolled",
-      value: summary.lessonsEnrolled,
-      icon: "school",
-      helpText: "Total lesson enrollments",
-    },
-    {
-      title: "New Contributors",
-      value: summary.newContributors,
-      icon: "military_tech",
-      helpText: "Promoted active contributors in the last 30 days",
-    },
-  ];
+  const metrics = useMemo(() => getDashboardMetrics(dashboardSummary), [dashboardSummary]);
+  const derivedAlerts = useMemo(() => toDerivedAlerts(dashboardSummary), [dashboardSummary]);
+
+  const loadSummary = async (range: Exclude<DateRangeSelection, "custom">) => {
+    try {
+      setIsRefreshing(true);
+      setRefreshError(null);
+
+      const nextResult = await fetchAdminDashboardSummaryByQueryAction({ range });
+      if (!nextResult.success) {
+        setRefreshError(nextResult.message);
+        return;
+      }
+
+      const nextSummary = nextResult.data;
+      setDashboardSummary(nextSummary);
+      setActiveRange(range);
+    } catch (fetchError) {
+      setRefreshError(
+        fetchError instanceof Error
+          ? fetchError.message
+          : "Failed to refresh dashboard summary",
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const loadCustomSummary = async () => {
+    try {
+      if (!customStartDate || !customEndDate) {
+        setRefreshError("Please select both custom start and end dates.");
+        return;
+      }
+
+      setIsRefreshing(true);
+      setRefreshError(null);
+
+      const nextResult = await fetchAdminDashboardSummaryByQueryAction({
+        startDate: customStartDate,
+        endDate: customEndDate,
+      });
+
+      if (!nextResult.success) {
+        setRefreshError(nextResult.message);
+        return;
+      }
+
+      setDashboardSummary(nextResult.data);
+      setActiveRange("custom");
+    } catch (fetchError) {
+      setRefreshError(
+        fetchError instanceof Error
+          ? fetchError.message
+          : "Failed to refresh dashboard summary",
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const topConcepts = dashboardSummary.topConcepts;
+  const lowPerformingConcepts = dashboardSummary.lowPerformingConcepts ?? [];
 
   return (
     <div className="space-y-8">
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {kpiCards.map((card) => (
-          <article key={card.title} className="admin-card">
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-wide uppercase">
-                {card.title}
-              </h2>
-              <span className="material-symbols-outlined text-[var(--color-primary)]">
-                {card.icon}
-              </span>
+      <AdminDashboardControls
+        activeRange={activeRange}
+        customStartDate={customStartDate}
+        customEndDate={customEndDate}
+        isRefreshing={isRefreshing}
+        refreshError={refreshError}
+        onSelectPresetRange={loadSummary}
+        onEnableCustomRange={() => setActiveRange("custom")}
+        onCustomStartDateChange={setCustomStartDate}
+        onCustomEndDateChange={setCustomEndDate}
+        onApplyCustomRange={loadCustomSummary}
+        onExportCsv={() => exportDashboardCsv(dashboardSummary, metrics, {
+          range: activeRange,
+          startDate: customStartDate,
+          endDate: customEndDate,
+        })}
+      />
+
+      <div className="relative space-y-8">
+        {isRefreshing && (
+          <div className="absolute inset-0 z-10 bg-[var(--color-bg)]/60 backdrop-blur-[1px] rounded-xl flex items-center justify-center">
+            <div className="flex items-center gap-3 bg-[var(--color-surface)] px-5 py-3 rounded-xl border border-[var(--color-border)] shadow-lg">
+              <div className="h-4 w-4 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm text-[var(--color-text-secondary)]">Refreshing dashboard...</span>
             </div>
-
-            <p className="text-4xl font-bold text-[var(--color-text)] mb-2">
-              {formatMetric(card.value)}
-            </p>
-
-            <p className="text-xs text-[var(--color-text-muted)]">{card.helpText}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="admin-card">
-        <div className="flex items-center justify-between gap-4 mb-5">
-          <h2 className="text-xl font-semibold text-[var(--color-text)]">Top Concepts</h2>
-          <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
-            Sorted by linked lessons
-          </span>
-        </div>
-
-        {summary.topConcepts.length === 0 ? (
-          <AdminEmptyState
-            icon="concepts"
-            title="No top concepts yet"
-            description="Top concepts will appear once lessons are linked to concepts."
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Concept</th>
-                  <th>Concept ID</th>
-                  <th>Linked Lessons</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.topConcepts.map((concept) => (
-                  <tr key={concept.conceptPublicId}>
-                    <td className="font-medium">{concept.title}</td>
-                    <td className="text-xs text-[var(--color-text-muted)]">
-                      {concept.conceptPublicId}
-                    </td>
-                    <td>{formatMetric(concept.lessonCount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
-      </section>
+
+        <AdminDashboardKpiCards metrics={metrics} deltas={dashboardSummary.deltas} />
+
+        <LazyAdminDashboardCharts
+          metrics={metrics}
+          topConcepts={topConcepts}
+          trends={dashboardSummary.trends}
+          metricChartType={metricChartType}
+          conceptsChartType={conceptsChartType}
+          onMetricChartTypeChange={setMetricChartType}
+          onConceptsChartTypeChange={setConceptsChartType}
+        />
+
+        <AdminDashboardInsights
+          topConcepts={topConcepts}
+          lowPerformingConcepts={lowPerformingConcepts}
+          alerts={derivedAlerts}
+        />
+      </div>
     </div>
   );
 }
