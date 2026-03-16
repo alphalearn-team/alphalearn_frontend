@@ -245,6 +245,11 @@ export interface AdminDashboardSummary {
   usersSignedUp: number;
   lessonsEnrolled: number;
   newContributors: number;
+  appliedRange?: string;
+  startDate?: string;
+  endDate?: string;
+  comparisonStartDate?: string;
+  comparisonEndDate?: string;
   topConcepts: AdminDashboardTopConcept[];
   lowPerformingConcepts?: AdminDashboardTopConcept[];
   pendingModerationCount?: number;
@@ -276,7 +281,7 @@ export interface QuestTemplate {
   createdAt: string | null;
 }
 
-export interface WeeklyQuestAssignment {
+export interface WeeklyQuestAssignment {  
   publicId: string;
   slotIndex: number;
   official: boolean;

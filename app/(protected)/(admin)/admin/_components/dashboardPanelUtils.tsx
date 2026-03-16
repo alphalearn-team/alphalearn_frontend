@@ -33,6 +33,11 @@ export type ExportOptions = {
   range: DateRangeSelection;
   startDate?: string;
   endDate?: string;
+  appliedRange?: string;
+  windowStart?: string;
+  windowEnd?: string;
+  comparisonStart?: string;
+  comparisonEnd?: string;
 };
 
 function getRangeLabel(
@@ -42,7 +47,6 @@ function getRangeLabel(
 ): string {
   if (range === "7d") return "Last 7 days";
   if (range === "30d") return "Last 30 days";
-  if (range === "90d") return "Last 90 days";
   return startDate && endDate ? `${startDate} to ${endDate}` : "Custom range";
 }
 
@@ -62,6 +66,15 @@ export function exportDashboardCsv(
   lines.push("AlphaLearn Admin Dashboard");
   lines.push(`Exported,${today}`);
   lines.push(`Date Range,${rangeLabel}`);
+  if (options?.appliedRange) {
+    lines.push(`Applied Range,${options.appliedRange}`);
+  }
+  if (options?.windowStart && options?.windowEnd) {
+    lines.push(`Current Window,${options.windowStart} to ${options.windowEnd}`);
+  }
+  if (options?.comparisonStart && options?.comparisonEnd) {
+    lines.push(`Comparison Window,${options.comparisonStart} to ${options.comparisonEnd}`);
+  }
   lines.push("");
 
   // Key metrics
