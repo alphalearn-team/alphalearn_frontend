@@ -46,8 +46,8 @@ export default function AdminDashboardSummaryPanel({
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const metrics = useMemo(
-    () => (dashboardSummary ? getDashboardMetrics(dashboardSummary) : []),
-    [dashboardSummary],
+    () => (dashboardSummary ? getDashboardMetrics(dashboardSummary, { activeRange }) : []),
+    [activeRange, dashboardSummary],
   );
   const derivedAlerts = useMemo(
     () => (dashboardSummary ? toDerivedAlerts(dashboardSummary) : []),
@@ -137,6 +137,19 @@ export default function AdminDashboardSummaryPanel({
 
   const topConcepts = dashboardSummary.topConcepts;
   const lowPerformingConcepts = dashboardSummary.lowPerformingConcepts ?? [];
+  const appliedRangeLabel = dashboardSummary.appliedRange ?? (activeRange === "custom" ? "custom" : activeRange);
+  const currentWindowLabel =
+    dashboardSummary.startDate && dashboardSummary.endDate
+      ? `${dashboardSummary.startDate} to ${dashboardSummary.endDate}`
+      : activeRange === "custom" && customStartDate && customEndDate
+        ? `${customStartDate} to ${customEndDate}`
+        : activeRange === "7d"
+          ? "Last 7 days"
+          : "Last 30 days";
+  const comparisonWindowLabel =
+    dashboardSummary.comparisonStartDate && dashboardSummary.comparisonEndDate
+      ? `${dashboardSummary.comparisonStartDate} to ${dashboardSummary.comparisonEndDate}`
+      : "Previous equivalent window";
 
   return (
     <div className="space-y-8">
@@ -155,8 +168,31 @@ export default function AdminDashboardSummaryPanel({
           range: activeRange,
           startDate: customStartDate,
           endDate: customEndDate,
+          appliedRange: appliedRangeLabel,
+          windowStart: dashboardSummary.startDate,
+          windowEnd: dashboardSummary.endDate,
+          comparisonStart: dashboardSummary.comparisonStartDate,
+          comparisonEnd: dashboardSummary.comparisonEndDate,
         })}
       />
+
+      {/* Range metadata header */}
+      <div className="admin-card mb-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div className="min-w-0">
+            <span className="block text-sm font-semibold text-[var(--color-text-secondary)]">Current window:</span>
+            <span className="mt-1 block text-sm text-[var(--color-text)] break-words">
+              {currentWindowLabel} ({appliedRangeLabel.toUpperCase()})
+            </span>
+          </div>
+          <div className="min-w-0">
+            <span className="block text-xs text-[var(--color-text-muted)]">Comparison window:</span>
+            <span className="mt-1 block text-xs text-[var(--color-text-secondary)] break-words">
+              {comparisonWindowLabel}
+            </span>
+          </div>
+        </div>
+      </div>
 
       <div className="relative space-y-8">
         {isRefreshing && (
@@ -168,7 +204,13 @@ export default function AdminDashboardSummaryPanel({
           </div>
         )}
 
-        <AdminDashboardKpiCards metrics={metrics} deltas={dashboardSummary.deltas} />
+        <AdminDashboardKpiCards metrics={metrics} deltas={dashboardSummary.deltas} rangeMeta={{
+          appliedRange: appliedRangeLabel,
+          windowStart: dashboardSummary.startDate ?? customStartDate,
+          windowEnd: dashboardSummary.endDate ?? customEndDate,
+          comparisonStart: dashboardSummary.comparisonStartDate,
+          comparisonEnd: dashboardSummary.comparisonEndDate,
+        }} />
 
         <LazyAdminDashboardCharts
           metrics={metrics}

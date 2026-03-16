@@ -1,4 +1,5 @@
 import type { AdminDashboardSummary } from "@/interfaces/interfaces";
+import type { DateRangeSelection } from "./dashboardPanelTypes";
 
 export type DashboardMetricKey =
   | "lessonsCreated"
@@ -15,16 +16,43 @@ export type DashboardMetric = {
   href: string;
 };
 
+type DashboardMetricOptions = {
+  activeRange?: DateRangeSelection;
+};
+
+function getMetricValueFromSummary(
+  summary: AdminDashboardSummary,
+  key: DashboardMetricKey,
+): number {
+  const trends = summary.trends ?? [];
+  if (trends.length > 0) {
+    return trends.reduce((total, point) => total + point[key], 0);
+  }
+
+  return summary[key];
+}
+
+function getRangeLabel(activeRange: DateRangeSelection | undefined): string {
+  if (activeRange === "7d") return "last 7 days";
+  if (activeRange === "30d") return "last 30 days";
+  return "selected range";
+}
+
 export function formatMetric(value: number) {
   return value.toLocaleString();
 }
 
-export function getDashboardMetrics(summary: AdminDashboardSummary): DashboardMetric[] {
+export function getDashboardMetrics(
+  summary: AdminDashboardSummary,
+  options?: DashboardMetricOptions,
+): DashboardMetric[] {
+  const rangeLabel = getRangeLabel(options?.activeRange);
+
   return [
     {
       key: "lessonsCreated",
       title: "Lessons Created",
-      value: summary.lessonsCreated,
+      value: getMetricValueFromSummary(summary, "lessonsCreated"),
       icon: "menu_book",
       helpText: "Total lessons created",
       href: "/admin/lessons",
@@ -32,7 +60,7 @@ export function getDashboardMetrics(summary: AdminDashboardSummary): DashboardMe
     {
       key: "usersSignedUp",
       title: "Users Signed Up",
-      value: summary.usersSignedUp,
+      value: getMetricValueFromSummary(summary, "usersSignedUp"),
       icon: "group_add",
       helpText: "New and existing user sign-ups",
       href: "/admin/contributors",
@@ -40,7 +68,7 @@ export function getDashboardMetrics(summary: AdminDashboardSummary): DashboardMe
     {
       key: "lessonsEnrolled",
       title: "Lessons Enrolled",
-      value: summary.lessonsEnrolled,
+      value: getMetricValueFromSummary(summary, "lessonsEnrolled"),
       icon: "school",
       helpText: "Total lesson enrollments",
       href: "/admin/lessons",
@@ -48,9 +76,9 @@ export function getDashboardMetrics(summary: AdminDashboardSummary): DashboardMe
     {
       key: "newContributors",
       title: "New Contributors",
-      value: summary.newContributors,
+      value: getMetricValueFromSummary(summary, "newContributors"),
       icon: "military_tech",
-      helpText: "Promoted active contributors in the last 30 days",
+      helpText: `Promoted active contributors in the ${rangeLabel}`,
       href: "/admin/contributors",
     },
   ];

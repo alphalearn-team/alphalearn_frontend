@@ -6,7 +6,7 @@ type AdminDashboardControlsProps = {
   customEndDate: string;
   isRefreshing: boolean;
   refreshError: string | null;
-  onSelectPresetRange: (range: "7d" | "30d" | "90d") => void;
+  onSelectPresetRange: (range: "7d" | "30d") => void;
   onEnableCustomRange: () => void;
   onCustomStartDateChange: (value: string) => void;
   onCustomEndDateChange: (value: string) => void;
@@ -38,7 +38,7 @@ export default function AdminDashboardControls({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {(["7d", "30d", "90d"] as const).map((range) => (
+          {(["7d", "30d"] as const).map((range) => (
             <button
               key={range}
               type="button"
