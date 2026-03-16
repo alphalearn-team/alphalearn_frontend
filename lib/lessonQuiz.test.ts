@@ -105,7 +105,7 @@ test("quiz submission is blocked for non-approved lessons", () => {
   );
 });
 
-test("quiz submission is blocked for non-learner roles", () => {
+test("contributors can submit quizzes on approved lessons they do not own", () => {
   assert.equal(
     getLessonQuizSubmissionBlockReason({
       lessonStatus: "APPROVED",
@@ -115,15 +115,29 @@ test("quiz submission is blocked for non-learner roles", () => {
       allQuestionsAnswered: true,
       isSubmitting: false,
     }),
-    "not-learner",
+    null,
   );
 });
 
-test("quiz submission is blocked for lesson owners", () => {
+test("quiz submission is blocked for unsupported user roles", () => {
   assert.equal(
     getLessonQuizSubmissionBlockReason({
       lessonStatus: "APPROVED",
-      role: "LEARNER",
+      role: "ADMIN",
+      isOwner: false,
+      hasAccessToken: true,
+      allQuestionsAnswered: true,
+      isSubmitting: false,
+    }),
+    "unsupported-user",
+  );
+});
+
+test("contributors cannot submit quizzes on their own lessons", () => {
+  assert.equal(
+    getLessonQuizSubmissionBlockReason({
+      lessonStatus: "APPROVED",
+      role: "CONTRIBUTOR",
       isOwner: true,
       hasAccessToken: true,
       allQuestionsAnswered: true,
@@ -133,11 +147,23 @@ test("quiz submission is blocked for lesson owners", () => {
   );
 });
 
-test("canSubmitLessonQuiz requires approved learner, non-owner, authenticated, complete state", () => {
+test("canSubmitLessonQuiz allows both learners and contributors when other rules pass", () => {
   assert.equal(
     canSubmitLessonQuiz({
       lessonStatus: "APPROVED",
       role: "LEARNER",
+      isOwner: false,
+      hasAccessToken: true,
+      allQuestionsAnswered: true,
+      isSubmitting: false,
+    }),
+    true,
+  );
+
+  assert.equal(
+    canSubmitLessonQuiz({
+      lessonStatus: "APPROVED",
+      role: "CONTRIBUTOR",
       isOwner: false,
       hasAccessToken: true,
       allQuestionsAnswered: true,

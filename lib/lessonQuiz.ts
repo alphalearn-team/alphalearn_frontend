@@ -12,7 +12,7 @@ export type LessonQuizAnswers = Record<string, string[]>;
 export type LessonQuizSubmissionBlockReason =
   | "not-approved"
   | "owner"
-  | "not-learner"
+  | "unsupported-user"
   | "unauthenticated"
   | "submitting"
   | "incomplete";
@@ -31,6 +31,10 @@ function normalizeQuestion(question: LessonQuizQuestion): LessonQuizQuestion {
     ...question,
     options: Array.isArray(question.options) ? question.options : [],
   };
+}
+
+function isQuizEligibleRole(role: UserRole | null): boolean {
+  return role === "LEARNER" || role === "CONTRIBUTOR";
 }
 
 export function normalizeLessonQuizzes(
@@ -88,8 +92,8 @@ export function getLessonQuizSubmissionBlockReason({
     return "owner";
   }
 
-  if (role !== "LEARNER") {
-    return "not-learner";
+  if (!isQuizEligibleRole(role)) {
+    return "unsupported-user";
   }
 
   if (!hasAccessToken) {
@@ -125,8 +129,8 @@ export function getLessonQuizSubmissionHelperMessage(
     return "Lesson creators cannot answer their own quiz.";
   }
 
-  if (reason === "not-learner") {
-    return "Only learner accounts can submit quiz attempts.";
+  if (reason === "unsupported-user") {
+    return "Your account cannot submit quiz attempts.";
   }
 
   if (reason === "unauthenticated") {

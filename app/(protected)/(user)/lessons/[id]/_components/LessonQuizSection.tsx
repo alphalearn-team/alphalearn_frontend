@@ -165,7 +165,7 @@ export default function LessonQuizSection({
         </Text>
         <Title order={2}>Check what you picked up</Title>
         <Text className="text-[var(--color-text-secondary)]">
-          Quiz questions stay inside this lesson so learners can review the
+          Quiz questions stay inside this lesson so you can review the
           material and answer without leaving the page.
         </Text>
       </div>
