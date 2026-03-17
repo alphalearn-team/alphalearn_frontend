@@ -258,6 +258,48 @@ export interface AdminDashboardSummary {
   alerts?: AdminDashboardAlert[];
 }
 
+export type LessonQuizQuestionType =
+  | "multiple-choice"
+  | "single-choice"
+  | "true-false";
+
+export interface LessonQuizOption {
+  id: string;
+  text: string;
+}
+
+export interface LessonQuizQuestion {
+  questionPublicId: string;
+  type: LessonQuizQuestionType;
+  prompt: string;
+  orderIndex: number;
+  options: LessonQuizOption[];
+}
+
+export interface LessonQuiz {
+  quizPublicId: string;
+  lessonPublicId: string;
+  createdAt: string;
+  questions: LessonQuizQuestion[];
+}
+
+export interface SubmitQuizQuestionAnswer {
+  questionPublicId: string;
+  selectedOptionIds: string[];
+}
+
+export interface SubmitQuizAttemptRequest {
+  answers: SubmitQuizQuestionAnswer[];
+}
+
+export interface QuizAttemptSummary {
+  quizPublicId: string;
+  attemptedAt: string;
+  score: number;
+  totalQuestions: number;
+  isFirstAttempt: boolean;
+}
+
 export type WeeklyQuestWeekStatus = "UNSET" | "SCHEDULED" | "ACTIVE" | "COMPLETED";
 
 export type WeeklyQuestActivationSource = "ADMIN" | "FALLBACK";

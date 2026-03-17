@@ -5,6 +5,7 @@ import LessonModerationFeedbackPanel from "@/components/lessons/LessonModeration
 import { getUserRole } from "@/lib/auth/rbac";
 import { LessonContentDisplay } from "./_components/LessonContentDisplay";
 import LessonDetailHeader from "./_components/LessonDetailHeader";
+import LessonQuizSection from "./_components/LessonQuizSection";
 import { getLessonDetailViewModel } from "./lessonDetailData";
 
 export default async function LessonPage({
@@ -22,10 +23,13 @@ export default async function LessonPage({
   const {
     canDelete,
     canEdit,
+    isOwner,
     lesson,
     lessonConceptLabels,
     lessonId,
     moderationMeta,
+    quizLoadError,
+    quizzes,
     shouldShowModerationState,
     showBackToMine,
     status,
@@ -57,6 +61,13 @@ export default async function LessonPage({
         )}
 
         <LessonContentDisplay sections={lesson.sections || []} />
+        <LessonQuizSection
+          quizzes={quizzes}
+          quizLoadError={quizLoadError}
+          status={status}
+          role={role}
+          isOwner={isOwner}
+        />
       </div>
     </Container>
   );
