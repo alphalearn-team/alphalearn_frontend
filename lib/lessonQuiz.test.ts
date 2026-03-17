@@ -4,12 +4,14 @@ import type {
   LessonQuiz,
   QuizAttemptSummary,
 } from "@/interfaces/interfaces";
+import { ApiError } from "@/lib/apiErrors";
 import {
   buildQuizAttemptPayload,
   canSubmitLessonQuiz,
   getLessonQuizSubmissionBlockReason,
   getQuizAttemptSummaryMessage,
   getUnansweredQuizQuestionIds,
+  toFriendlyLatestQuizAttemptError,
 } from "./lessonQuiz";
 
 function makeQuiz(): LessonQuiz {
@@ -201,4 +203,25 @@ test("getQuizAttemptSummaryMessage distinguishes first attempts", () => {
 
   assert.equal(getQuizAttemptSummaryMessage(firstAttempt), "First attempt recorded.");
   assert.equal(getQuizAttemptSummaryMessage(repeatAttempt), "Attempt recorded.");
+});
+
+test("toFriendlyLatestQuizAttemptError returns null for missing attempts", () => {
+  assert.equal(
+    toFriendlyLatestQuizAttemptError(new ApiError(404, "Attempt not found")),
+    null,
+  );
+});
+
+test("toFriendlyLatestQuizAttemptError keeps authorization errors actionable", () => {
+  assert.equal(
+    toFriendlyLatestQuizAttemptError(new ApiError(403, "Forbidden")),
+    "Forbidden",
+  );
+});
+
+test("toFriendlyLatestQuizAttemptError normalizes server failures", () => {
+  assert.equal(
+    toFriendlyLatestQuizAttemptError(new ApiError(500, "Internal Server Error")),
+    "We couldn't load your latest quiz attempt right now.",
+  );
 });
