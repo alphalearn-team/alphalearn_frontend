@@ -158,6 +158,34 @@ export function getQuizAttemptSummaryMessage(
     : "Attempt recorded.";
 }
 
+export function toFriendlyLatestQuizAttemptError(error: unknown): string | null {
+  if (error instanceof ApiError) {
+    if (error.status === 404) {
+      return null;
+    }
+
+    if (error.status === 403) {
+      return error.message || "You are not allowed to access previous quiz attempts.";
+    }
+
+    if (error.status >= 500) {
+      return "We couldn't load your latest quiz attempt right now.";
+    }
+
+    return error.message || "We couldn't load your latest quiz attempt.";
+  }
+
+  if (error instanceof Error) {
+    if (error.name === "AbortError") {
+      return null;
+    }
+
+    return error.message || "We couldn't load your latest quiz attempt.";
+  }
+
+  return "We couldn't load your latest quiz attempt.";
+}
+
 export function toFriendlyLessonQuizError(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 400) {
