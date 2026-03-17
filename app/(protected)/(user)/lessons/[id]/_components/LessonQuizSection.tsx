@@ -154,212 +154,202 @@ export default function LessonQuizSection({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="space-y-2">
-        <Text
-          size="xs"
-          fw={800}
-          className="uppercase tracking-[0.25em] text-[var(--color-primary)] opacity-70"
+        <h2
+          className="text-xl font-bold tracking-tight"
+          style={{ color: "var(--color-text)" }}
         >
           Lesson Quiz
-        </Text>
-        <Title order={2}>Check what you picked up</Title>
-        <Text className="text-[var(--color-text-secondary)]">
-          Quiz questions stay inside this lesson so you can review the
-          material and answer without leaving the page.
-        </Text>
+        </h2>
       </div>
 
-      {quizLoadError ? (
-        <Alert color="yellow" radius="lg" title="Quiz unavailable">
-          {quizLoadError}
-        </Alert>
-      ) : null}
+      <div className="space-y-6">
+        {quizLoadError ? (
+          <Alert color="yellow" radius="lg" title="Quiz unavailable">
+            {quizLoadError}
+          </Alert>
+        ) : null}
 
-      {quizzes.map((quiz, quizIndex) => {
-        const quizState = getQuizState(quiz.quizPublicId);
-        const unansweredQuestionIds = getUnansweredQuizQuestionIds(quiz, quizState.answers);
-        const unansweredCount = unansweredQuestionIds.length;
-        const submissionBlockReason = getLessonQuizSubmissionBlockReason({
-          lessonStatus: status,
-          role,
-          isOwner,
-          hasAccessToken: Boolean(session?.access_token),
-          allQuestionsAnswered: unansweredCount === 0,
-          isSubmitting: quizState.isSubmitting,
-        });
-        const helperMessage = getLessonQuizSubmissionHelperMessage(
-          submissionBlockReason,
-          unansweredCount,
-        );
-        const submitLabel = quizState.attemptSummary
-          ? "Submit Another Attempt"
-          : "Submit Quiz";
+        {quizzes.map((quiz, quizIndex) => {
+          const quizState = getQuizState(quiz.quizPublicId);
+          const unansweredQuestionIds = getUnansweredQuizQuestionIds(quiz, quizState.answers);
+          const unansweredCount = unansweredQuestionIds.length;
+          const submissionBlockReason = getLessonQuizSubmissionBlockReason({
+            lessonStatus: status,
+            role,
+            isOwner,
+            hasAccessToken: Boolean(session?.access_token),
+            allQuestionsAnswered: unansweredCount === 0,
+            isSubmitting: quizState.isSubmitting,
+          });
+          const helperMessage = getLessonQuizSubmissionHelperMessage(
+            submissionBlockReason,
+            unansweredCount,
+          );
+          const submitLabel = quizState.attemptSummary
+            ? "Submit Another Attempt"
+            : "Submit Quiz";
 
-        return (
-          <Card
-            key={quiz.quizPublicId}
-            radius="xl"
-            padding="xl"
-            className="border border-[var(--color-border)] bg-[var(--color-surface)]"
-          >
-            <Stack gap="lg">
-              <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <Text
-                    size="xs"
-                    fw={700}
-                    className="uppercase tracking-[0.2em] text-[var(--color-text-muted)]"
-                  >
-                    Quiz {quizIndex + 1}
+          return (
+            <Card
+              key={quiz.quizPublicId}
+              padding="xl"
+              className="border border-[var(--color-border)] bg-[var(--color-surface)]"
+              style={{ borderRadius: "0.75rem" }}
+            >
+              <Stack gap="lg">
+                <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-5 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <Text
+                      size="xs"
+                      fw={700}
+                      className="uppercase tracking-[0.2em] text-[var(--color-text-muted)]"
+                    >
+                      Quiz {quizIndex + 1}
+                    </Text>
+                  </div>
+                  <Text size="sm" className="text-[var(--color-text-muted)]">
+                    {formatDateTime(quiz.createdAt)}
                   </Text>
-                  <Title order={3} className="mt-2">
-                    {quiz.questions.length === 1
-                      ? "1 question"
-                      : `${quiz.questions.length} questions`}
-                  </Title>
                 </div>
-                <Text size="sm" className="text-[var(--color-text-muted)]">
-                  {formatDateTime(quiz.createdAt)}
-                </Text>
-              </div>
 
-              {quiz.questions.map((question, questionIndex) => {
-                const selectedOptionIds =
-                  quizState.answers[question.questionPublicId] ?? [];
+                {quiz.questions.map((question, questionIndex) => {
+                  const selectedOptionIds =
+                    quizState.answers[question.questionPublicId] ?? [];
 
-                return (
-                  <div
-                    key={question.questionPublicId}
-                    className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] p-5"
-                  >
-                    <div className="mb-4 flex items-start gap-3">
-                      <div
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
-                        style={{
-                          backgroundColor: "var(--color-primary)",
-                          color: "var(--color-surface)",
-                        }}
-                      >
-                        {questionIndex + 1}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <Text
-                          size="xs"
-                          fw={700}
-                          className="uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
+                  return (
+                    <div
+                      key={question.questionPublicId}
+                      className="rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] p-5"
+                    >
+                      <div className="mb-4 flex items-start gap-3">
+                        <div
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
+                          style={{
+                            backgroundColor: "var(--color-primary)",
+                            color: "var(--color-surface)",
+                          }}
                         >
-                          {question.type.replace("-", " ")}
-                        </Text>
-                        <Text className="mt-2 text-[var(--color-text)]">
-                          {question.prompt}
-                        </Text>
+                          {questionIndex + 1}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <Text
+                            size="xs"
+                            fw={700}
+                            className="uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
+                          >
+                            {question.type.replace("-", " ")}
+                          </Text>
+                          <Text className="mt-2 text-[var(--color-text)]">
+                            {question.prompt}
+                          </Text>
+                        </div>
                       </div>
+                      {question.type === "multiple-choice" ? (
+                        <Checkbox.Group
+                          value={selectedOptionIds}
+                          onChange={(value) =>
+                            setSelectedOptionIds(
+                              quiz.quizPublicId,
+                              question.questionPublicId,
+                              value,
+                            )
+                          }
+                        >
+                          <Stack gap="sm">
+                            {question.options.map((option) => (
+                              <Checkbox
+                                key={option.id}
+                                value={option.id}
+                                label={option.text}
+                                styles={{
+                                  label: { color: "var(--color-text)" },
+                                }}
+                              />
+                            ))}
+                          </Stack>
+                        </Checkbox.Group>
+                      ) : (
+                        <Radio.Group
+                          value={selectedOptionIds[0] ?? ""}
+                          onChange={(value) =>
+                            setSelectedOptionIds(
+                              quiz.quizPublicId,
+                              question.questionPublicId,
+                              value ? [value] : [],
+                            )
+                          }
+                        >
+                          <Stack gap="sm">
+                            {question.options.map((option) => (
+                              <Radio
+                                key={option.id}
+                                value={option.id}
+                                label={option.text}
+                                styles={{
+                                  label: { color: "var(--color-text)" },
+                                }}
+                              />
+                            ))}
+                          </Stack>
+                        </Radio.Group>
+                      )}
                     </div>
+                  );
+                })}
 
-                    {question.type === "multiple-choice" ? (
-                      <Checkbox.Group
-                        value={selectedOptionIds}
-                        onChange={(value) =>
-                          setSelectedOptionIds(
-                            quiz.quizPublicId,
-                            question.questionPublicId,
-                            value,
-                          )
-                        }
-                      >
-                        <Stack gap="sm">
-                          {question.options.map((option) => (
-                            <Checkbox
-                              key={option.id}
-                              value={option.id}
-                              label={option.text}
-                              styles={{
-                                label: { color: "var(--color-text)" },
-                              }}
-                            />
-                          ))}
-                        </Stack>
-                      </Checkbox.Group>
-                    ) : (
-                      <Radio.Group
-                        value={selectedOptionIds[0] ?? ""}
-                        onChange={(value) =>
-                          setSelectedOptionIds(
-                            quiz.quizPublicId,
-                            question.questionPublicId,
-                            value ? [value] : [],
-                          )
-                        }
-                      >
-                        <Stack gap="sm">
-                          {question.options.map((option) => (
-                            <Radio
-                              key={option.id}
-                              value={option.id}
-                              label={option.text}
-                              styles={{
-                                label: { color: "var(--color-text)" },
-                              }}
-                            />
-                          ))}
-                        </Stack>
-                      </Radio.Group>
-                    )}
-                  </div>
-                );
-              })}
+                {quizState.submitError ? (
+                  <Alert color="red" radius="lg" title="Submission error">
+                    {quizState.submitError}
+                  </Alert>
+                ) : null}
 
-              {quizState.submitError ? (
-                <Alert color="red" radius="lg" title="Submission error">
-                  {quizState.submitError}
-                </Alert>
-              ) : null}
+                {submissionBlockReason === "incomplete" && helperMessage ? (
+                  <Alert color="yellow" radius="lg" title="Complete the quiz">
+                    {helperMessage}
+                  </Alert>
+                ) : null}
 
-              {submissionBlockReason === "incomplete" && helperMessage ? (
-                <Alert color="yellow" radius="lg" title="Complete the quiz">
-                  {helperMessage}
-                </Alert>
-              ) : null}
+                {submissionBlockReason !== "incomplete" && helperMessage ? (
+                  <Alert color="blue" radius="lg" title="Submission unavailable">
+                    {helperMessage}
+                  </Alert>
+                ) : null}
 
-              {submissionBlockReason !== "incomplete" && helperMessage ? (
-                <Alert color="blue" radius="lg" title="Submission unavailable">
-                  {helperMessage}
-                </Alert>
-              ) : null}
+                {quizState.attemptSummary ? (
+                  <Alert color="green" radius="lg" title="Attempt saved">
+                    <div className="space-y-2">
+                      <Text size="sm">
+                        Score: {quizState.attemptSummary.score} /{" "}
+                        {quizState.attemptSummary.totalQuestions}
+                      </Text>
+                      <Text size="sm">
+                        {getQuizAttemptSummaryMessage(quizState.attemptSummary)}
+                      </Text>
+                      <Text size="sm">
+                        Attempted at {formatDateTime(quizState.attemptSummary.attemptedAt)}
+                      </Text>
+                    </div>
+                  </Alert>
+                ) : null}
 
-              {quizState.attemptSummary ? (
-                <Alert color="green" radius="lg" title="Attempt saved">
-                  <div className="space-y-2">
-                    <Text size="sm">
-                      Score: {quizState.attemptSummary.score} /{" "}
-                      {quizState.attemptSummary.totalQuestions}
-                    </Text>
-                    <Text size="sm">
-                      {getQuizAttemptSummaryMessage(quizState.attemptSummary)}
-                    </Text>
-                    <Text size="sm">
-                      Attempted at {formatDateTime(quizState.attemptSummary.attemptedAt)}
-                    </Text>
-                  </div>
-                </Alert>
-              ) : null}
-
-              <Group justify="flex-end">
-                <Button
-                  radius="xl"
-                  onClick={() => handleSubmit(quiz)}
-                  loading={quizState.isSubmitting}
-                  disabled={submissionBlockReason !== null}
-                  className="w-full sm:w-auto"
-                >
-                  {quizState.isSubmitting ? "Submitting..." : submitLabel}
-                </Button>
-              </Group>
-            </Stack>
-          </Card>
-        );
-      })}
+                <Group justify="flex-end">
+                  <Button
+                    radius="xl"
+                    onClick={() => handleSubmit(quiz)}
+                    loading={quizState.isSubmitting}
+                    disabled={submissionBlockReason !== null}
+                    className="w-full sm:w-auto"
+                  >
+                    {quizState.isSubmitting ? "Submitting..." : submitLabel}
+                  </Button>
+                </Group>
+              </Stack>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
