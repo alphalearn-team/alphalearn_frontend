@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Button,
@@ -10,7 +10,6 @@ import {
   Radio,
   Stack,
   Text,
-  Title,
 } from "@mantine/core";
 import { useAuth } from "@/context/AuthContext";
 import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
@@ -23,8 +22,8 @@ import {
   canSubmitLessonQuiz,
   getLessonQuizSubmissionBlockReason,
   getLessonQuizSubmissionHelperMessage,
-  getQuizAttemptSummaryMessage,
   getUnansweredQuizQuestionIds,
+  toFriendlyLatestQuizAttemptError,
   toFriendlyLessonQuizError,
   type LessonQuizAnswers,
 } from "@/lib/lessonQuiz";
@@ -40,7 +39,9 @@ interface LessonQuizSectionProps {
 interface QuizCardState {
   answers: LessonQuizAnswers;
   attemptSummary: QuizAttemptSummary | null;
+  isLoadingLatestAttempt: boolean;
   isSubmitting: boolean;
+  latestAttemptError: string | null;
   submitError: string | null;
 }
 
@@ -48,9 +49,26 @@ function createDefaultQuizState(): QuizCardState {
   return {
     answers: {},
     attemptSummary: null,
+    isLoadingLatestAttempt: false,
     isSubmitting: false,
+    latestAttemptError: null,
     submitError: null,
   };
+}
+
+function shouldReplaceAttemptSummary(
+  currentSummary: QuizAttemptSummary | null,
+  nextSummary: QuizAttemptSummary | null,
+): boolean {
+  if (!currentSummary) {
+    return true;
+  }
+
+  if (!nextSummary) {
+    return false;
+  }
+
+  return Date.parse(nextSummary.attemptedAt) >= Date.parse(currentSummary.attemptedAt);
 }
 
 export default function LessonQuizSection({
@@ -62,6 +80,129 @@ export default function LessonQuizSection({
 }: LessonQuizSectionProps) {
   const { session } = useAuth();
   const [quizStates, setQuizStates] = useState<Record<string, QuizCardState>>({});
+  const supportsQuizAttempts = role === "LEARNER" || role === "CONTRIBUTOR";
+
+  useEffect(() => {
+    const accessToken = session?.access_token;
+
+    if (quizzes.length === 0) {
+      return;
+    }
+
+    if (!accessToken || isOwner || !supportsQuizAttempts) {
+      setQuizStates((currentStates) => {
+        let hasChanges = false;
+        const nextStates = { ...currentStates };
+
+        for (const quiz of quizzes) {
+          const currentState = currentStates[quiz.quizPublicId];
+
+          if (
+            currentState
+            && (currentState.attemptSummary
+              || currentState.isLoadingLatestAttempt
+              || currentState.latestAttemptError)
+          ) {
+            nextStates[quiz.quizPublicId] = {
+              ...currentState,
+              attemptSummary: null,
+              isLoadingLatestAttempt: false,
+              latestAttemptError: null,
+            };
+            hasChanges = true;
+          }
+        }
+
+        return hasChanges ? nextStates : currentStates;
+      });
+      return;
+    }
+
+    const abortController = new AbortController();
+    let isCancelled = false;
+
+    setQuizStates((currentStates) => {
+      const nextStates = { ...currentStates };
+      let hasChanges = false;
+
+      for (const quiz of quizzes) {
+        const currentState = currentStates[quiz.quizPublicId] ?? createDefaultQuizState();
+
+        if (
+          !currentState.isLoadingLatestAttempt
+          || currentState.latestAttemptError !== null
+        ) {
+          nextStates[quiz.quizPublicId] = {
+            ...currentState,
+            isLoadingLatestAttempt: true,
+            latestAttemptError: null,
+          };
+          hasChanges = true;
+        }
+      }
+
+      return hasChanges ? nextStates : currentStates;
+    });
+
+    void Promise.all(
+      quizzes.map(async (quiz) => {
+        try {
+          const latestAttempt = await apiClientFetch<QuizAttemptSummary>(
+            `/me/quizzes/${quiz.quizPublicId}/attempts/latest`,
+            accessToken,
+            { signal: abortController.signal },
+          );
+
+          return {
+            quizPublicId: quiz.quizPublicId,
+            attemptSummary: latestAttempt,
+            latestAttemptError: null,
+          };
+        } catch (error) {
+          return {
+            quizPublicId: quiz.quizPublicId,
+            attemptSummary: null,
+            latestAttemptError: toFriendlyLatestQuizAttemptError(error),
+          };
+        }
+      }),
+    ).then((results) => {
+      if (isCancelled) {
+        return;
+      }
+
+      setQuizStates((currentStates) => {
+        const nextStates = { ...currentStates };
+
+        for (const result of results) {
+          const currentState =
+            currentStates[result.quizPublicId] ?? createDefaultQuizState();
+          const shouldReplaceSummary = shouldReplaceAttemptSummary(
+            currentState.attemptSummary,
+            result.attemptSummary,
+          );
+
+          nextStates[result.quizPublicId] = {
+            ...currentState,
+            attemptSummary: shouldReplaceSummary
+              ? result.attemptSummary
+              : currentState.attemptSummary,
+            isLoadingLatestAttempt: false,
+            latestAttemptError: shouldReplaceSummary
+              ? result.latestAttemptError
+              : currentState.latestAttemptError,
+          };
+        }
+
+        return nextStates;
+      });
+    });
+
+    return () => {
+      isCancelled = true;
+      abortController.abort();
+    };
+  }, [isOwner, quizzes, session?.access_token, supportsQuizAttempts]);
 
   if (quizzes.length === 0 && !quizLoadError) {
     return null;
@@ -138,7 +279,9 @@ export default function LessonQuizSection({
       updateQuizState(quiz.quizPublicId, (currentState) => ({
         ...currentState,
         attemptSummary: summary,
+        isLoadingLatestAttempt: false,
         isSubmitting: false,
+        latestAttemptError: null,
         submitError: null,
       }));
       showSuccess("Quiz submitted successfully.");
@@ -308,6 +451,12 @@ export default function LessonQuizSection({
                   </Alert>
                 ) : null}
 
+                {quizState.latestAttemptError ? (
+                  <Alert color="yellow" radius="lg" title="Latest attempt unavailable">
+                    {quizState.latestAttemptError}
+                  </Alert>
+                ) : null}
+
                 {submissionBlockReason === "incomplete" && helperMessage ? (
                   <Alert color="yellow" radius="lg" title="Complete the quiz">
                   </Alert>
@@ -323,17 +472,14 @@ export default function LessonQuizSection({
                 ) : null}
 
                 {quizState.attemptSummary ? (
-                  <Alert color="green" radius="lg" title="Attempt saved">
+                  <Alert color="green" radius="lg" title="Your last attempt">
                     <div className="space-y-2">
                       <Text size="sm">
-                        Score: {quizState.attemptSummary.score} /{" "}
+                        You scored {quizState.attemptSummary.score}/
                         {quizState.attemptSummary.totalQuestions}
                       </Text>
                       <Text size="sm">
-                        {getQuizAttemptSummaryMessage(quizState.attemptSummary)}
-                      </Text>
-                      <Text size="sm">
-                        Attempted at {formatDateTime(quizState.attemptSummary.attemptedAt)}
+                        Taken on {formatDateTime(quizState.attemptSummary.attemptedAt)}
                       </Text>
                     </div>
                   </Alert>
