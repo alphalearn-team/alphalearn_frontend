@@ -310,7 +310,6 @@ export default function LessonQuizSection({
 
                 {submissionBlockReason === "incomplete" && helperMessage ? (
                   <Alert color="yellow" radius="lg" title="Complete the quiz">
-                    {helperMessage}
                   </Alert>
                 ) : null}
 
