@@ -190,6 +190,9 @@ export default function LessonQuizSection({
           const submitLabel = quizState.attemptSummary
             ? "Submit Another Attempt"
             : "Submit Quiz";
+          const shouldHideSubmitButton =
+            submissionBlockReason === "owner"
+            || submissionBlockReason === "not-approved";
 
           return (
             <Card
@@ -334,17 +337,19 @@ export default function LessonQuizSection({
                   </Alert>
                 ) : null}
 
-                <Group justify="flex-end">
-                  <Button
-                    radius="xl"
-                    onClick={() => handleSubmit(quiz)}
-                    loading={quizState.isSubmitting}
-                    disabled={submissionBlockReason !== null}
-                    className="w-full sm:w-auto"
-                  >
-                    {quizState.isSubmitting ? "Submitting..." : submitLabel}
-                  </Button>
-                </Group>
+                {!shouldHideSubmitButton && (
+                  <Group justify="flex-end">
+                    <Button
+                      radius="xl"
+                      onClick={() => handleSubmit(quiz)}
+                      loading={quizState.isSubmitting}
+                      disabled={submissionBlockReason !== null}
+                      className="w-full sm:w-auto"
+                    >
+                      {quizState.isSubmitting ? "Submitting..." : submitLabel}
+                    </Button>
+                  </Group>
+                )}
               </Stack>
             </Card>
           );
