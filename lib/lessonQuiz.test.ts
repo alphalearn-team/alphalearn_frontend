@@ -11,6 +11,7 @@ import {
   getLessonQuizSubmissionBlockReason,
   getQuizAttemptSummaryMessage,
   getUnansweredQuizQuestionIds,
+  toFriendlyBestQuizAttemptError,
   toFriendlyLatestQuizAttemptError,
 } from "./lessonQuiz";
 
@@ -203,6 +204,27 @@ test("getQuizAttemptSummaryMessage distinguishes first attempts", () => {
 
   assert.equal(getQuizAttemptSummaryMessage(firstAttempt), "First attempt recorded.");
   assert.equal(getQuizAttemptSummaryMessage(repeatAttempt), "Attempt recorded.");
+});
+
+test("toFriendlyBestQuizAttemptError returns null for missing attempts", () => {
+  assert.equal(
+    toFriendlyBestQuizAttemptError(new ApiError(404, "Attempt not found")),
+    null,
+  );
+});
+
+test("toFriendlyBestQuizAttemptError keeps authorization errors actionable", () => {
+  assert.equal(
+    toFriendlyBestQuizAttemptError(new ApiError(403, "Forbidden")),
+    "Forbidden",
+  );
+});
+
+test("toFriendlyBestQuizAttemptError normalizes server failures", () => {
+  assert.equal(
+    toFriendlyBestQuizAttemptError(new ApiError(500, "Internal Server Error")),
+    "We couldn't load your best quiz attempt right now.",
+  );
 });
 
 test("toFriendlyLatestQuizAttemptError returns null for missing attempts", () => {
