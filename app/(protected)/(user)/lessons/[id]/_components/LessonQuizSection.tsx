@@ -314,7 +314,10 @@ export default function LessonQuizSection({
                   </Alert>
                 ) : null}
 
-                {submissionBlockReason !== "incomplete" && helperMessage ? (
+                {submissionBlockReason !== "incomplete"
+                  && submissionBlockReason !== "not-approved"
+                  && submissionBlockReason !== "owner"
+                  && helperMessage ? (
                   <Alert color="blue" radius="lg" title="Submission unavailable">
                     {helperMessage}
                   </Alert>
