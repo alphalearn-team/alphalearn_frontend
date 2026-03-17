@@ -296,6 +296,8 @@ export default function LessonQuizSection({
     }
   };
 
+  const quizSectionTitle = quizzes.length === 1 ? "Lesson Quiz" : "Lesson Quizzes";
+
   return (
     <div className="space-y-3">
       <div className="space-y-2">
@@ -303,7 +305,7 @@ export default function LessonQuizSection({
           className="text-xl font-bold tracking-tight"
           style={{ color: "var(--color-text)" }}
         >
-          Lesson Quiz
+          {quizSectionTitle}
         </h2>
       </div>
 
@@ -457,7 +459,10 @@ export default function LessonQuizSection({
                   </Alert>
                 ) : null}
 
-                {submissionBlockReason === "incomplete" && helperMessage ? (
+                {submissionBlockReason === "incomplete"
+                  && !quizState.isLoadingLatestAttempt
+                  && !quizState.attemptSummary
+                  && helperMessage ? (
                   <Alert color="yellow" radius="lg" title="Complete the quiz">
                   </Alert>
                 ) : null}
@@ -472,7 +477,15 @@ export default function LessonQuizSection({
                 ) : null}
 
                 {quizState.attemptSummary ? (
-                  <Alert color="green" radius="lg" title="Your last attempt">
+                  <Alert
+                    color="green"
+                    radius="lg"
+                    title={
+                      quizState.attemptSummary.isFirstAttempt
+                        ? "First Attempt Score"
+                        : "Your last attempt"
+                    }
+                  >
                     <div className="space-y-2">
                       <Text size="sm">
                         You scored {quizState.attemptSummary.score}/
