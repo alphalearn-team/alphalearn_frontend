@@ -38,22 +38,34 @@ interface LessonQuizSectionProps {
 
 interface QuizCardState {
   answers: LessonQuizAnswers;
-  attemptSummary: QuizAttemptSummary | null;
-  isLoadingLatestAttempt: boolean;
   isSubmitting: boolean;
-  latestAttemptError: string | null;
   submitError: string | null;
 }
 
 function createDefaultQuizState(): QuizCardState {
   return {
     answers: {},
-    attemptSummary: null,
-    isLoadingLatestAttempt: false,
     isSubmitting: false,
-    latestAttemptError: null,
     submitError: null,
   };
+}
+
+interface QuizLatestAttemptState {
+  attemptSummary: QuizAttemptSummary | null;
+  isLoadingLatestAttempt: boolean;
+  latestAttemptError: string | null;
+}
+
+interface StoredQuizLatestAttemptState {
+  attemptSummary: QuizAttemptSummary | null;
+  fetchKey: string;
+  latestAttemptError: string | null;
+}
+
+type ResolvedQuizCardState = QuizCardState & QuizLatestAttemptState;
+
+function buildLatestAttemptFetchKey(accessToken: string, quizPublicId: string): string {
+  return `${accessToken}:${quizPublicId}`;
 }
 
 function shouldReplaceAttemptSummary(
@@ -79,73 +91,26 @@ export default function LessonQuizSection({
   status,
 }: LessonQuizSectionProps) {
   const { session } = useAuth();
+  const accessToken = session?.access_token;
   const [quizStates, setQuizStates] = useState<Record<string, QuizCardState>>({});
+  const [latestAttemptStates, setLatestAttemptStates] = useState<
+    Record<string, StoredQuizLatestAttemptState>
+  >({});
   const supportsQuizAttempts = role === "LEARNER" || role === "CONTRIBUTOR";
+  const canLoadLatestAttempts = Boolean(accessToken) && !isOwner && supportsQuizAttempts;
 
   useEffect(() => {
-    const accessToken = session?.access_token;
-
-    if (quizzes.length === 0) {
-      return;
-    }
-
-    if (!accessToken || isOwner || !supportsQuizAttempts) {
-      setQuizStates((currentStates) => {
-        let hasChanges = false;
-        const nextStates = { ...currentStates };
-
-        for (const quiz of quizzes) {
-          const currentState = currentStates[quiz.quizPublicId];
-
-          if (
-            currentState
-            && (currentState.attemptSummary
-              || currentState.isLoadingLatestAttempt
-              || currentState.latestAttemptError)
-          ) {
-            nextStates[quiz.quizPublicId] = {
-              ...currentState,
-              attemptSummary: null,
-              isLoadingLatestAttempt: false,
-              latestAttemptError: null,
-            };
-            hasChanges = true;
-          }
-        }
-
-        return hasChanges ? nextStates : currentStates;
-      });
+    if (!accessToken || !canLoadLatestAttempts || quizzes.length === 0) {
       return;
     }
 
     const abortController = new AbortController();
     let isCancelled = false;
 
-    setQuizStates((currentStates) => {
-      const nextStates = { ...currentStates };
-      let hasChanges = false;
-
-      for (const quiz of quizzes) {
-        const currentState = currentStates[quiz.quizPublicId] ?? createDefaultQuizState();
-
-        if (
-          !currentState.isLoadingLatestAttempt
-          || currentState.latestAttemptError !== null
-        ) {
-          nextStates[quiz.quizPublicId] = {
-            ...currentState,
-            isLoadingLatestAttempt: true,
-            latestAttemptError: null,
-          };
-          hasChanges = true;
-        }
-      }
-
-      return hasChanges ? nextStates : currentStates;
-    });
-
     void Promise.all(
       quizzes.map(async (quiz) => {
+        const fetchKey = buildLatestAttemptFetchKey(accessToken, quiz.quizPublicId);
+
         try {
           const latestAttempt = await apiClientFetch<QuizAttemptSummary>(
             `/me/quizzes/${quiz.quizPublicId}/attempts/latest`,
@@ -155,12 +120,14 @@ export default function LessonQuizSection({
 
           return {
             quizPublicId: quiz.quizPublicId,
+            fetchKey,
             attemptSummary: latestAttempt,
             latestAttemptError: null,
           };
         } catch (error) {
           return {
             quizPublicId: quiz.quizPublicId,
+            fetchKey,
             attemptSummary: null,
             latestAttemptError: toFriendlyLatestQuizAttemptError(error),
           };
@@ -171,26 +138,26 @@ export default function LessonQuizSection({
         return;
       }
 
-      setQuizStates((currentStates) => {
+      setLatestAttemptStates((currentStates) => {
         const nextStates = { ...currentStates };
 
         for (const result of results) {
-          const currentState =
-            currentStates[result.quizPublicId] ?? createDefaultQuizState();
+          const currentState = currentStates[result.quizPublicId];
           const shouldReplaceSummary = shouldReplaceAttemptSummary(
-            currentState.attemptSummary,
+            currentState?.fetchKey === result.fetchKey
+              ? currentState.attemptSummary
+              : null,
             result.attemptSummary,
           );
 
           nextStates[result.quizPublicId] = {
-            ...currentState,
+            fetchKey: result.fetchKey,
             attemptSummary: shouldReplaceSummary
               ? result.attemptSummary
-              : currentState.attemptSummary,
-            isLoadingLatestAttempt: false,
+              : currentState?.attemptSummary ?? null,
             latestAttemptError: shouldReplaceSummary
               ? result.latestAttemptError
-              : currentState.latestAttemptError,
+              : currentState?.latestAttemptError ?? null,
           };
         }
 
@@ -202,14 +169,36 @@ export default function LessonQuizSection({
       isCancelled = true;
       abortController.abort();
     };
-  }, [isOwner, quizzes, session?.access_token, supportsQuizAttempts]);
+  }, [accessToken, canLoadLatestAttempts, quizzes]);
 
   if (quizzes.length === 0 && !quizLoadError) {
     return null;
   }
 
-  const getQuizState = (quizPublicId: string): QuizCardState =>
-    quizStates[quizPublicId] ?? createDefaultQuizState();
+  const getLatestAttemptState = (quizPublicId: string): QuizLatestAttemptState => {
+    if (!accessToken || !canLoadLatestAttempts) {
+      return {
+        attemptSummary: null,
+        isLoadingLatestAttempt: false,
+        latestAttemptError: null,
+      };
+    }
+
+    const fetchKey = buildLatestAttemptFetchKey(accessToken, quizPublicId);
+    const currentState = latestAttemptStates[quizPublicId];
+    const hasCurrentFetchResult = currentState?.fetchKey === fetchKey;
+
+    return {
+      attemptSummary: hasCurrentFetchResult ? currentState.attemptSummary : null,
+      isLoadingLatestAttempt: !hasCurrentFetchResult,
+      latestAttemptError: hasCurrentFetchResult ? currentState.latestAttemptError : null,
+    };
+  };
+
+  const getQuizState = (quizPublicId: string): ResolvedQuizCardState => ({
+    ...(quizStates[quizPublicId] ?? createDefaultQuizState()),
+    ...getLatestAttemptState(quizPublicId),
+  });
 
   const updateQuizState = (
     quizPublicId: string,
@@ -278,11 +267,16 @@ export default function LessonQuizSection({
 
       updateQuizState(quiz.quizPublicId, (currentState) => ({
         ...currentState,
-        attemptSummary: summary,
-        isLoadingLatestAttempt: false,
         isSubmitting: false,
-        latestAttemptError: null,
         submitError: null,
+      }));
+      setLatestAttemptStates((currentStates) => ({
+        ...currentStates,
+        [quiz.quizPublicId]: {
+          attemptSummary: summary,
+          fetchKey: buildLatestAttemptFetchKey(accessToken, quiz.quizPublicId),
+          latestAttemptError: null,
+        },
       }));
       showSuccess("Quiz submitted successfully.");
     } catch (error) {
@@ -324,7 +318,7 @@ export default function LessonQuizSection({
             lessonStatus: status,
             role,
             isOwner,
-            hasAccessToken: Boolean(session?.access_token),
+            hasAccessToken: Boolean(accessToken),
             allQuestionsAnswered: unansweredCount === 0,
             isSubmitting: quizState.isSubmitting,
           });
