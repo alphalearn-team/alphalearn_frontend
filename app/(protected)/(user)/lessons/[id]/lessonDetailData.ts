@@ -33,7 +33,9 @@ export async function fetchLessonQuizzes(
   lessonPublicId: string,
 ): Promise<LessonQuizLoadResult> {
   try {
+    // console.log(lessonPublicId);
     const quizzes = await apiFetch<LessonQuiz[]>(`/quizzes/${lessonPublicId}`);
+    console.log(JSON.stringify(quizzes,null,2));
     return {
       error: null,
       quizzes: normalizeLessonQuizzes(quizzes),
