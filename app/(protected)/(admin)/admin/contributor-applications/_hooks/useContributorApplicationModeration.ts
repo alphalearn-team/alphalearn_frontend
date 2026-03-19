@@ -7,14 +7,14 @@ import type { AdminContributorApplication } from "@/interfaces/interfaces";
 import {
   sortPendingContributorApplications,
   validateRejectionReason,
-} from "@/lib/adminContributorApplications";
+} from "@/lib/utils/adminContributorApplications";
 import {
   approveContributorApplicationAction,
   fetchContributorApplicationDetailAction,
   fetchPendingContributorApplicationsAction,
   rejectContributorApplicationAction,
 } from "@/lib/actions/adminContributorApplications";
-import { showError, showSuccess } from "@/lib/actions/notifications";
+import { showError, showSuccess } from "@/lib/data/notifications";
 
 interface UseContributorApplicationModerationParams {
   initialPending: AdminContributorApplication[];

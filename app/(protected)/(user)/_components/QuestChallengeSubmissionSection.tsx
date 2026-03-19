@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Stack, Text, Textarea } from "@mantine/core";
 import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
 import { useAuth } from "@/context/AuthContext";
-import { showSuccess } from "@/lib/actions/notifications";
-import { formatDateTime } from "@/lib/formatDate";
+import { showSuccess } from "@/lib/data/notifications";
+import { formatDateTime } from "@/lib/utils/formatDate";
 import {
   createQuestChallengeUpload,
   isSupportedQuestChallengeFile,

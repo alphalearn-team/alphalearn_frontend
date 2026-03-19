@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { fetchCurrentWeeklyQuest } from "@/lib/weeklyQuests";
+import { fetchCurrentWeeklyQuest } from "@/lib/utils/weeklyQuests";
 import LearnerHomePage from "./_components/LearnerHomePage";
 import QuestOfTheWeekModule from "./_components/QuestOfTheWeekModule";
 

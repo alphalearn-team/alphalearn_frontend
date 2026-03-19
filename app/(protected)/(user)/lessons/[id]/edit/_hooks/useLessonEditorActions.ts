@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "@/lib/actions/notifications";
+import { showSuccess, showError } from "@/lib/data/notifications";
 import {
   createLesson,
   deleteLesson,
@@ -14,7 +14,7 @@ import { CreateLessonRequest, LessonContent } from "@/interfaces/interfaces";
 import {
   getLessonModerationSubmitToast,
   normalizeLessonModerationStatus,
-} from "@/lib/lessonModeration";
+} from "@/lib/utils/lessonModeration";
 
 type LoadingAction = "save" | "submit" | null;
 

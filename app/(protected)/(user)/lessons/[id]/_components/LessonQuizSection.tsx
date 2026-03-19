@@ -13,10 +13,10 @@ import {
 } from "@mantine/core";
 import { useAuth } from "@/context/AuthContext";
 import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
-import { showError, showSuccess } from "@/lib/actions/notifications";
+import { showError, showSuccess } from "@/lib/data/notifications";
 import { apiClientFetch } from "@/lib/apiClient";
 import type { UserRole } from "@/lib/auth/rbac";
-import { formatDateTime } from "@/lib/formatDate";
+import { formatDateTime } from "@/lib/utils/formatDate";
 import {
   buildQuizAttemptPayload,
   canSubmitLessonQuiz,
@@ -27,7 +27,7 @@ import {
   toFriendlyLatestQuizAttemptError,
   toFriendlyLessonQuizError,
   type LessonQuizAnswers,
-} from "@/lib/lessonQuiz";
+} from "@/lib/utils/lessonQuiz";
 
 interface LessonQuizSectionProps {
   isOwner: boolean;

@@ -9,7 +9,7 @@ import type {
   WeeklyQuestWeek,
 } from "@/interfaces/interfaces";
 import AdminEmptyState from "@/components/admin/EmptyState";
-import { formatShortDate } from "@/lib/formatDate";
+import { formatShortDate } from "@/lib/utils/formatDate";
 import WeeklyQuestEditorPanel from "./WeeklyQuestEditorPanel";
 import { getWeeklyQuestReminderState } from "./weeklyQuestReminder";
 

@@ -1,8 +1,8 @@
 import type { Lesson, LessonQuiz, LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api";
 import type { UserRole } from "@/lib/auth/rbac";
-import { normalizeLessonQuizzes } from "@/lib/lessonQuiz";
-import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/lessonModeration";
+import { normalizeLessonQuizzes } from "@/lib/utils/lessonQuiz";
+import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
 
 function normalizeLessonDetail(lesson: Lesson): Lesson {
   return {

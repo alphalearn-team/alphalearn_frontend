@@ -9,11 +9,11 @@ import {
   submitLesson,
   unpublishLesson,
 } from "@/lib/actions/lesson";
-import { showSuccess, showError } from "@/lib/actions/notifications";
+import { showSuccess, showError } from "@/lib/data/notifications";
 import {
   getLessonModerationSubmitToast,
   normalizeLessonModerationStatus,
-} from "@/lib/lessonModeration";
+} from "@/lib/utils/lessonModeration";
 import { lessonSectionsToInputs } from "../../../_shared/sectionEditorUtils";
 import {
   getSectionValidationError,

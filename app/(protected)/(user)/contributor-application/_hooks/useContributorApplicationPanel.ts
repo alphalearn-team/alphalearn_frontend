@@ -9,9 +9,9 @@ import {
   resolveContributorApplicationsAfterConflict,
   shouldRefreshRoleAfterApproval,
   type ContributorApplicationRole,
-} from "@/lib/contributorApplications";
+} from "@/lib/utils/contributorApplications";
 import { submitContributorApplication } from "@/lib/actions/contributorApplication";
-import { showError, showSuccess } from "@/lib/actions/notifications";
+import { showError, showSuccess } from "@/lib/data/notifications";
 import { useAuth } from "@/context/AuthContext";
 
 interface UseContributorApplicationPanelParams {

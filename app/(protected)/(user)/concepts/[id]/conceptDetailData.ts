@@ -1,6 +1,6 @@
 import type { Concept, LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api";
-import { resolveLessonModerationStatus } from "@/lib/lessonModeration";
+import { resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
 
 export async function fetchConcept(conceptId: string): Promise<Concept | null> {
   try {

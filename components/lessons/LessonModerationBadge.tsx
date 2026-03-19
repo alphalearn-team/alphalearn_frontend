@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@mantine/core";
-import { getLessonModerationMeta } from "@/lib/lessonModeration";
+import { getLessonModerationMeta } from "@/lib/utils/lessonModeration";
 
 interface LessonModerationBadgeProps {
   status?: string | null;

@@ -8,7 +8,7 @@ import { apiFetch } from "@/lib/api";
 import {
   toFriendlyAdminContributorApplicationError,
   validateRejectionReason,
-} from "@/lib/adminContributorApplications";
+} from "@/lib/utils/adminContributorApplications";
 import { revalidatePath } from "next/cache";
 
 const jsonHeaders = {

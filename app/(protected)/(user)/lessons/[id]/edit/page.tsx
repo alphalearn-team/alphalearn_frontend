@@ -3,7 +3,7 @@ import NotFound from "@/components/NotFound";
 import ContributorLessonEditorShell from "@/components/lessons/ContributorLessonEditorShell";
 import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
 import { getUserRole } from "@/lib/auth/rbac";
-import { getLessonModerationMeta } from "@/lib/lessonModeration";
+import { getLessonModerationMeta } from "@/lib/utils/lessonModeration";
 import LessonEditorWithSectionsClient from "./LessonEditorWithSectionsClient";
 import {
   LessonConceptChips,

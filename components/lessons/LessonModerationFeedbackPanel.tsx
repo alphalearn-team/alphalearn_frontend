@@ -1,10 +1,10 @@
 "use client";
 
-import { formatDateTime } from "@/lib/formatDate";
+import { formatDateTime } from "@/lib/utils/formatDate";
 import {
   formatLessonModerationEventType,
   getLessonModerationMeta,
-} from "@/lib/lessonModeration";
+} from "@/lib/utils/lessonModeration";
 
 interface LessonModerationFeedbackPanelProps {
   status?: string | null;

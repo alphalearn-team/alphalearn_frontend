@@ -1,7 +1,7 @@
 "use server";
 
 import type { SaveWeeklyQuestOfficialAssignmentRequest } from "@/interfaces/interfaces";
-import { saveWeeklyQuestOfficialAssignment } from "@/lib/weeklyQuests";
+import { saveWeeklyQuestOfficialAssignment } from "@/lib/utils/weeklyQuests";
 import { revalidatePath } from "next/cache";
 
 export async function saveWeeklyQuestAssignmentAction(

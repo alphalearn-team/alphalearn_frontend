@@ -3,8 +3,8 @@
 import { Badge, Button, Card, Group, Table, Text, Title } from "@mantine/core";
 import AdminEmptyState from "@/components/admin/EmptyState";
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
-import { getApplicantLabel } from "@/lib/adminContributorApplications";
-import { formatDateTime } from "@/lib/formatDate";
+import { getApplicantLabel } from "@/lib/utils/adminContributorApplications";
+import { formatDateTime } from "@/lib/utils/formatDate";
 
 interface ApplicationsTableProps {
   applications: AdminContributorApplication[];

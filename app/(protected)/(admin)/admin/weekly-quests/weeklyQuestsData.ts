@@ -3,7 +3,7 @@ import { fetchAdminConcepts } from "../concepts/conceptsData";
 import {
   fetchAdminWeeklyQuestWeeks,
   fetchWeeklyQuestTemplates,
-} from "@/lib/weeklyQuests";
+} from "@/lib/utils/weeklyQuests";
 
 export async function fetchWeeklyQuestWeeks(): Promise<WeeklyQuestWeek[]> {
   return fetchAdminWeeklyQuestWeeks();

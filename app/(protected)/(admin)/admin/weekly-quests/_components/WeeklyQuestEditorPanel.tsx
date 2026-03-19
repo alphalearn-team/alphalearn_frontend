@@ -7,8 +7,8 @@ import type {
   QuestTemplate,
   WeeklyQuestWeek,
 } from "@/interfaces/interfaces";
-import { formatDateTime, formatShortDate } from "@/lib/formatDate";
-import { showError, showSuccess } from "@/lib/actions/notifications";
+import { formatDateTime, formatShortDate } from "@/lib/utils/formatDate";
+import { showError, showSuccess } from "@/lib/data/notifications";
 import { saveWeeklyQuestAssignmentAction } from "../actions";
 import { getWeeklyQuestReminderState } from "./weeklyQuestReminder";
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { addConcept } from "@/lib/actions/adminConcepts";
-import { showError } from "@/lib/actions/notifications";
+import { showError } from "@/lib/data/notifications";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {

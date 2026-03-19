@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card, Container, Stack, Text } from "@mantine/core";
-import { fetchCurrentWeeklyQuest } from "@/lib/weeklyQuests";
+import { fetchCurrentWeeklyQuest } from "@/lib/utils/weeklyQuests";
 import QuestChallengeSubmissionSection from "../_components/QuestChallengeSubmissionSection";
 
 export default async function WeeklyQuestPage() {

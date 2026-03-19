@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { showSuccess, showError } from "@/lib/actions/notifications";
+import { showSuccess, showError } from "@/lib/data/notifications";
 import { promoteUser, demoteUser } from "@/lib/actions/adminContributors";
 import type { AdminUser } from "@/interfaces/interfaces";
 
