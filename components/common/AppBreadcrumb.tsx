@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const labelOverrides: Record<string, string> = {
+interface AppBreadcrumbProps {
+  /** Overrides for URL segments → display labels */
+  labelOverrides?: Record<string, string>;
+  /** Path prefix to strip before building crumbs (e.g. "admin") */
+  rootSegment?: string;
+}
+
+const defaultLabelOverrides: Record<string, string> = {
+  // User routes
   lessons: "Lessons",
   concepts: "Concepts",
   profile: "Profile",
@@ -12,11 +20,18 @@ const labelOverrides: Record<string, string> = {
   create: "Create Lesson",
   edit: "Edit",
   "contributor-application": "Contributor Access",
+  // Admin routes
+  admin: "Dashboard",
+  contributors: "Users",
+  "contributor-applications": "Contributor Applications",
+  "weekly-quests": "Weekly Quests",
+  add: "Add New",
 };
 
-function formatSegment(segment: string) {
-  if (labelOverrides[segment]) return labelOverrides[segment];
+function formatSegment(segment: string, overrides: Record<string, string>) {
+  if (overrides[segment]) return overrides[segment];
 
+  // Treat long alphanumeric IDs as "Detail"
   if (/^[a-zA-Z0-9_-]{8,}$/.test(segment)) return "Detail";
 
   return segment
@@ -25,20 +40,33 @@ function formatSegment(segment: string) {
     .join(" ");
 }
 
-export default function UserBreadcrumb() {
+export default function AppBreadcrumb({
+  labelOverrides = {},
+  rootSegment,
+}: AppBreadcrumbProps = {}) {
   const pathname = usePathname();
-  const segments = pathname.split("/").filter(Boolean);
+  const allSegments = pathname.split("/").filter(Boolean);
 
-  if (segments.length <= 1) return null;
+  // If a rootSegment is provided, start crumbs from that segment
+  const startIndex = rootSegment
+    ? allSegments.indexOf(rootSegment)
+    : 0;
 
-  const crumbs = segments.map((segment, index) => {
-    const path = `/${segments.slice(0, index + 1).join("/")}`;
-    const isLast = index === segments.length - 1;
+  if (startIndex < 0) return null;
+
+  const relevantSegments = allSegments.slice(startIndex);
+  if (relevantSegments.length <= 1) return null;
+
+  const mergedOverrides = { ...defaultLabelOverrides, ...labelOverrides };
+
+  const crumbs = relevantSegments.map((segment, index) => {
+    const path = "/" + allSegments.slice(0, startIndex + index + 1).join("/");
+    const isLast = index === relevantSegments.length - 1;
 
     return {
       path,
       isLast,
-      label: formatSegment(segment),
+      label: formatSegment(segment, mergedOverrides),
     };
   });
 

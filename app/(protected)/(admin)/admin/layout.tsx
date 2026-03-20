@@ -2,6 +2,7 @@ import "./admin.css";
 import { getUserRole } from "@/lib/auth/rbac";
 import NotFound from "@/components/NotFound";
 import AdminSidebar from "./_components/AdminSidebar";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 
 export default async function AdminLayout({
   children,
@@ -19,6 +20,7 @@ export default async function AdminLayout({
     <div className="sidebar-layout admin-theme">
       <AdminSidebar />
       <main className="sidebar-content">
+        <AppBreadcrumb rootSegment="admin" />
         {children}
       </main>
     </div>

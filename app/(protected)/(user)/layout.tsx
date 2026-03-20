@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import NotFound from "@/components/NotFound";
 import UserSidebar from "./_components/UserSidebar";
-import UserBreadcrumb from "./_components/UserBreadcrumb";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 import { getUserRole } from "@/lib/auth/rbac";
 export default async function UserLayout({
   children,
@@ -15,7 +15,7 @@ export default async function UserLayout({
       <>
         <UserSidebar />
         <main className="sidebar-content">
-          <UserBreadcrumb />
+          <AppBreadcrumb />
           {children}
         </main>
       </>
