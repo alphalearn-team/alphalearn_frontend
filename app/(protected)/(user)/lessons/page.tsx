@@ -5,7 +5,7 @@ import LessonsEmptyState from "./_components/LessonsEmptyState";
 import LessonsGridSection from "./_components/LessonsGridSection";
 import LessonsHeroSection from "./_components/LessonsHeroSection";
 import SpotlightSearch from "./_components/SpotlightSearch";
-import { fetchLessons } from "./fetchLessons";
+import { fetchLessons } from "./_components/fetchLessons";
 
 export default async function LessonsPage() {
   const [role, lessons] = await Promise.all([getUserRole(), fetchLessons()]);

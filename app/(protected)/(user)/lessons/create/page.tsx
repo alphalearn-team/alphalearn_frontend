@@ -4,7 +4,7 @@ import {
   CreateLessonHeaderMeta,
   CreateLessonShellTitle,
 } from "./_components/CreateLessonHeaderMeta";
-import { getCreateLessonPageData } from "./createLessonData";
+import { getCreateLessonPageData } from "./_components/createLessonData";
 
 export default async function CreateLessonPage({
   searchParams,

@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/api";
 import {
   buildAdminDashboardSummaryQuery,
   type AdminDashboardSummaryQuery,
-} from "@/lib/utils/adminDashboard";
+} from "./utils";
 
 type DashboardSummaryResult =
   | { success: true; data: AdminDashboardSummary }

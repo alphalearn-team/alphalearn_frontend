@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import SearchBar from "@/components/concepts/SearchBar";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import AdminEmptyState from "@/components/admin/EmptyState";
-import { deleteConcept } from "@/lib/actions/adminConcepts";
+import { deleteConcept } from "../actions";
 import { showSuccess, showError } from "@/lib/data/notifications";
 import type { AdminConcept } from "@/interfaces/interfaces";
 import { DateDisplay } from "./DateDisplay";

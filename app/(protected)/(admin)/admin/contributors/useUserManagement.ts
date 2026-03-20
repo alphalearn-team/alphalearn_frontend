@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { showSuccess, showError } from "@/lib/data/notifications";
-import { promoteUser, demoteUser } from "@/lib/actions/adminContributors";
+import { promoteUser, demoteUser } from "./actions";
 import type { AdminUser } from "@/interfaces/interfaces";
 
 export type FilterType = "all" | "contributors" | "learners";

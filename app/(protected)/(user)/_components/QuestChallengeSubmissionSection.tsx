@@ -11,7 +11,7 @@ import {
   isSupportedQuestChallengeFile,
   saveQuestChallengeSubmission,
   toFriendlyQuestChallengeError,
-} from "@/lib/weeklyQuestChallenge";
+} from "@/lib/utils/weeklyQuestChallenge";
 
 type UploadState = "idle" | "uploading" | "uploadFailed" | "uploaded";
 type SaveState = "idle" | "saving" | "saveFailed" | "saved";

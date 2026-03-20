@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { addConcept } from "@/lib/actions/adminConcepts";
+import { addConcept } from "../../actions";
 import { showError } from "@/lib/data/notifications";
 
 function getErrorMessage(error: unknown): string {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { approveLesson, rejectLesson } from "@/lib/actions/adminLessons";
+import { approveLesson, rejectLesson } from "../actions";
 import { showError, showSuccess } from "@/lib/data/notifications";
 
 interface UseLessonReviewActionsParams {

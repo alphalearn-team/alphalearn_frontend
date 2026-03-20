@@ -6,7 +6,7 @@ import type {
   AdminDashboardSummary,
 } from "@/interfaces/interfaces";
 import AdminEmptyState from "@/components/admin/EmptyState";
-import { fetchAdminDashboardSummaryByQueryAction } from "@/lib/actions/adminDashboard";
+import { fetchAdminDashboardSummaryByQueryAction } from "./actions";
 import {
   getDashboardMetrics,
 } from "./dashboardViewModel";

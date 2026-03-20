@@ -1,7 +1,7 @@
 "use client";
 
 import type { ContributorApplication } from "@/interfaces/interfaces";
-import { type ContributorApplicationRole } from "@/lib/utils/contributorApplications";
+import { type ContributorApplicationRole } from "../utils";
 import ContributorApplicationAlerts from "./ContributorApplicationAlerts";
 import ContributorApplicationSummary from "./ContributorApplicationSummary";
 import { useContributorApplicationPanel } from "../_hooks/useContributorApplicationPanel";

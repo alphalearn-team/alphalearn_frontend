@@ -2,7 +2,7 @@
 
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
 import ConfirmModal from "@/components/common/ConfirmModal";
-import { getApplicantLabel } from "@/lib/utils/adminContributorApplications";
+import { getApplicantLabel } from "../utils";
 import ApplicationDetailPanel from "./ApplicationDetailPanel";
 import ApplicationsTable from "./ApplicationsTable";
 import RejectApplicationModal from "./RejectApplicationModal";

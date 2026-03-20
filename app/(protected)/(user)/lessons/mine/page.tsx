@@ -5,7 +5,7 @@ import LessonCard from "@/components/lessons/LessonCard";
 import { getUserRole } from "@/lib/auth/rbac";
 import MyLessonsEmptyState from "./_components/MyLessonsEmptyState";
 import MyLessonsHeader from "./_components/MyLessonsHeader";
-import { fetchMyLessons } from "./myLessonsData";
+import { fetchMyLessons } from "./_components/myLessonsData";
 
 export default async function MyLessonsPage() {
   const role = await getUserRole();

@@ -27,7 +27,7 @@ export default function LessonsHeroSection({ role }: { role: UserRole }) {
             </Text>
           </Stack>
 
-          {role === "CONTRIBUTOR" || role === "LEARNER" ? (
+          {role === "CONTRIBUTOR" ? (
             <Stack align="flex-end" gap="sm">
               <GlowButton href="#lessons-list" className="!w-[248px] justify-center">
                 View All Lessons

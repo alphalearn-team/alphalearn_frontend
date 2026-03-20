@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Modal, Select } from "@mantine/core";
 import { showSuccess, showError } from "@/lib/data/notifications";
 import { Question } from "./types";
-import { createQuizAction } from "@/lib/actions/quiz";
+import { createQuizAction } from "../createQuizActions";
 import { fetchMyLessonsAction } from "@/lib/actions/lesson";
 import GlowButton from "../../../../../../components/common/GlowButton";
 
