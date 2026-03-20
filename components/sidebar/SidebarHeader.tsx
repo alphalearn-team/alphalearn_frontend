@@ -19,23 +19,23 @@ export default function SidebarHeader({
   onBrandClick,
 }: SidebarHeaderProps) {
   return (
-    <div className={`admin-sidebar-header ${collapsed ? "collapsed" : ""}`}>
+    <div className={`sidebar-header ${collapsed ? "collapsed" : ""}`}>
       <Link
         href={brandHref}
-        className="admin-sidebar-brand"
+        className="sidebar-brand"
         onClick={onBrandClick}
       >
-        <div className="admin-sidebar-logo">
+        <div className="sidebar-logo">
           <span className="material-symbols-outlined">{brandIcon}</span>
         </div>
-        <div className="admin-sidebar-brand-text">
-          <span className="admin-sidebar-title">{brandTitle}</span>
+        <div className="sidebar-brand-text">
+          <span className="sidebar-title">{brandTitle}</span>
           {brandSubtitle && (
-            <span className="admin-sidebar-subtitle">{brandSubtitle}</span>
+            <span className="sidebar-subtitle">{brandSubtitle}</span>
           )}
         </div>
       </Link>
-      <div className="admin-sidebar-header-actions">
+      <div className="sidebar-header-actions">
         <NotificationBell compact={collapsed} />
       </div>
     </div>

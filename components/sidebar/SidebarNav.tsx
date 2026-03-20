@@ -21,9 +21,9 @@ function SidebarNavSectionBlock({
   section: SidebarNavSection;
 }) {
   return (
-    <div className="admin-sidebar-nav-section" key={section.label}>
-      <span className="admin-sidebar-nav-label">{section.label}</span>
-      <ul className="admin-sidebar-nav-list">
+    <div className="sidebar-nav-section" key={section.label}>
+      <span className="sidebar-nav-label">{section.label}</span>
+      <ul className="sidebar-nav-list">
         {section.items.map((item) => {
           const itemActive = isActive ? isActive(item) : false;
 
@@ -31,15 +31,15 @@ function SidebarNavSectionBlock({
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`admin-sidebar-nav-item ${itemActive ? "active" : ""}`}
+                className={`sidebar-nav-item ${itemActive ? "active" : ""}`}
                 title={collapsed ? item.label : undefined}
                 onClick={onItemClick}
               >
-                <span className="admin-sidebar-nav-icon material-symbols-outlined">
+                <span className="sidebar-nav-icon material-symbols-outlined">
                   {item.icon}
                 </span>
-                <span className="admin-sidebar-nav-text">{item.label}</span>
-                {itemActive && <span className="admin-sidebar-nav-indicator" />}
+                <span className="sidebar-nav-text">{item.label}</span>
+                {itemActive && <span className="sidebar-nav-indicator" />}
               </Link>
             </li>
           );
@@ -57,7 +57,7 @@ export default function SidebarNav({
   sections,
 }: SidebarNavProps) {
   return (
-    <nav className="admin-sidebar-nav">
+    <nav className="sidebar-nav">
       {sections.map((section) => (
         <SidebarNavSectionBlock
           key={section.label}

@@ -16,9 +16,9 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="admin-layout admin-theme">
+    <div className="sidebar-layout admin-theme">
       <AdminSidebar />
-      <main className="admin-content">
+      <main className="sidebar-content">
         {children}
       </main>
     </div>

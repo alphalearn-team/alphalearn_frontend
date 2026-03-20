@@ -3,7 +3,7 @@ import type {
   QuestChallengeUploadRequest,
   QuestChallengeUploadResponse,
   SaveQuestChallengeSubmissionRequest,
-} from "../interfaces/interfaces";
+} from "@/interfaces/interfaces";
 
 const QUEST_CHALLENGE_UPLOAD_PATH = "/me/weekly-quest/current/quest-challenge/upload";
 const QUEST_CHALLENGE_SUBMISSION_PATH = "/me/weekly-quest/current/quest-challenge/submission";
@@ -81,7 +81,7 @@ export async function createQuestChallengeUpload(
   accessToken: string,
   payload: QuestChallengeUploadRequest,
 ) {
-  const { apiClientFetch } = await import("./apiClient");
+  const { apiClientFetch } = await import("../apiClient");
 
   return apiClientFetch<QuestChallengeUploadResponse>(QUEST_CHALLENGE_UPLOAD_PATH, accessToken, {
     method: "POST",
@@ -96,7 +96,7 @@ export async function saveQuestChallengeSubmission(
   accessToken: string,
   payload: SaveQuestChallengeSubmissionRequest,
 ) {
-  const { apiClientFetch } = await import("./apiClient");
+  const { apiClientFetch } = await import("../apiClient");
 
   return apiClientFetch<LearnerQuestChallengeSubmission>(
     QUEST_CHALLENGE_SUBMISSION_PATH,

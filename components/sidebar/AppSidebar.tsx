@@ -30,7 +30,6 @@ export interface AppSidebarProps {
   sections: SidebarNavSection[];
   quickActionsSection?: SidebarNavSection;
   userFallbackLabel?: string;
-  avatarAccentBorder?: string;
 }
 
 export default function AppSidebar({
@@ -42,7 +41,6 @@ export default function AppSidebar({
   sections,
   quickActionsSection,
   userFallbackLabel = "User",
-  avatarAccentBorder = "var(--color-accent)",
 }: AppSidebarProps) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
@@ -74,7 +72,7 @@ export default function AppSidebar({
   return (
     <>
       <button
-        className="admin-sidebar-toggle"
+        className="sidebar-toggle"
         onClick={toggleMobileSidebar}
         aria-label="Toggle sidebar"
       >
@@ -85,13 +83,13 @@ export default function AppSidebar({
 
       {mobileOpen && (
         <div
-          className="admin-sidebar-overlay"
+          className="sidebar-overlay"
           onClick={closeMobileSidebar}
         />
       )}
 
       <aside
-        className={`admin-sidebar ${collapsed ? "collapsed" : ""} ${
+        className={`sidebar ${collapsed ? "collapsed" : ""} ${
           mobileOpen ? "mobile-open" : ""
         }`}
       >
@@ -105,7 +103,7 @@ export default function AppSidebar({
         />
 
         <button
-          className="admin-sidebar-collapse-btn"
+          className="sidebar-collapse-btn"
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -123,7 +121,6 @@ export default function AppSidebar({
         />
 
         <SidebarFooter
-          avatarAccentBorder={avatarAccentBorder}
           avatarLetter={avatarLetter}
           collapsed={collapsed}
           onSignOut={signOut}
