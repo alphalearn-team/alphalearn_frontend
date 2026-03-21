@@ -64,7 +64,7 @@ export default function AdminDashboardKpiCards({
     rangeMeta?.comparisonStart && rangeMeta?.comparisonEnd
       ? `${rangeMeta.comparisonStart} to ${rangeMeta.comparisonEnd}`
       : "previous equivalent window";
-  const tooltipText = `Current total for ${appliedRangeText}: ${currentWindowText}. Delta compares against ${comparisonWindowText}. Formula: (current - previous) / previous × 100.`;
+  // const tooltipText = `Current total for ${appliedRangeText}: ${currentWindowText}. Delta compares against ${comparisonWindowText}. Formula: (current - previous) / previous × 100.`;
 
   return (
     <section ref={popoverRootRef} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

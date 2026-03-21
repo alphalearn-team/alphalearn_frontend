@@ -2,7 +2,7 @@
 
 import { Badge, Card, Text } from "@mantine/core";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import SpotlightWrapper, { type SpotlightSearchItem } from "@/components/SpotlightWrapper";
 import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
@@ -24,7 +24,7 @@ const urgencyConfig = {
 export default function LessonsManagementTable({
   lessons,
 }: LessonsManagementTableProps) {
-  const router = useRouter();
+  // const router = useRouter();
   const getAutomatedReasons = (lesson: AdminLessonQueueItem) =>
     Array.isArray(lesson.automatedModerationReasons)
       ? lesson.automatedModerationReasons

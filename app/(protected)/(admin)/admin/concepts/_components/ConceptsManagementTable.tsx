@@ -3,7 +3,7 @@
 import { Card, Text, ActionIcon } from "@mantine/core";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import SpotlightWrapper, {
   type SpotlightSearchItem,
 } from "@/components/SpotlightWrapper";
@@ -21,7 +21,7 @@ interface ConceptsManagementTableProps {
 export default function ConceptsManagementTable({
   concepts,
 }: ConceptsManagementTableProps) {
-  const router = useRouter();
+  // const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedConcept, setSelectedConcept] = useState<AdminConcept | null>(
     null,
