@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check:import-case": "node scripts/check-import-case.mjs",
-    "check:orphan-components": "node scripts/check-orphan-components.mjs"
+    "check:orphan-components": "node scripts/check-orphan-components.mjs",
+    "check": "npm run lint && npm run check:import-case && npm run check:orphan-components && npm run build"
   },
   "dependencies": {
     "@dnd-kit/react": "^0.3.2",
