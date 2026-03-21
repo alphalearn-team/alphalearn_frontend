@@ -1,5 +1,5 @@
 import { Container, Group, Stack, Text, Title } from "@mantine/core";
-import GlowButton from "@/components/common/GlowButton";
+import GlowButton from "@/components/GlowButton";
 
 export default function MyLessonsHeader({
   canCreateLessons,

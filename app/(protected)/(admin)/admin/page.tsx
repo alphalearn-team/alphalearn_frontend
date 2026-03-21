@@ -1,4 +1,4 @@
-import AdminPageHeader from "@/components/admin/PageHeader";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
 import { fetchAdminDashboardSummaryByQueryAction } from "./_components/actions";
 import AdminDashboardSummaryPanel from "./_components/AdminDashboardSummaryPanel";
 

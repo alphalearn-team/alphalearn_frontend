@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import AdminPageHeader from "@/components/admin/PageHeader";
-import GlowIconButton from "@/components/common/GlowIconButton";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
+import GlowIconButton from "@/components/GlowIconButton";
 import ConceptsManagementTable from "./_components/ConceptsManagementTable";
 import ConceptsManagementFallback from "./_components/ConceptsManagementFallback";
 import { fetchAdminConcepts } from "./conceptsData";

@@ -4,7 +4,7 @@ import type { AdminUser } from "@/interfaces/interfaces";
 import { useUserManagement } from "../useUserManagement";
 import { StatsCards } from "./StatsCards";
 import { UsersTableView } from "./UsersTableView";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 
 interface UsersManagementTableProps {
   users: AdminUser[];

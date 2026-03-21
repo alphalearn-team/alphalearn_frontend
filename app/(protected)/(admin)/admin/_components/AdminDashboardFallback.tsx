@@ -1,4 +1,4 @@
-import CardSkeleton from "@/components/common/CardSkeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 
 export default function AdminDashboardFallback() {
   return (

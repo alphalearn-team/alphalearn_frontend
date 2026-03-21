@@ -3,7 +3,7 @@ import type {
   AdminDashboardAlert,
   AdminDashboardTopConcept,
 } from "@/interfaces/interfaces";
-import AdminEmptyState from "@/components/admin/EmptyState";
+import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
 import { formatMetric } from "./dashboardViewModel";
 
 type AdminDashboardInsightsProps = {

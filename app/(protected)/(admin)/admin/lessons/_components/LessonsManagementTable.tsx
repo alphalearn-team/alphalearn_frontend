@@ -5,9 +5,9 @@ import { Spotlight, spotlight } from "@mantine/spotlight";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import SearchBar from "@/components/concepts/SearchBar";
-import AdminEmptyState from "@/components/admin/EmptyState";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import SearchBar from "@/components/SearchBar";
+import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
+import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
 import { RelativeTime, getUrgencyLevel } from "./RelativeTime";
 import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 

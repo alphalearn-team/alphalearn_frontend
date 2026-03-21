@@ -1,5 +1,4 @@
-import type { ConfirmColor } from "./confirmModalStyles";
-import { getConfirmColorClasses } from "./confirmModalStyles";
+import { getConfirmColorClasses, type ConfirmColor } from "./confirmModalStyles";
 
 interface ConfirmModalHeaderProps {
   confirmColor: ConfirmColor;

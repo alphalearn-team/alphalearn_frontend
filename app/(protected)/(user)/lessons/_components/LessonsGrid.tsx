@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Group, SimpleGrid, Stack } from "@mantine/core";
+import { Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import type { LessonSummary } from "@/interfaces/interfaces";
-import LessonCard from "@/components/lessons/LessonCard";
-import SearchTrigger from "@/components/lessons/SearchTrigger";
-import Pagination from "@/components/concepts/Pagination";
+import LessonCard from "@/app/(protected)/(user)/lessons/_components/LessonCard";
+import SearchTrigger from "@/app/(protected)/(user)/lessons/_components/SearchTrigger";
+import Pagination from "@/components/pagination/Pagination";
 import Link from "next/link";
 
 const ITEMS_PER_PAGE = 6;
 
-export default function LessonsGridSection({
+export default function LessonsGrid({
   lessons,
   role,
 }: {
@@ -18,6 +18,10 @@ export default function LessonsGridSection({
   role?: string | null;
 }) {
   const [currentPage, setCurrentPage] = useState(1);
+
+  if (lessons.length === 0) {
+    return <LessonsEmptyState />;
+  }
 
   const totalPages = Math.ceil(lessons.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -76,5 +80,25 @@ function LessonsHeader({ count, role }: { count: number; role?: string | null })
         <SearchTrigger />
       </div>
     </Group>
+  );
+}
+
+function LessonsEmptyState() {
+  return (
+    <Stack align="center" py={100} gap="md">
+      <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center">
+        <span className="material-symbols-outlined text-3xl text-[var(--color-text-muted)]">
+          menu_book
+        </span>
+      </div>
+
+      <Title order={3} className="text-[var(--color-text-muted)]">
+        No lessons yet
+      </Title>
+
+      <Text className="text-[var(--color-text-muted)] text-sm">
+        No lessons available yet. Be the first to create one!
+      </Text>
+    </Stack>
   );
 }

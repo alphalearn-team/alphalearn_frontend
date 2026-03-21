@@ -1,5 +1,5 @@
 
-import AdminPageHeader from "@/components/admin/PageHeader";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
 import { fetchPendingContributorApplicationsAction } from "./actions";
 import ContributorApplicationsModerationPanel from "./_components/ContributorApplicationsModerationPanel";
 

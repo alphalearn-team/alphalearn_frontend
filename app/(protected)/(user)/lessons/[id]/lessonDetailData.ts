@@ -55,9 +55,6 @@ export async function checkLessonOwnership(
   role: string,
   lessonPublicId: string,
 ): Promise<boolean> {
-  if (role === "ADMIN") {
-    return false;
-  }
 
   try {
     const myLessons = await apiFetch<LessonSummary[]>("/lessons/mine");

@@ -1,7 +1,7 @@
 import "@mantine/tiptap/styles.css";
 import { Container } from "@mantine/core";
 import { notFound } from "next/navigation";
-import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
+import LessonModerationFeedbackPanel from "@/app/(protected)/(user)/lessons/_components/LessonModerationFeedbackPanel";
 import { getUserRole } from "@/lib/auth/rbac";
 import { LessonContentDisplay } from "./_components/LessonContentDisplay";
 import LessonDetailHeader from "./_components/LessonDetailHeader";

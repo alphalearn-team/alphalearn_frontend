@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import AdminPageHeader from "@/components/admin/PageHeader";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
 import UsersManagementTable from "./_components/UsersManagementTable";
 import UsersManagementFallback from "./_components/UsersManagementFallback";
 import { fetchAdminUsers } from "./contributorsData";

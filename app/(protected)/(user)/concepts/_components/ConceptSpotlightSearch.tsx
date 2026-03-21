@@ -7,7 +7,7 @@ import {
     spotlight,
 } from "@mantine/spotlight";
 import type { Concept } from "@/interfaces/interfaces";
-import ContentSpotlight from "@/components/common/ContentSpotlight";
+import ContentSpotlight from "@/components/ContentSpotlight";
 
 type SpotlightActionItem = SpotlightActionData | SpotlightActionGroupData;
 

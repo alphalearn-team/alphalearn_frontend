@@ -1,5 +1,5 @@
 import { Badge, Card, Text, Button } from "@mantine/core";
-import AdminEmptyState from "@/components/admin/EmptyState";
+import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
 import type { AdminUser } from "@/interfaces/interfaces";
 import type { FilterType } from "../useUserManagement";
 

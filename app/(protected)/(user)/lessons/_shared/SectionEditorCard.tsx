@@ -1,7 +1,7 @@
 "use client";
 
 import { ActionIcon, TextInput, Tooltip } from "@mantine/core";
-import { SectionBlock } from "@/components/lessons/sections";
+import { SectionBlock } from "@/app/(protected)/(user)/lessons/_components/LessonBuilder";
 import type { LessonSectionInput } from "@/interfaces/interfaces";
 import type { SectionWithId } from "./sectionEditorUtils";
 

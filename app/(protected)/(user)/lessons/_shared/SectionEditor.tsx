@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@mantine/core";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import type { LessonSectionInput } from "@/interfaces/interfaces";
-import { SectionPicker } from "@/components/lessons/sections";
+import { SectionPicker } from "@/app/(protected)/(user)/lessons/_components/LessonBuilder";
 import SectionEditorCard from "./SectionEditorCard";
 import SectionEditorEmptyState from "./SectionEditorEmptyState";
 import { useSectionEditorState } from "./useSectionEditorState";

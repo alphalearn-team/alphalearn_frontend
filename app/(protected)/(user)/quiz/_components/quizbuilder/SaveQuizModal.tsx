@@ -6,7 +6,7 @@ import { showSuccess, showError } from "@/lib/data/notifications";
 import { Question } from "./types";
 import { createQuizAction } from "../createQuizActions";
 import { fetchMyLessonsAction } from "@/lib/actions/lesson";
-import GlowButton from "../../../../../../components/common/GlowButton";
+import GlowButton from "../../../../../../components/GlowButton";
 
 interface SaveQuizModalProps {
     opened: boolean;

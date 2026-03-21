@@ -7,7 +7,7 @@ import {
     spotlight,
 } from "@mantine/spotlight";
 import type { LessonSummary } from "@/interfaces/interfaces";
-import ContentSpotlight from "@/components/common/ContentSpotlight";
+import ContentSpotlight from "@/components/ContentSpotlight";
 
 type SpotlightActionItem = SpotlightActionData | SpotlightActionGroupData;
 
@@ -15,7 +15,7 @@ interface SpotlightSearchProps {
     lessons: LessonSummary[];
 }
 
-export default function SpotlightSearch({ lessons }: SpotlightSearchProps) {
+export default function LessonSpotlightSearch({ lessons }: SpotlightSearchProps) {
     const router = useRouter();
 
     const actions: SpotlightActionData[] = lessons.map((lesson) => {

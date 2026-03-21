@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import AdminPageHeader from "@/components/admin/PageHeader";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
 import WeeklyQuestPlanningFallback from "./_components/WeeklyQuestPlanningFallback";
 import WeeklyQuestPlanningList from "./_components/WeeklyQuestPlanningList";
 import {

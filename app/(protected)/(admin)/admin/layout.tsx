@@ -2,7 +2,7 @@ import "./admin.css";
 import { getUserRole } from "@/lib/auth/rbac";
 import NotFound from "@/components/NotFound";
 import AdminSidebar from "./_components/AdminSidebar";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppBreadcrumb from "@/components/AppBreadcrumb";
 
 export default async function AdminLayout({
   children,

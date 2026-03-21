@@ -1,4 +1,4 @@
-import ContributorLessonEditorShell from "@/components/lessons/ContributorLessonEditorShell";
+import ContributorLessonEditorShell from "@/app/(protected)/(user)/lessons/_components/ContributorLessonEditorShell";
 import LessonEditorWithSections from "./_components/LessonEditorWithSections";
 import {
   CreateLessonHeaderMeta,

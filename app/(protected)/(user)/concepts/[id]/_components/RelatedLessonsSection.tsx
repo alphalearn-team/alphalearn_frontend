@@ -1,6 +1,6 @@
 import type { LessonSummary } from "@/interfaces/interfaces";
 import { SimpleGrid, Text, Title } from "@mantine/core";
-import LessonCard from "@/components/lessons/LessonCard";
+import LessonCard from "@/app/(protected)/(user)/lessons/_components/LessonCard";
 
 export default function RelatedLessonsSection({
   lessons,

@@ -21,7 +21,7 @@ const sections: SidebarNavSection[] = [
 function getQuickActionsSection(
   userRole: string | null,
 ): SidebarNavSection | undefined {
-  if (userRole === "ADMIN" || userRole === null) {
+  if (userRole === null) {
     return undefined;
   }
 
@@ -49,7 +49,6 @@ function getQuickActionsSection(
 function toRoleLabel(role: string | null) {
   if (role === "CONTRIBUTOR") return "Contributor";
   if (role === "LEARNER") return "Learner";
-  if (role === "ADMIN") return "Administrator";
   return "Member";
 }
 

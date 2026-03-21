@@ -11,7 +11,7 @@
  * Now uses the reusable GlowIconButton component
  */
 
-import GlowIconButton from "@/components/common/GlowIconButton";
+import GlowIconButton from "@/components/GlowIconButton";
 
 interface SearchBarProps {
   onSearchClick: () => void;

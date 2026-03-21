@@ -2,9 +2,9 @@
 
 import { Group, Stack, Title, Text, Tooltip } from "@mantine/core";
 import type { LessonSummary } from "@/interfaces/interfaces";
-import ContentCardShell from "@/components/common/ContentCardShell";
+import ContentCardShell from "@/components/ContentCardShell";
 import { formatShortDate } from "@/lib/utils/formatDate";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
 
 type LessonCardProps = LessonSummary;
 interface LessonCardOptions {

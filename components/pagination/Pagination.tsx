@@ -1,17 +1,6 @@
 import { Pagination as MantinePagination } from "@mantine/core";
 import styles from "./Pagination.module.css";
 
-/**
- * CONTROLLED COMPONENT (Using Mantine Pagination)
- * 
- * Purpose: Pagination controls
- * Responsibility: Display pagination UI and notify parent of changes
- * 
- * React Concept: "Lifting State Up" (same as before)
- * Library Integration: Uses Mantine Pagination component
- * 
- */
-
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
