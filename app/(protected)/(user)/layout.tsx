@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import NotFound from "@/components/NotFound";
 import UserSidebar from "./_components/UserSidebar";
 import AppBreadcrumb from "@/components/AppBreadcrumb";
-import { getUserRole } from "@/lib/auth/rbac";
+import { getUserRole } from "@/lib/auth/server/rbac";
 export default async function UserLayout({
   children,
 }: {

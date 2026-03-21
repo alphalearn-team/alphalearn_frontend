@@ -2,7 +2,7 @@
 
 import { Text, Tooltip, Stack, Title } from "@mantine/core";
 import type { Concept } from "@/interfaces/interfaces";
-import ContentCardShell from "@/components/ContentCardShell";
+import ContentCardShell from "@/components/CardShell";
 import { formatShortDate } from "@/lib/utils/formatDate";
 
 type ConceptCardProps = Concept;

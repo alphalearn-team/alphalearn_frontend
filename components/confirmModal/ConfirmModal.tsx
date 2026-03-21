@@ -2,7 +2,7 @@
 
 import { Button, Group, Modal } from "@mantine/core";
 import ConfirmModalHeader from "./ConfirmModalHeader";
-import { getConfirmButtonStyles, type ConfirmColor } from "./confirmModalStyles";
+import { getConfirmButtonStyles, type ConfirmColor } from "./confirmModalStyles"
 
 interface ConfirmModalProps {
   opened: boolean;

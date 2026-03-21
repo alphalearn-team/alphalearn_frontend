@@ -1,5 +1,5 @@
 import type { ContributorApplication } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 
 export type ContributorApplicationsResult = {
   data: ContributorApplication[];

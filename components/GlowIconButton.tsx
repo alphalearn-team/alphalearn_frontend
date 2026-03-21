@@ -2,19 +2,6 @@
 
 import { useRouter } from "next/navigation";
 
-/**
- * REUSABLE COMPONENT - Glowing Icon Button
- * 
- * Purpose: Icon button with glowing hover effect
- * Features:
- * - Scales on hover/active
- * - Glows with accent color
- * - Uses Material Symbols icons
- * - Light/dark mode compatible
- * - Can navigate with href or handle clicks
- * 
- * Used for: Search, Add, Actions, etc.
- */
 
 interface GlowIconButtonProps {
   icon: string;

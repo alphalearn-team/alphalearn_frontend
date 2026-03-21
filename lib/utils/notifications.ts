@@ -1,6 +1,6 @@
 "use server";
 
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 
 export interface Notification {
     publicId: string;
@@ -23,7 +23,7 @@ export async function markNotificationRead(publicId: string): Promise<void> {
             method: "PATCH",
         });
     } catch {
-        // silently ignore — optimistic update already applied in hook
+
     }
 }
 
@@ -33,6 +33,6 @@ export async function markAllNotificationsRead(): Promise<void> {
             method: "POST",
         });
     } catch {
-        // silently ignore
+        
     }
 }

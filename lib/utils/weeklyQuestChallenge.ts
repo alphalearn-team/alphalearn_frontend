@@ -81,7 +81,7 @@ export async function createQuestChallengeUpload(
   accessToken: string,
   payload: QuestChallengeUploadRequest,
 ) {
-  const { apiClientFetch } = await import("../apiClient");
+  const { apiClientFetch } = await import("../api/apiClient");
 
   return apiClientFetch<QuestChallengeUploadResponse>(QUEST_CHALLENGE_UPLOAD_PATH, accessToken, {
     method: "POST",
@@ -96,7 +96,7 @@ export async function saveQuestChallengeSubmission(
   accessToken: string,
   payload: SaveQuestChallengeSubmissionRequest,
 ) {
-  const { apiClientFetch } = await import("../apiClient");
+  const { apiClientFetch } = await import("../api/apiClient");
 
   return apiClientFetch<LearnerQuestChallengeSubmission>(
     QUEST_CHALLENGE_SUBMISSION_PATH,

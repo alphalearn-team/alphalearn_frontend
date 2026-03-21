@@ -4,8 +4,8 @@ import type {
   QuizAttemptSummary,
   SubmitQuizAttemptRequest,
 } from "@/interfaces/interfaces";
-import { ApiError } from "@/lib/apiErrors";
-import type { UserRole } from "@/lib/auth/rbac";
+import { ApiError } from "@/lib/api/apiErrors";
+import type { UserRole } from "@/lib/auth/server/rbac";
 
 export type LessonQuizAnswers = Record<string, string[]>;
 

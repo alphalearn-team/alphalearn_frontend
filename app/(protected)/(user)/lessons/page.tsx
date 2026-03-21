@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { Container } from "@mantine/core";
 import NotFound from "@/components/NotFound";
-import { getUserRole } from "@/lib/auth/rbac";
+import { getUserRole } from "@/lib/auth/server/rbac";
 import LessonsGrid from "./_components/LessonsGrid";
 import LessonsHeroSection from "./_components/LessonsHeroSection";
 import LessonSpotlightSearch from "./_components/LessonSpotlightSearch";
 import LessonsSkeleton from "./_components/LessonsSkeleton";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 import type { LessonSummary } from "@/interfaces/interfaces";
 
 

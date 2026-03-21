@@ -5,8 +5,8 @@ import type { Session, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { showError, showSuccess } from "@/lib/data/notifications";
-import { getUserRoleAction } from "@/lib/auth/actions";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
+import { getUserRoleAction } from "../server/actions";
 
 export type UserRole = "ADMIN" | "CONTRIBUTOR" | "LEARNER" | null;
 

@@ -4,7 +4,7 @@ import type {
   AdminContributorApplication,
   ContributorApplication,
 } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 import {
   toFriendlyAdminContributorApplicationError,
   validateRejectionReason,

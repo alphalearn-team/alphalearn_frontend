@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Concept } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
-import { getUserRole } from "@/lib/auth/rbac";
+import { apiFetch } from "@/lib/api/api";
+import { getUserRole } from "@/lib/auth/server/rbac";
 import { createClient } from "@/lib/supabase/server";
 
 interface CreateLessonSearchParams {

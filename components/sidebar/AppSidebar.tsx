@@ -4,7 +4,7 @@ import "./sidebar-shell.css";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useHotkeys } from "@mantine/hooks";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 import SidebarFooter from "./SidebarFooter";
 import SidebarHeader from "./SidebarHeader";
 import SidebarNav from "./SidebarNav";

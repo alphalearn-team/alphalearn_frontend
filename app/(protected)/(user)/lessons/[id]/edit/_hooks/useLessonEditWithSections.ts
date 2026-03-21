@@ -8,8 +8,8 @@ import {
   deleteLesson,
   submitLesson,
   unpublishLesson,
-} from "@/lib/actions/lesson";
-import { showSuccess, showError } from "@/lib/data/notifications";
+} from "@/app/(protected)/(user)/lessons/_actions/lesson";
+import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 import {
   getLessonModerationSubmitToast,
   normalizeLessonModerationStatus,

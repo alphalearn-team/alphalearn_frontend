@@ -1,7 +1,7 @@
 "use server";
 
 import type { AdminDashboardSummary } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 import {
   buildAdminDashboardSummaryQuery,
   type AdminDashboardSummaryQuery,

@@ -9,7 +9,7 @@ import SearchBar from "@/components/SearchBar";
 import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
 import { deleteConcept } from "../actions";
-import { showSuccess, showError } from "@/lib/data/notifications";
+import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 import type { AdminConcept } from "@/interfaces/interfaces";
 import { DateDisplay } from "./DateDisplay";
 

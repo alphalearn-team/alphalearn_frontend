@@ -1,6 +1,6 @@
 import type { Lesson, LessonQuiz, LessonSummary } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
-import type { UserRole } from "@/lib/auth/rbac";
+import { apiFetch } from "@/lib/api/api";
+import type { UserRole } from "@/lib/auth/server/rbac";
 import { normalizeLessonQuizzes } from "@/lib/utils/lessonQuiz";
 import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
 

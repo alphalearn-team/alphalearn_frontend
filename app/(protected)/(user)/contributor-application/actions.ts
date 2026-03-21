@@ -1,7 +1,7 @@
 "use server";
 
 import type { ContributorApplication } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 import { fetchMyContributorApplications } from "./data";
 import { revalidatePath } from "next/cache";
 

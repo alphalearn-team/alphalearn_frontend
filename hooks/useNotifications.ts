@@ -20,7 +20,6 @@ export function useNotifications(enabled: boolean) {
     useEffect(() => {
         if (!enabled) return;
         
-        // Defer refresh call to avoid synchronous setState in effect
         const timeoutId = setTimeout(() => {
             refresh();
         }, 0);

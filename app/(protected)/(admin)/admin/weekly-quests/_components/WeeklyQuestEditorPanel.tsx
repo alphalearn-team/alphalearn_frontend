@@ -8,7 +8,7 @@ import type {
   WeeklyQuestWeek,
 } from "@/interfaces/interfaces";
 import { formatDateTime, formatShortDate } from "@/lib/utils/formatDate";
-import { showError, showSuccess } from "@/lib/data/notifications";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
 import { saveWeeklyQuestAssignmentAction } from "../actions";
 import { getWeeklyQuestReminderState } from "./weeklyQuestReminder";
 

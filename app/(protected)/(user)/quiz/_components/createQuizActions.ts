@@ -1,6 +1,6 @@
 "use server";
 
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api/api";
 
 export async function createQuizAction(payload: unknown) {
   try {

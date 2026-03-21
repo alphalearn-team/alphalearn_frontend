@@ -3,7 +3,7 @@
 import AppSidebar, {
   type SidebarNavSection,
 } from "@/components/sidebar/AppSidebar";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 
 const sections: SidebarNavSection[] = [
   {

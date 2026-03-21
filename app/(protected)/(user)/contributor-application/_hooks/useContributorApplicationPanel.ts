@@ -11,8 +11,8 @@ import {
   type ContributorApplicationRole,
 } from "../utils";
 import { submitContributorApplication } from "../actions";
-import { showError, showSuccess } from "@/lib/data/notifications";
-import { useAuth } from "@/context/AuthContext";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 
 interface UseContributorApplicationPanelParams {
   initialApplications: ContributorApplication[];

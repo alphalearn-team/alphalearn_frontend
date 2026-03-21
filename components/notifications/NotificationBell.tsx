@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ActionIcon, Badge, Popover } from "@mantine/core";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 import NotificationBellContent from "./NotificationBellContent";
 
 interface NotificationBellProps {

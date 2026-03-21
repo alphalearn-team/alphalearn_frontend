@@ -1,7 +1,9 @@
-import { getServerSession } from "@/lib/auth/session";
-import { throwApiErrorFromResponse } from "@/lib/apiErrors";
+// main function for fetching data
 
-export { ApiError } from "@/lib/apiErrors";
+import { getServerSession } from "@/lib/auth/server/session";
+import { throwApiErrorFromResponse } from "@/lib/api/apiErrors";
+
+export { ApiError } from "@/lib/api/apiErrors";
 
 export async function apiFetch<T>(
   endpoint: string,

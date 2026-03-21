@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
 import {
   sortPendingContributorApplications,
@@ -14,7 +14,7 @@ import {
   fetchPendingContributorApplicationsAction,
   rejectContributorApplicationAction,
 } from "../actions";
-import { showError, showSuccess } from "@/lib/data/notifications";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
 
 interface UseContributorApplicationModerationParams {
   initialPending: AdminContributorApplication[];

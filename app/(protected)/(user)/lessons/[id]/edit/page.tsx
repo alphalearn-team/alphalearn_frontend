@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import NotFound from "@/components/NotFound";
 import ContributorLessonEditorShell from "@/app/(protected)/(user)/lessons/_components/ContributorLessonEditorShell";
 import LessonModerationFeedbackPanel from "@/app/(protected)/(user)/lessons/_components/LessonModerationFeedbackPanel";
-import { getUserRole } from "@/lib/auth/rbac";
+import { getUserRole } from "@/lib/auth/server/rbac";
 import { getLessonModerationMeta } from "@/lib/utils/lessonModeration";
 import LessonEditorWithSectionsClient from "./LessonEditorWithSectionsClient";
 import {

@@ -2,7 +2,7 @@ import { Container, SimpleGrid } from "@mantine/core";
 import { redirect } from "next/navigation";
 import NotFound from "@/components/NotFound";
 import LessonCard from "@/app/(protected)/(user)/lessons/_components/LessonCard";
-import { getUserRole } from "@/lib/auth/rbac";
+import { getUserRole } from "@/lib/auth/server/rbac";
 import MyLessonsEmptyState from "./_components/MyLessonsEmptyState";
 import MyLessonsHeader from "./_components/MyLessonsHeader";
 import { fetchMyLessons } from "./_components/myLessonsData";

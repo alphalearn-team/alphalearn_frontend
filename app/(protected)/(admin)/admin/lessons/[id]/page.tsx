@@ -2,7 +2,7 @@ import type { AdminLessonReviewDetail } from "@/interfaces/interfaces";
 import "@mantine/tiptap/styles.css";
 import { notFound } from "next/navigation";
 
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 import AdminLessonReviewView from "./_components/AdminLessonReviewView";
 
 async function getAdminLessonDetail(

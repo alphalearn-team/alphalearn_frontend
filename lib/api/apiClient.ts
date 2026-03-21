@@ -1,4 +1,6 @@
-import { throwApiErrorFromResponse } from "@/lib/apiErrors";
+// purpose: allow server actions on the client components
+
+import { throwApiErrorFromResponse } from "@/lib/api/apiErrors";
 
 export async function apiClientFetch<T>(
   endpoint: string,

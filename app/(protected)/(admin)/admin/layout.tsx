@@ -1,5 +1,5 @@
 import "./admin.css";
-import { getUserRole } from "@/lib/auth/rbac";
+import { getUserRole } from "@/lib/auth/server/rbac";
 import NotFound from "@/components/NotFound";
 import AdminSidebar from "./_components/AdminSidebar";
 import AppBreadcrumb from "@/components/AppBreadcrumb";

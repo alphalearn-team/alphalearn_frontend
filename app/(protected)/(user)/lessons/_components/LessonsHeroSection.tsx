@@ -2,7 +2,7 @@
 
 import { Container, Group, Stack, Text, Title } from "@mantine/core";
 import GlowButton from "@/components/GlowButton";
-import type { UserRole } from "@/lib/auth/rbac";
+import type { UserRole } from "@/lib/auth/server/rbac";
 
 export default function LessonsHeroSection({ role }: { role: UserRole }) {
   return (

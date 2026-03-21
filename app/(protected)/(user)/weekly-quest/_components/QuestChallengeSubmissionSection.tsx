@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Stack, Text, Textarea } from "@mantine/core";
 import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
-import { useAuth } from "@/context/AuthContext";
-import { showSuccess } from "@/lib/data/notifications";
+import { useAuth } from "@/lib/auth/client/AuthContext";
+import { showSuccess } from "@/lib/utils/popUpNotifications";
 import { formatDateTime } from "@/lib/utils/formatDate";
 import {
   createQuestChallengeUpload,

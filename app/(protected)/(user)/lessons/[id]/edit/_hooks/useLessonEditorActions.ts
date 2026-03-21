@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "@/lib/data/notifications";
+import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 import {
   createLesson,
   deleteLesson,
   saveLesson,
   submitLesson,
   unpublishLesson,
-} from "@/lib/actions/lesson";
+} from "@/app/(protected)/(user)/lessons/_actions/lesson";
 import { CreateLessonRequest, LessonContent } from "@/interfaces/interfaces";
 import {
   getLessonModerationSubmitToast,

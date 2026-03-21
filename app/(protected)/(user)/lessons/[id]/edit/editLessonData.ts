@@ -1,5 +1,5 @@
 import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 import { resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
 
 export async function fetchOwnedLessons(): Promise<LessonSummary[] | null> {
