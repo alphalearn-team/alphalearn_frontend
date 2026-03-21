@@ -1,6 +1,6 @@
 import type { AdminLessonReviewDetail } from "@/interfaces/interfaces";
 import "@mantine/tiptap/styles.css";
-import { notFound } from "next/navigation";
+import NotFound from "@/components/NotFound";
 
 import { apiFetch } from "@/lib/api/api";
 import AdminLessonReviewView from "./_components/AdminLessonReviewView";
@@ -22,9 +22,10 @@ export default async function AdminLessonDetailPage({
 }) {
   const { id } = await params;
   const lesson = await getAdminLessonDetail(id);
+  console.log("this is the lesson: ", lesson);
 
   if (!lesson) {
-    return notFound();
+    return <NotFound/>
   }
 
   return (

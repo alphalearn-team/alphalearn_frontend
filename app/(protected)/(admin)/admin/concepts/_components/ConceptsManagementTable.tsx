@@ -1,11 +1,12 @@
 "use client";
 
 import { Card, Text, ActionIcon } from "@mantine/core";
-import { Spotlight, spotlight } from "@mantine/spotlight";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import SearchBar from "@/components/SearchBar";
+import SpotlightWrapper, {
+  type SpotlightSearchItem,
+} from "@/components/SpotlightWrapper";
 import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
 import { deleteConcept } from "../actions";
@@ -17,10 +18,14 @@ interface ConceptsManagementTableProps {
   concepts: AdminConcept[];
 }
 
-export default function ConceptsManagementTable({ concepts }: ConceptsManagementTableProps) {
+export default function ConceptsManagementTable({
+  concepts,
+}: ConceptsManagementTableProps) {
   const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedConcept, setSelectedConcept] = useState<AdminConcept | null>(null);
+  const [selectedConcept, setSelectedConcept] = useState<AdminConcept | null>(
+    null,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteConcept = (concept: AdminConcept) => {
@@ -34,10 +39,10 @@ export default function ConceptsManagementTable({ concepts }: ConceptsManagement
     setIsDeleting(true);
     try {
       const result = await deleteConcept(selectedConcept.publicId);
-      
+
       setShowDeleteConfirm(false);
       setSelectedConcept(null);
-      
+
       if (result.success) {
         showSuccess(result.message);
       } else {
@@ -61,31 +66,24 @@ export default function ConceptsManagementTable({ concepts }: ConceptsManagement
   const filteredConcepts = concepts;
 
   // Create spotlight actions for search (use filtered concepts)
-  const spotlightActions = filteredConcepts.map((concept) => ({
+  const searchData: SpotlightSearchItem[] = filteredConcepts.map((concept) => ({
     id: concept.publicId,
-    label: concept.title,
-    description: concept.description,
-    onClick: () => {
-      router.push(`/concepts/${concept.publicId}`);
-    },
+    title: concept.title,
+    description: concept.description || "",
+    href: `/concepts/${concept.publicId}`,
+    iconName: "lightbulb",
   }));
 
   return (
     <>
-      {/* Spotlight Search Modal */}
-      <Spotlight
-        actions={spotlightActions}
-        limit={7}
-        nothingFound="No concepts found"
-        highlightQuery
-        searchProps={{
-          placeholder: "Search concepts...",
-        }}
-        shortcut={["mod + K", "ctrl + k"]}
-      />
       {/* Stats Summary */}
       <div className="grid grid-cols-1 gap-6 mb-8">
-        <Card className="admin-card admin-stat-card" style={{ "--stat-color": "var(--color-primary)" } as React.CSSProperties}>
+        <Card
+          className="admin-card admin-stat-card"
+          style={
+            { "--stat-color": "var(--color-primary)" } as React.CSSProperties
+          }
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[var(--color-text-muted)] text-sm font-medium">
@@ -104,24 +102,31 @@ export default function ConceptsManagementTable({ concepts }: ConceptsManagement
         </Card>
       </div>
 
-      {/* Concepts Table */}
       <Card className="admin-card">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-[var(--color-text)]">
-              All Concepts ({filteredConcepts.length})
-            </h2>
-            <SearchBar onSearchClick={() => spotlight.open()} />
-          </div>
+          <h2 className="text-xl font-bold text-[var(--color-text)]">
+            All Concepts ({filteredConcepts.length})
+          </h2>
+          <SpotlightWrapper
+            data={searchData}
+            placeholder="Search"
+            nothingFound="No concepts found"
+          />
         </div>
 
         <div className="overflow-x-auto">
           <table className="admin-table w-full">
             <thead>
               <tr>
-                <th className="text-[var(--color-text)] font-semibold text-left p-3">Title</th>
-                <th className="text-[var(--color-text)] font-semibold text-left p-3">Created</th>
-                <th className="text-[var(--color-text)] font-semibold text-right p-3">Actions</th>
+                <th className="text-[var(--color-text)] font-semibold text-left p-3">
+                  Title
+                </th>
+                <th className="text-[var(--color-text)] font-semibold text-left p-3">
+                  Created
+                </th>
+                <th className="text-[var(--color-text)] font-semibold text-right p-3">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -133,8 +138,13 @@ export default function ConceptsManagementTable({ concepts }: ConceptsManagement
                       title="No concepts found"
                       description="Get started by adding your first concept"
                       action={
-                        <Link href="/admin/concepts/add" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary-hover)] transition-colors">
-                          <span className="material-symbols-outlined text-base">add_circle</span>
+                        <Link
+                          href="/admin/concepts/add"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary-hover)] transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-base">
+                            add_circle
+                          </span>
                           Add Concept
                         </Link>
                       }
@@ -143,21 +153,30 @@ export default function ConceptsManagementTable({ concepts }: ConceptsManagement
                 </tr>
               ) : (
                 filteredConcepts.map((concept) => (
-                  <tr key={concept.publicId} className="hover:bg-[var(--color-background-hover)] border-b border-[var(--color-border)]">
+                  <tr
+                    key={concept.publicId}
+                    className="hover:bg-[var(--color-background-hover)] border-b border-[var(--color-border)]"
+                  >
                     <td className="p-3">
                       <div>
-                        <Text fw={500} className="text-[var(--color-text)]">{concept.title}</Text>
+                        <Text fw={500} className="text-[var(--color-text)]">
+                          {concept.title}
+                        </Text>
                         {concept.description && (
-                          <Text size="sm" c="dimmed" className="text-[var(--color-text-secondary)] mt-1 truncate max-w-xs">
+                          <Text
+                            size="sm"
+                            c="dimmed"
+                            className="text-[var(--color-text-secondary)] mt-1 truncate max-w-xs"
+                          >
                             {concept.description}
                           </Text>
                         )}
                       </div>
                     </td>
                     <td className="p-3">
-                      <DateDisplay 
-                        date={concept.createdAt} 
-                        size="sm" 
+                      <DateDisplay
+                        date={concept.createdAt}
+                        size="sm"
                         className="text-[var(--color-text-secondary)]"
                       />
                     </td>
@@ -169,8 +188,8 @@ export default function ConceptsManagementTable({ concepts }: ConceptsManagement
                         >
                           View
                         </Link>
-                        <ActionIcon 
-                          variant="light" 
+                        <ActionIcon
+                          variant="light"
                           color="red"
                           className="admin-action-delete hover:bg-red-50 hover:text-red-600 transition-all duration-200"
                           size="sm"

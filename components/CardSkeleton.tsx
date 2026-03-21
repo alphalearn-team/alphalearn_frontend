@@ -1,22 +1,5 @@
 import { Skeleton } from "@mantine/core";
 
-/**
- * REUSABLE SKELETON LOADER COMPONENT
- * 
- * Purpose: Generic loading placeholder for card-based layouts
- * Reusability: Can be used across all pages (concepts, courses, profiles, etc.)
- * 
- * Props:
- * - count: Number of skeleton cards
- * - cols: Grid columns (1, 2, 3, or 4)
- * - showBookmark: Whether to show bookmark icon placeholder
- * - lines: Number of description lines (1-3)
- * 
- * Usage Examples:
- * <CardSkeleton count={6} cols={3} />
- * <CardSkeleton count={4} cols={2} showBookmark={false} />
- * <CardSkeleton count={8} cols={4} lines={1} />
- */
 
 interface CardSkeletonProps {
   count?: number;

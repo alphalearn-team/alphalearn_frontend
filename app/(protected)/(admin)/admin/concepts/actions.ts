@@ -25,9 +25,7 @@ function getDeleteConceptErrorMessage(error: unknown): string {
   return rawMessage;
 }
 
-/**
- * Server Action: Delete a concept
- */
+
 export async function deleteConcept(conceptPublicId: string) {
   try {
     await apiFetch(`/admin/concepts/${conceptPublicId}`, {

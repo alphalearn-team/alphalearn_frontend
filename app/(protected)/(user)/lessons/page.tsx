@@ -4,7 +4,6 @@ import NotFound from "@/components/NotFound";
 import { getUserRole } from "@/lib/auth/server/rbac";
 import LessonsGrid from "./_components/LessonsGrid";
 import LessonsHeroSection from "./_components/LessonsHeroSection";
-import LessonSpotlightSearch from "./_components/LessonSpotlightSearch";
 import LessonsSkeleton from "./_components/LessonsSkeleton";
 import { apiFetch } from "@/lib/api/api";
 import type { LessonSummary } from "@/interfaces/interfaces";
@@ -18,7 +17,6 @@ async function LessonsListRenderer({ role }: { role: string | null }) {
   return (
     <>
       <LessonsGrid lessons={lessons} role={role} />
-      <LessonSpotlightSearch lessons={lessons} />
     </>
   );
 }

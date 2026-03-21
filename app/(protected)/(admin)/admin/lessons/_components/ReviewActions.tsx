@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@mantine/core";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import RejectLessonModal from "./RejectLessonModal";
 import { useLessonReviewActions } from "../_hooks/useLessonReviewActions";
 

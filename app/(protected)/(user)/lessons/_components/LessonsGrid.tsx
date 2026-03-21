@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import type { LessonSummary } from "@/interfaces/interfaces";
 import LessonCard from "@/app/(protected)/(user)/lessons/_components/LessonCard";
-import SearchTrigger from "@/app/(protected)/(user)/lessons/_components/SearchTrigger";
+import SpotlightWrapper, { type SpotlightSearchItem } from "@/components/SpotlightWrapper";
 import Pagination from "@/components/pagination/Pagination";
 import Link from "next/link";
 
@@ -31,10 +31,18 @@ export default function LessonsGrid({
     setCurrentPage(page);
   };
 
+  const searchData: SpotlightSearchItem[] = lessons.map(lesson => ({
+      id: lesson.lessonPublicId,
+      title: lesson.title,
+      description: `By ${lesson.author?.username?.split("-")[0] || "Anonymous"}`,
+      href: `/lessons/${lesson.lessonPublicId}`,
+      iconName: "auto_stories"
+  }));
+
   return (
     <div>
       <Stack gap="lg">
-        <LessonsHeader count={lessons.length} role={role} />
+        <LessonsHeader count={lessons.length} role={role} searchData={searchData} />
 
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
           {paginatedLessons.map((lesson) => (
@@ -61,7 +69,7 @@ export default function LessonsGrid({
   );
 }
 
-function LessonsHeader({ count, role }: { count: number; role?: string | null }) {
+function LessonsHeader({ count, role, searchData }: { count: number; role?: string | null; searchData: SpotlightSearchItem[] }) {
   return (
     <Group justify="space-between" align="center">
       <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-[var(--color-text-muted)] px-3">
@@ -77,7 +85,7 @@ function LessonsHeader({ count, role }: { count: number; role?: string | null })
             Create Lesson
           </Link>
         )}
-        <SearchTrigger />
+        <SpotlightWrapper data={searchData} placeholder="Search lessons..." nothingFound="No lessons found..." />
       </div>
     </Group>
   );

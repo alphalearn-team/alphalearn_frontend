@@ -5,8 +5,7 @@ import { SimpleGrid, Stack, Group, Title, Text } from "@mantine/core";
 import type { Concept } from "@/interfaces/interfaces";
 import ConceptCard from "./ConceptCard";
 import Pagination from "@/components/pagination/Pagination";
-import SearchTrigger from "@/app/(protected)/(user)/lessons/_components/SearchTrigger";
-import ConceptSpotlightSearch from "./ConceptSpotlightSearch";
+import SpotlightWrapper, { type SpotlightSearchItem } from "@/components/SpotlightWrapper";
 
 interface ConceptsGridProps {
   concepts: Concept[];
@@ -29,10 +28,18 @@ export default function ConceptsGrid({ concepts }: ConceptsGridProps) {
     setCurrentPage(page);
   };
 
+  const searchData: SpotlightSearchItem[] = concepts.map(concept => ({
+      id: concept.publicId,
+      title: concept.title,
+      description: concept.description,
+      href: `/concepts/${concept.publicId}`,
+      iconName: "lightbulb"
+  }));
+
   return (
     <>
       <Stack gap="lg">
-        <ConceptsHeader count={concepts.length} />
+        <ConceptsHeader count={concepts.length} searchData={searchData} />
 
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
           {paginatedConcepts.map((concept) => (
@@ -50,19 +57,18 @@ export default function ConceptsGrid({ concepts }: ConceptsGridProps) {
           />
         )}
       </Stack>
-      <ConceptSpotlightSearch concepts={concepts} />
     </>
   );
 }
 
-function ConceptsHeader({ count }: { count: number }) {
+function ConceptsHeader({ count, searchData }: { count: number; searchData: SpotlightSearchItem[] }) {
   return (
     <Group justify="space-between" align="center">
       <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-[var(--color-text-muted)] px-3">
         {count} {count === 1 ? "concept" : "concepts"} available
       </span>
 
-      <SearchTrigger />
+      <SpotlightWrapper data={searchData} placeholder="Search concepts..." nothingFound="No concepts found..." />
     </Group>
   );
 }
