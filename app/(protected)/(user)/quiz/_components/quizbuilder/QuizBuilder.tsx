@@ -8,7 +8,7 @@ import DraggableTileOverlay from "./sidebar/DraggableTileOverlay";
 import SaveQuizModal from "./SaveQuizModal";
 import MobileDrawer from "./sidebar/MobileDrawer";
 import Canvas from "./Canvas";
-import GlowButton from "../../../../../../components/common/GlowButton";
+import GlowButton from "../../../../../../components/GlowButton";
 
 export default function QuizBuilder() {
   const {

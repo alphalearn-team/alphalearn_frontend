@@ -7,7 +7,7 @@ import type {
   Concept,
   LessonSectionInput,
 } from "@/interfaces/interfaces";
-import { createLessonWithSections } from "@/lib/actions/lesson";
+import { createLessonWithSections } from "@/app/(protected)/(user)/lessons/_actions/lesson";
 import {
   getSectionValidationError,
   highlightElement,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { LessonSection } from "@/interfaces/interfaces";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import LessonEditTitleCard from "./_components/LessonEditTitleCard";
 import LessonEditContentSection from "./_components/LessonEditContentSection";
 import LessonEditSubmissionError from "./_components/LessonEditSubmissionError";

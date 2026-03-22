@@ -1,5 +1,5 @@
 import { Group } from "@mantine/core";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
 
 export function LessonEditStatusMeta({ status }: { status: string }) {
   return (

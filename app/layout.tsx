@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { Roboto_Mono } from "next/font/google";
 
 
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider } from "@/lib/auth/client/AuthContext";
 import { Notifications } from "@mantine/notifications";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 

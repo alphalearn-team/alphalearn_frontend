@@ -3,7 +3,7 @@
 import AppSidebar, {
   type SidebarNavSection,
 } from "@/components/sidebar/AppSidebar";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 
 const sections: SidebarNavSection[] = [
   {
@@ -21,7 +21,7 @@ const sections: SidebarNavSection[] = [
 function getQuickActionsSection(
   userRole: string | null,
 ): SidebarNavSection | undefined {
-  if (userRole === "ADMIN" || userRole === null) {
+  if (userRole === null) {
     return undefined;
   }
 
@@ -49,7 +49,6 @@ function getQuickActionsSection(
 function toRoleLabel(role: string | null) {
   if (role === "CONTRIBUTOR") return "Contributor";
   if (role === "LEARNER") return "Learner";
-  if (role === "ADMIN") return "Administrator";
   return "Member";
 }
 

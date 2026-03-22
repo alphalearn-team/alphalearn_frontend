@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 
-import Background from "./_components/Background";
 import NotFound from "@/components/NotFound";
 import UserSidebar from "./_components/UserSidebar";
-import UserBreadcrumb from "./_components/UserBreadcrumb";
-import { getUserRole } from "@/lib/auth/rbac";
+import AppBreadcrumb from "@/components/AppBreadcrumb";
+import { getUserRole } from "@/lib/auth/server/rbac";
 export default async function UserLayout({
   children,
 }: {
@@ -14,14 +13,11 @@ export default async function UserLayout({
   if (role === "LEARNER" || role === "CONTRIBUTOR") {
     return (
       <>
-        <Background />
-        <div className="admin-layout user-shell">
-          <UserSidebar />
-          <main className="admin-content user-content">
-            <UserBreadcrumb />
-            {children}
-          </main>
-        </div>
+        <UserSidebar />
+        <main className="sidebar-content">
+          <AppBreadcrumb />
+          {children}
+        </main>
       </>
     );
   }

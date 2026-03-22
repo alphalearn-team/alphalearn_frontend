@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ActionIcon, Badge, Popover } from "@mantine/core";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 import NotificationBellContent from "./NotificationBellContent";
 
 interface NotificationBellProps {
@@ -38,7 +38,7 @@ export default function NotificationBell({ compact = false }: NotificationBellPr
       zIndex={220}
     >
       <Popover.Target>
-        <div className={`admin-notification-bell ${compact ? "compact" : ""} ${opened ? "open" : ""}`}>
+        <div className={`sidebar-notification-bell ${compact ? "compact" : ""} ${opened ? "open" : ""}`}>
           <ActionIcon
             variant="transparent"
             size="lg"
@@ -46,7 +46,7 @@ export default function NotificationBell({ compact = false }: NotificationBellPr
             aria-label="Notifications"
             aria-expanded={opened}
             onClick={() => handleOpen(!opened)}
-            className="admin-notification-trigger"
+            className="sidebar-notification-trigger"
             style={{ color: "var(--color-text)" }}
           >
             <span className="material-symbols-outlined text-[20px]">notifications</span>
@@ -58,7 +58,7 @@ export default function NotificationBell({ compact = false }: NotificationBellPr
               color="blue"
               variant="filled"
               circle
-              className="admin-notification-badge"
+              className="sidebar-notification-badge"
               style={{
                 minWidth: 16,
                 height: 16,

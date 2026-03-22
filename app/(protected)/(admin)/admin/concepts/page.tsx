@@ -1,7 +1,6 @@
 import { Suspense } from "react";
-import AdminBreadcrumb from "@/components/admin/Breadcrumb";
-import AdminPageHeader from "@/components/admin/PageHeader";
-import GlowIconButton from "@/components/common/GlowIconButton";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
+import GlowIconButton from "@/components/GlowIconButton";
 import ConceptsManagementTable from "./_components/ConceptsManagementTable";
 import ConceptsManagementFallback from "./_components/ConceptsManagementFallback";
 import { fetchAdminConcepts } from "./conceptsData";
@@ -15,7 +14,6 @@ export default function ManageConceptsPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <AdminBreadcrumb />
 
         <AdminPageHeader
           title="Manage Concepts"

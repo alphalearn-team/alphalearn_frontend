@@ -1,5 +1,5 @@
 import { Card } from "@mantine/core";
-import CardSkeleton from "@/components/common/CardSkeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 
 export default function UsersManagementFallback() {
   return (

@@ -1,5 +1,5 @@
 import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 
 function normalizeQueueLesson(
   lesson: AdminLessonQueueItem,

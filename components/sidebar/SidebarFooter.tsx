@@ -1,7 +1,6 @@
 import { Avatar } from "@mantine/core";
 
 interface SidebarFooterProps {
-  avatarAccentBorder: string;
   avatarLetter: string;
   collapsed: boolean;
   onSignOut: () => Promise<void>;
@@ -11,7 +10,6 @@ interface SidebarFooterProps {
 }
 
 export default function SidebarFooter({
-  avatarAccentBorder,
   avatarLetter,
   collapsed,
   onSignOut,
@@ -20,8 +18,8 @@ export default function SidebarFooter({
   userLabel,
 }: SidebarFooterProps) {
   return (
-    <div className="admin-sidebar-footer">
-      <div className="admin-sidebar-user">
+    <div className="sidebar-footer">
+      <div className="sidebar-user">
         <Avatar
           src={profilePicture}
           color="white"
@@ -30,27 +28,27 @@ export default function SidebarFooter({
           styles={{
             root: {
               backgroundColor: "var(--color-primary)",
-              border: `2px solid ${avatarAccentBorder}`,
+              border: "2px solid var(--color-accent)",
               flexShrink: 0,
             },
           }}
         >
           {avatarLetter}
         </Avatar>
-        <div className="admin-sidebar-user-info">
-          <span className="admin-sidebar-user-email">{userLabel}</span>
-          <span className="admin-sidebar-user-role">{roleLabel}</span>
+        <div className="sidebar-user-info">
+          <span className="sidebar-user-email">{userLabel}</span>
+          <span className="sidebar-user-role">{roleLabel}</span>
         </div>
       </div>
 
       <button
         onClick={onSignOut}
-        className="admin-sidebar-logout"
+        className="sidebar-logout"
         title={collapsed ? "Logout" : undefined}
       >
-        <div className="admin-sidebar-logout-content">
+        <div className="sidebar-logout-content">
           <span className="material-symbols-outlined">logout</span>
-          <span className="admin-sidebar-logout-text">Logout</span>
+          <span className="sidebar-logout-text">Logout</span>
         </div>
       </button>
     </div>

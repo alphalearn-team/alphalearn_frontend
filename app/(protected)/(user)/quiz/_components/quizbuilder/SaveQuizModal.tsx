@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Modal, Select } from "@mantine/core";
-import { showSuccess, showError } from "@/lib/actions/notifications";
+import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 import { Question } from "./types";
-import { createQuizAction } from "@/lib/actions/quiz";
-import { fetchMyLessonsAction } from "@/lib/actions/lesson";
-import GlowButton from "../../../../../../components/common/GlowButton";
+import { createQuizAction } from "../createQuizActions";
+import { fetchMyLessonsAction } from "@/app/(protected)/(user)/lessons/_actions/lesson";
+import GlowButton from "../../../../../../components/GlowButton";
 
 interface SaveQuizModalProps {
     opened: boolean;

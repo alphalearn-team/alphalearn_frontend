@@ -2,9 +2,9 @@
 
 import { Card, Text } from "@mantine/core";
 import { TextDisplayer } from "@/components/texteditor/TextDisplayer";
-import { SectionBlock } from "@/components/lessons/sections";
+import { SectionBlock } from "@/app/(protected)/(user)/lessons/_components/LessonBuilder";
 import type { AdminLessonReviewDetail } from "@/interfaces/interfaces";
-import { formatDateTime } from "@/lib/formatDate";
+import { formatDateTime } from "@/lib/utils/formatDate";
 import ReviewActions from "../../_components/ReviewActions";
 
 interface ReviewSummary {

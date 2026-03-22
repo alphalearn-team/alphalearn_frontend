@@ -5,8 +5,8 @@ import type { ContributorApplication } from "@/interfaces/interfaces";
 import {
   getApplicationTimelineLabel,
   type ContributorApplicationRole,
-} from "@/lib/contributorApplications";
-import { formatDateTime } from "@/lib/formatDate";
+} from "../utils";
+import { formatDateTime } from "@/lib/utils/formatDate";
 import StatusDetail from "./StatusDetail";
 
 interface ContributorApplicationSummaryProps {

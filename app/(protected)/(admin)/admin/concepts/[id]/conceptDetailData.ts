@@ -1,5 +1,5 @@
 import type { AdminConcept } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 
 export async function fetchAdminConceptById(
   id: string,

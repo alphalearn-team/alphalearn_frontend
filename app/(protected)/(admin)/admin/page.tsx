@@ -1,5 +1,5 @@
-import AdminPageHeader from "@/components/admin/PageHeader";
-import { fetchAdminDashboardSummaryByQueryAction } from "@/lib/actions/adminDashboard";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
+import { fetchAdminDashboardSummaryByQueryAction } from "./_components/actions";
 import AdminDashboardSummaryPanel from "./_components/AdminDashboardSummaryPanel";
 
 export default async function AdminPage() {

@@ -1,10 +1,10 @@
-import ContributorLessonEditorShell from "@/components/lessons/ContributorLessonEditorShell";
+import ContributorLessonEditorShell from "@/app/(protected)/(user)/lessons/_components/ContributorLessonEditorShell";
 import LessonEditorWithSections from "./_components/LessonEditorWithSections";
 import {
   CreateLessonHeaderMeta,
   CreateLessonShellTitle,
 } from "./_components/CreateLessonHeaderMeta";
-import { getCreateLessonPageData } from "./createLessonData";
+import { getCreateLessonPageData } from "./_components/createLessonData";
 
 export default async function CreateLessonPage({
   searchParams,

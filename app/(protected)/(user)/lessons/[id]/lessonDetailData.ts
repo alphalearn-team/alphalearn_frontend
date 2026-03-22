@@ -1,8 +1,8 @@
 import type { Lesson, LessonQuiz, LessonSummary } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
-import type { UserRole } from "@/lib/auth/rbac";
-import { normalizeLessonQuizzes } from "@/lib/lessonQuiz";
-import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/lessonModeration";
+import { apiFetch } from "@/lib/api/api";
+import type { UserRole } from "@/lib/auth/server/rbac";
+import { normalizeLessonQuizzes } from "@/lib/utils/lessonQuiz";
+import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
 
 function normalizeLessonDetail(lesson: Lesson): Lesson {
   return {
@@ -33,7 +33,9 @@ export async function fetchLessonQuizzes(
   lessonPublicId: string,
 ): Promise<LessonQuizLoadResult> {
   try {
+    // console.log(lessonPublicId);
     const quizzes = await apiFetch<LessonQuiz[]>(`/quizzes/${lessonPublicId}`);
+    console.log(JSON.stringify(quizzes,null,2));
     return {
       error: null,
       quizzes: normalizeLessonQuizzes(quizzes),
@@ -53,9 +55,6 @@ export async function checkLessonOwnership(
   role: string,
   lessonPublicId: string,
 ): Promise<boolean> {
-  if (role === "ADMIN") {
-    return false;
-  }
 
   try {
     const myLessons = await apiFetch<LessonSummary[]>("/lessons/mine");

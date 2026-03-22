@@ -8,12 +8,12 @@ import {
   deleteLesson,
   submitLesson,
   unpublishLesson,
-} from "@/lib/actions/lesson";
-import { showSuccess, showError } from "@/lib/actions/notifications";
+} from "@/app/(protected)/(user)/lessons/_actions/lesson";
+import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 import {
   getLessonModerationSubmitToast,
   normalizeLessonModerationStatus,
-} from "@/lib/lessonModeration";
+} from "@/lib/utils/lessonModeration";
 import { lessonSectionsToInputs } from "../../../_shared/sectionEditorUtils";
 import {
   getSectionValidationError,

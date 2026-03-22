@@ -1,3 +1,3 @@
 "use server";
 
-export { addConcept } from "@/lib/actions/adminConcepts";
+export { addConcept } from "../actions";

@@ -1,6 +1,6 @@
-import AdminBreadcrumb from "@/components/admin/Breadcrumb";
-import AdminPageHeader from "@/components/admin/PageHeader";
-import { fetchPendingContributorApplicationsAction } from "@/lib/actions/adminContributorApplications";
+
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
+import { fetchPendingContributorApplicationsAction } from "./actions";
 import ContributorApplicationsModerationPanel from "./_components/ContributorApplicationsModerationPanel";
 
 export default async function AdminContributorApplicationsPage() {
@@ -9,7 +9,6 @@ export default async function AdminContributorApplicationsPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <AdminBreadcrumb />
 
         <AdminPageHeader
           title="Contributor Applications"

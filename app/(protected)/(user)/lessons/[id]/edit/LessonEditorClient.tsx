@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import { Concept, LessonContent } from "@/interfaces/interfaces";
 import LessonConceptSelect from "./_components/LessonConceptSelect";
 import LessonEditorActionBar from "./_components/LessonEditorActionBar";

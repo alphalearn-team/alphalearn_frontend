@@ -11,12 +11,12 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
-import { showError, showSuccess } from "@/lib/actions/notifications";
-import { apiClientFetch } from "@/lib/apiClient";
-import type { UserRole } from "@/lib/auth/rbac";
-import { formatDateTime } from "@/lib/formatDate";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
+import { apiClientFetch } from "@/lib/api/apiClient";
+import type { UserRole } from "@/lib/auth/server/rbac";
+import { formatDateTime } from "@/lib/utils/formatDate";
 import {
   buildQuizAttemptPayload,
   canSubmitLessonQuiz,
@@ -27,7 +27,7 @@ import {
   toFriendlyLatestQuizAttemptError,
   toFriendlyLessonQuizError,
   type LessonQuizAnswers,
-} from "@/lib/lessonQuiz";
+} from "@/lib/utils/lessonQuiz";
 
 interface LessonQuizSectionProps {
   isOwner: boolean;

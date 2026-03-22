@@ -1,18 +1,13 @@
 import { Container, SimpleGrid } from "@mantine/core";
-import { redirect } from "next/navigation";
 import NotFound from "@/components/NotFound";
-import LessonCard from "@/components/lessons/LessonCard";
-import { getUserRole } from "@/lib/auth/rbac";
+import LessonCard from "@/app/(protected)/(user)/lessons/_components/LessonCard";
+import { getUserRole } from "@/lib/auth/server/rbac";
 import MyLessonsEmptyState from "./_components/MyLessonsEmptyState";
 import MyLessonsHeader from "./_components/MyLessonsHeader";
-import { fetchMyLessons } from "./myLessonsData";
+import { fetchMyLessons } from "./_components/myLessonsData";
 
 export default async function MyLessonsPage() {
   const role = await getUserRole();
-
-  if (role === "ADMIN") {
-    redirect("/admin/lessons");
-  }
 
   const canCreateLessons = role === "CONTRIBUTOR";
   const lessons = await fetchMyLessons();

@@ -3,7 +3,7 @@ import type {
   AdminLearner,
   AdminUser,
 } from "@/interfaces/interfaces";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 
 function mergeUsers(
   learners: AdminLearner[],

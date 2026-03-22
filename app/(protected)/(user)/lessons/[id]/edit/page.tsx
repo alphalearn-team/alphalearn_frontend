@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import NotFound from "@/components/NotFound";
-import ContributorLessonEditorShell from "@/components/lessons/ContributorLessonEditorShell";
-import LessonModerationFeedbackPanel from "@/components/lessons/LessonModerationFeedbackPanel";
-import { getUserRole } from "@/lib/auth/rbac";
-import { getLessonModerationMeta } from "@/lib/lessonModeration";
+import ContributorLessonEditorShell from "@/app/(protected)/(user)/lessons/_components/ContributorLessonEditorShell";
+import LessonModerationFeedbackPanel from "@/app/(protected)/(user)/lessons/_components/LessonModerationFeedbackPanel";
+import { getUserRole } from "@/lib/auth/server/rbac";
+import { getLessonModerationMeta } from "@/lib/utils/lessonModeration";
 import LessonEditorWithSectionsClient from "./LessonEditorWithSectionsClient";
 import {
   LessonConceptChips,
@@ -20,10 +20,6 @@ export default async function EditLessonPage({
 }) {
   const { id } = await params;
   const role = await getUserRole();
-
-  if (role === "ADMIN") {
-    redirect(`/admin/lessons/${id}`);
-  }
 
   if (role === "LEARNER") {
     redirect("/lessons");

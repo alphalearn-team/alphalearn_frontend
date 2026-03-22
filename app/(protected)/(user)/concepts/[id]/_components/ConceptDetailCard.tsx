@@ -1,6 +1,6 @@
 import type { Concept } from "@/interfaces/interfaces";
 import { Text } from "@mantine/core";
-import { formatDateTime } from "@/lib/formatDate";
+import { formatDateTime } from "@/lib/utils/formatDate";
 
 export default function ConceptDetailCard({ concept }: { concept: Concept }) {
   return (

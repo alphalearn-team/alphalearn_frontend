@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 
 export function useSignInForm() {
   const [isSignUp, setIsSignUp] = useState(false);

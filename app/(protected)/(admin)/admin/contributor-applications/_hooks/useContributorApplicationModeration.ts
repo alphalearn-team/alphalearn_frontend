@@ -2,19 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
 import {
   sortPendingContributorApplications,
   validateRejectionReason,
-} from "@/lib/adminContributorApplications";
+} from "../utils";
 import {
   approveContributorApplicationAction,
   fetchContributorApplicationDetailAction,
   fetchPendingContributorApplicationsAction,
   rejectContributorApplicationAction,
-} from "@/lib/actions/adminContributorApplications";
-import { showError, showSuccess } from "@/lib/actions/notifications";
+} from "../actions";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
 
 interface UseContributorApplicationModerationParams {
   initialPending: AdminContributorApplication[];

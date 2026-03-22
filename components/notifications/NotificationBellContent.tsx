@@ -1,6 +1,6 @@
 import { Divider, ScrollArea, Text } from "@mantine/core";
 import { formatDistanceToNow } from "date-fns";
-import type { Notification } from "@/lib/notifications";
+import type { Notification } from "@/lib/utils/notifications";
 
 interface NotificationBellContentProps {
   notifications: Notification[];

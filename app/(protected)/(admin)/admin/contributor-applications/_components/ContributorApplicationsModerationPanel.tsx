@@ -1,8 +1,8 @@
 "use client";
 
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
-import ConfirmModal from "@/components/common/ConfirmModal";
-import { getApplicantLabel } from "@/lib/adminContributorApplications";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
+import { getApplicantLabel } from "../utils";
 import ApplicationDetailPanel from "./ApplicationDetailPanel";
 import ApplicationsTable from "./ApplicationsTable";
 import RejectApplicationModal from "./RejectApplicationModal";

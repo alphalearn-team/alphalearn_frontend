@@ -1,20 +1,29 @@
-import ConceptsPage from "./_components/ConceptsPage";
-import type { Concept } from "@/interfaces/interfaces";
 import { Suspense } from "react";
+import { Container } from "@mantine/core";
+import { apiFetch } from "@/lib/api/api";
+import ConceptsHeroSection from "./_components/ConceptsHeroSection";
+import ConceptsGrid from "./_components/ConceptsGrid";
 import ConceptsSkeleton from "./_components/ConceptsSkeleton";
-import { apiFetch } from "@/lib/api";
+import type { Concept } from "@/interfaces/interfaces";
 
-async function ConceptsData() {
-
+async function ConceptsListRenderer() {
   const concepts: Concept[] = await apiFetch<Concept[]>("/concepts");
-
-  return <ConceptsPage concepts={concepts} />;
+  return <ConceptsGrid concepts={concepts} />;
 }
 
-export default async function ConceptsPageRoute() {
+export default function ConceptsPage() {
   return (
-    <Suspense fallback={<ConceptsSkeleton />}>
-      <ConceptsData />
-    </Suspense>
+    <>
+      <ConceptsHeroSection />
+      <Container
+        id="concepts-list"
+        size="lg"
+        className="py-14 pb-32 scroll-mt-24"
+      >
+        <Suspense fallback={<ConceptsSkeleton />}>
+          <ConceptsListRenderer />
+        </Suspense>
+      </Container>
+    </>
   );
 }

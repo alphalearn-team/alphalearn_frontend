@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button, Container, Stack, Title } from "@mantine/core";
-import AdminBreadcrumb from "@/components/admin/Breadcrumb";
 import AdminConceptDetailCard from "./_components/AdminConceptDetailCard";
 import { fetchAdminConceptById } from "./conceptDetailData";
 
@@ -20,7 +19,6 @@ export default async function AdminConceptDetailPage({
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        <AdminBreadcrumb />
 
         <Container size="lg" px={0}>
           <Stack gap="lg">

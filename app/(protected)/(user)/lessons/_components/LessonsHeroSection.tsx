@@ -1,8 +1,9 @@
-import { Container, Group, Stack, Text, Title } from "@mantine/core";
-import GlowButton from "@/components/common/GlowButton";
-import type { UserRole } from "@/lib/auth/rbac";
+"use client"
 
-export default function LessonsHeroSection({ role }: { role: UserRole }) {
+import { Container, Group, Stack, Text, Title } from "@mantine/core";
+import GlowButton from "@/components/GlowButton";
+
+export default function LessonsHeroSection() {
   return (
     <div className="border-b border-[var(--color-border)] min-h-screen flex">
       <Container className="my-auto w-full">
@@ -27,7 +28,6 @@ export default function LessonsHeroSection({ role }: { role: UserRole }) {
             </Text>
           </Stack>
 
-          {role === "CONTRIBUTOR" || role === "LEARNER" ? (
             <Stack align="flex-end" gap="sm">
               <GlowButton href="#lessons-list" className="!w-[248px] justify-center">
                 View All Lessons
@@ -36,13 +36,7 @@ export default function LessonsHeroSection({ role }: { role: UserRole }) {
                 View My Lessons
               </GlowButton>
             </Stack>
-          ) : (
-            <Group justify="flex-end">
-              <GlowButton href="#lessons-list" className="!w-[248px] justify-center">
-                View All Lessons
-              </GlowButton>
-            </Group>
-          )}
+
         </Stack>
       </Container>
     </div>

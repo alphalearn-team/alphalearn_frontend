@@ -1,13 +1,12 @@
 "use client";
 
 import { Badge, Card, Text } from "@mantine/core";
-import { Spotlight, spotlight } from "@mantine/spotlight";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import SearchBar from "@/components/concepts/SearchBar";
-import AdminEmptyState from "@/components/admin/EmptyState";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import SpotlightWrapper, { type SpotlightSearchItem } from "@/components/SpotlightWrapper";
+import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
+import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
 import { RelativeTime, getUrgencyLevel } from "./RelativeTime";
 import type { AdminLessonQueueItem } from "@/interfaces/interfaces";
 
@@ -25,7 +24,7 @@ const urgencyConfig = {
 export default function LessonsManagementTable({
   lessons,
 }: LessonsManagementTableProps) {
-  const router = useRouter();
+  // const router = useRouter();
   const getAutomatedReasons = (lesson: AdminLessonQueueItem) =>
     Array.isArray(lesson.automatedModerationReasons)
       ? lesson.automatedModerationReasons
@@ -50,31 +49,20 @@ export default function LessonsManagementTable({
     [sortedLessons],
   );
 
-  const spotlightActions = useMemo(
+  const searchData: SpotlightSearchItem[] = useMemo(
     () =>
       sortedLessons.map((lesson) => ({
         id: lesson.lessonPublicId,
-        label: lesson.title,
+        title: lesson.title,
         description: `By ${lesson.author.username || lesson.author.publicId}`,
-        onClick: () => {
-          router.push(`/admin/lessons/${lesson.lessonPublicId}`);
-        },
+        href: `/admin/lessons/${lesson.lessonPublicId}`,
+        iconName: "auto_stories",
       })),
-    [router, sortedLessons],
+    [sortedLessons],
   );
 
   return (
     <>
-      <Spotlight
-        actions={spotlightActions}
-        limit={7}
-        nothingFound="No pending lessons found"
-        highlightQuery
-        searchProps={{
-          placeholder: "Search pending lessons...",
-        }}
-        shortcut={["mod + K", "ctrl + k"]}
-      />
 
       <Card className="admin-card">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -103,7 +91,7 @@ export default function LessonsManagementTable({
             </Text>
           </div>
 
-          <SearchBar onSearchClick={() => spotlight.open()} />
+          <SpotlightWrapper data={searchData} placeholder="Search" nothingFound="No pending lessons found" />
         </div>
 
         <div className="overflow-x-auto">

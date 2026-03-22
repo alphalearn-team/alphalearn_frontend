@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import type {
   AdminDashboardSummary,
 } from "@/interfaces/interfaces";
-import AdminEmptyState from "@/components/admin/EmptyState";
-import { fetchAdminDashboardSummaryByQueryAction } from "@/lib/actions/adminDashboard";
+import AdminEmptyState from "@/app/(protected)/(admin)/admin/_components/EmptyState";
+import { fetchAdminDashboardSummaryByQueryAction } from "./actions";
 import {
   getDashboardMetrics,
 } from "./dashboardViewModel";

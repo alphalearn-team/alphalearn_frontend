@@ -2,8 +2,8 @@
 
 import { Button, Card, Group, Loader, Stack, Text, Title } from "@mantine/core";
 import type { AdminContributorApplication } from "@/interfaces/interfaces";
-import { getApplicantLabel } from "@/lib/adminContributorApplications";
-import { formatDateTime } from "@/lib/formatDate";
+import { getApplicantLabel } from "../utils";
+import { formatDateTime } from "@/lib/utils/formatDate";
 
 interface ApplicationDetailPanelProps {
   detailError: string | null;

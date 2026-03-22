@@ -1,7 +1,7 @@
 "use client";
 
 import type { LessonSection } from "@/interfaces/interfaces";
-import { SectionBlock } from "@/components/lessons/sections";
+import { SectionBlock } from "@/app/(protected)/(user)/lessons/_components/LessonBuilder";
 
 interface LessonContentDisplayProps {
   sections: LessonSection[];

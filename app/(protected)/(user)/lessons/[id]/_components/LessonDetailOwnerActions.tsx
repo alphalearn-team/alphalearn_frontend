@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import ConfirmModal from "@/components/common/ConfirmModal";
-import { deleteLesson } from "@/lib/actions/lesson";
-import { showError, showSuccess } from "@/lib/actions/notifications";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
+import { deleteLesson } from "@/app/(protected)/(user)/lessons/_actions/lesson";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
 
 interface LessonDetailOwnerActionsProps {
   lessonId: string;

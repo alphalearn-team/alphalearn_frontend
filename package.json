@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check:import-case": "node scripts/check-import-case.mjs",
-    "check:orphan-components": "node scripts/check-orphan-components.mjs"
+    "check:orphan-components": "node scripts/check-orphan-components.mjs",
+    "check": "npm run lint && npm run check:import-case && npm run check:orphan-components && npm run build"
   },
   "dependencies": {
     "@dnd-kit/react": "^0.3.2",
@@ -27,7 +28,9 @@
     "@tiptap/pm": "^3.19.0",
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
+    "@xyflow/react": "^12.10.1",
     "chart.js": "^4.5.1",
+    "dagre": "^0.8.5",
     "date-fns": "^4.1.0",
     "next": "16.1.6",
     "react": "19.2.3",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/dagre": "^0.7.54",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

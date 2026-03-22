@@ -1,6 +1,5 @@
 import { Suspense } from "react";
-import AdminBreadcrumb from "@/components/admin/Breadcrumb";
-import AdminPageHeader from "@/components/admin/PageHeader";
+import AdminPageHeader from "@/app/(protected)/(admin)/admin/_components/PageHeader";
 import UsersManagementTable from "./_components/UsersManagementTable";
 import UsersManagementFallback from "./_components/UsersManagementFallback";
 import { fetchAdminUsers } from "./contributorsData";
@@ -14,7 +13,6 @@ export default function ManageUsersPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)] py-8 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <AdminBreadcrumb />
 
         <AdminPageHeader
           title="Manage Users"

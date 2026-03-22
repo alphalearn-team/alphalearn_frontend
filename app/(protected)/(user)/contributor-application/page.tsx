@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { Container, Stack, Text, Title } from "@mantine/core";
 import ContributorApplicationPanel from "./_components/ContributorApplicationPanel";
-import { getUserRole } from "@/lib/auth/rbac";
-import { fetchMyContributorApplications } from "@/lib/data/contributorApplications";
+import { getUserRole } from "@/lib/auth/server/rbac";
+import { fetchMyContributorApplications } from "./data";
 
 export default async function ContributorApplicationPage() {
   const role = await getUserRole();

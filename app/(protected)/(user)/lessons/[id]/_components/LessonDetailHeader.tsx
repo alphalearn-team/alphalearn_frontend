@@ -1,6 +1,6 @@
 import { Group, Title } from "@mantine/core";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
-import type { LessonModerationMeta } from "@/lib/lessonModeration";
+import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
+import type { LessonModerationMeta } from "@/lib/utils/lessonModeration";
 import LessonDetailOwnerActions from "./LessonDetailOwnerActions";
 
 interface LessonDetailHeaderProps {

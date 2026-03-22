@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button, Text, Title } from "@mantine/core";
-import LessonModerationBadge from "@/components/lessons/LessonModerationBadge";
+import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
 import type { LessonModerationStatus } from "@/interfaces/interfaces";
 
 interface LessonReviewHeaderProps {

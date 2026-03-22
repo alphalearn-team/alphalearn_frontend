@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { approveLesson, rejectLesson } from "@/lib/actions/adminLessons";
-import { showError, showSuccess } from "@/lib/actions/notifications";
+import { approveLesson, rejectLesson } from "../actions";
+import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
 
 interface UseLessonReviewActionsParams {
   lessonPublicId: string;

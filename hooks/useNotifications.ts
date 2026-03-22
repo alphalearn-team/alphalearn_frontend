@@ -4,7 +4,7 @@ import {
     getNotifications,
     markNotificationRead,
     markAllNotificationsRead,
-} from "@/lib/notifications";
+} from "@/lib/utils/notifications";
 
 const POLL_INTERVAL_MS = 30_000;
 
@@ -20,7 +20,6 @@ export function useNotifications(enabled: boolean) {
     useEffect(() => {
         if (!enabled) return;
         
-        // Defer refresh call to avoid synchronous setState in effect
         const timeoutId = setTimeout(() => {
             refresh();
         }, 0);
