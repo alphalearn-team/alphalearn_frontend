@@ -51,7 +51,7 @@ export default function VotePhasePlaceholderScreen({
   const canContinueToNextConcept = hasMoreConceptsRemaining(match);
 
   return (
-    <Container size="lg" className="py-6 lg:py-8">
+    <Container size="md" className="py-6 lg:py-8">
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div>

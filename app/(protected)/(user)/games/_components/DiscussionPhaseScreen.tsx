@@ -69,7 +69,7 @@ export default function DiscussionPhaseScreen({
   }, [remainingSeconds]);
 
   return (
-    <Container size="lg" className="py-6 lg:py-8">
+    <Container size="md" className="py-6 lg:py-8">
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

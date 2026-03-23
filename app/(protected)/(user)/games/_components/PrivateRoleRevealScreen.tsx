@@ -29,7 +29,7 @@ export default function PrivateRoleRevealScreen({
 
   if (match.revealState === "completed") {
     return (
-      <Container size="lg" className="py-6 lg:py-8">
+      <Container size="md" className="py-6 lg:py-8">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
@@ -66,7 +66,7 @@ export default function PrivateRoleRevealScreen({
 
   if (match.revealState === "revealed") {
     return (
-      <Container size="lg" className="py-6 lg:py-8">
+      <Container size="md" className="py-6 lg:py-8">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
@@ -114,7 +114,7 @@ export default function PrivateRoleRevealScreen({
   }
 
   return (
-    <Container size="lg" className="py-6 lg:py-8">
+    <Container size="md" className="py-6 lg:py-8">
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div>

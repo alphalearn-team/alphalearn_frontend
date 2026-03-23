@@ -40,7 +40,7 @@ export default function DrawingPhaseScreen({
 
   if (match.drawingState === "handoff") {
     return (
-      <Container size="lg" className="py-6 lg:py-8">
+      <Container size="md" className="py-6 lg:py-8">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
@@ -96,7 +96,7 @@ export default function DrawingPhaseScreen({
 
   if (match.drawingState === "review") {
     return (
-      <Container size="lg" className="py-6 lg:py-8">
+      <Container size="md" className="py-6 lg:py-8">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div className="flex items-start justify-between gap-4">
@@ -158,7 +158,7 @@ export default function DrawingPhaseScreen({
   }
 
   return (
-    <Container size="lg" className="py-6 lg:py-8">
+    <Container size="md" className="py-6 lg:py-8">
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

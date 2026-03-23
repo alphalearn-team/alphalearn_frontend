@@ -40,7 +40,7 @@ export default function PrivateVotingScreen({
 
   if (match.votingState === "tie-prompt") {
     return (
-      <Container size="lg" className="py-6 lg:py-8">
+      <Container size="md" className="py-6 lg:py-8">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
@@ -109,7 +109,7 @@ export default function PrivateVotingScreen({
 
   if (match.votingState === "handoff") {
     return (
-      <Container size="lg" className="py-6 lg:py-8">
+      <Container size="md" className="py-6 lg:py-8">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
@@ -171,7 +171,7 @@ export default function PrivateVotingScreen({
 
   if (match.votingState === "submitted") {
     return (
-      <Container size="lg" className="py-6 lg:py-8">
+      <Container size="md" className="py-6 lg:py-8">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div className="flex items-start justify-between gap-4">
@@ -225,7 +225,7 @@ export default function PrivateVotingScreen({
   }
 
   return (
-    <Container size="lg" className="py-6 lg:py-8">
+    <Container size="md" className="py-6 lg:py-8">
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div>
