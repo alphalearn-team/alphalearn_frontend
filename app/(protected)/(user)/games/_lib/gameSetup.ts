@@ -43,16 +43,35 @@ export interface AssignedGameConcept {
 }
 
 export type RevealSubstate = "handoff" | "revealed" | "completed";
+export type DrawingSubstate = "handoff" | "drawing" | "review" | "completed";
+export type MatchPhase = "reveal" | "draw" | "discussion";
+
+export interface CanvasPoint {
+  x: number;
+  y: number;
+}
+
+export interface CanvasStroke {
+  id: string;
+  playerId: string;
+  color: string;
+  width: number;
+  points: CanvasPoint[];
+}
 
 export interface OfflineInitializedMatch {
   mode: GameMode;
-  phase: "reveal";
+  phase: MatchPhase;
   revealState: RevealSubstate;
+  drawingState: DrawingSubstate;
   players: MatchConfigPlayer[];
   settings: GameSetupSettings;
   concept: AssignedGameConcept;
   imposterPlayerId: string;
   currentRevealIndex: number;
+  currentDrawingTurnIndex: number;
+  totalDrawingTurns: number;
+  strokes: CanvasStroke[];
 }
 
 export interface GameSetupValidationResult {
@@ -139,11 +158,15 @@ export function initializeOfflineMatch(
     mode: config.mode,
     phase: "reveal",
     revealState: "handoff",
+    drawingState: "handoff",
     players: config.players,
     settings: config.settings,
     concept,
     imposterPlayerId,
     currentRevealIndex: 0,
+    currentDrawingTurnIndex: 0,
+    totalDrawingTurns: config.players.length * config.settings.roundsPerConcept,
+    strokes: [],
   };
 }
 
@@ -153,6 +176,100 @@ export function getCurrentRevealPlayer(match: OfflineInitializedMatch): MatchCon
 
 export function getFirstDrawingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
   return match.players[0] ?? null;
+}
+
+export function getCurrentDrawingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
+  if (match.players.length === 0 || match.currentDrawingTurnIndex < 0) {
+    return null;
+  }
+
+  return match.players[match.currentDrawingTurnIndex % match.players.length] ?? null;
+}
+
+export function getNextDrawingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
+  if (match.currentDrawingTurnIndex >= match.totalDrawingTurns - 1 || match.players.length === 0) {
+    return null;
+  }
+
+  return match.players[(match.currentDrawingTurnIndex + 1) % match.players.length] ?? null;
+}
+
+export function getCurrentDrawingRound(match: OfflineInitializedMatch): number {
+  if (match.players.length === 0) {
+    return 0;
+  }
+
+  return Math.floor(match.currentDrawingTurnIndex / match.players.length) + 1;
+}
+
+export function enterDrawingPhase(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  return {
+    ...match,
+    phase: "draw",
+    revealState: "completed",
+    drawingState: "handoff",
+    currentDrawingTurnIndex: 0,
+    totalDrawingTurns: match.players.length * match.settings.roundsPerConcept,
+    strokes: [],
+  };
+}
+
+export function startDrawingTurn(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "draw" || match.drawingState !== "handoff" || !getCurrentDrawingPlayer(match)) {
+    return match;
+  }
+
+  return {
+    ...match,
+    drawingState: "drawing",
+  };
+}
+
+export function addCanvasStroke(
+  match: OfflineInitializedMatch,
+  stroke: CanvasStroke,
+): OfflineInitializedMatch {
+  if (match.phase !== "draw" || match.drawingState !== "drawing") {
+    return match;
+  }
+
+  return {
+    ...match,
+    strokes: [...match.strokes, stroke],
+  };
+}
+
+export function finishDrawingTurn(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "draw" || match.drawingState !== "drawing") {
+    return match;
+  }
+
+  const isFinalTurn = match.currentDrawingTurnIndex >= match.totalDrawingTurns - 1;
+
+  if (isFinalTurn) {
+    return {
+      ...match,
+      phase: "discussion",
+      drawingState: "completed",
+    };
+  }
+
+  return {
+    ...match,
+    drawingState: "review",
+  };
+}
+
+export function continueFromDrawingReview(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "draw" || match.drawingState !== "review") {
+    return match;
+  }
+
+  return {
+    ...match,
+    currentDrawingTurnIndex: match.currentDrawingTurnIndex + 1,
+    drawingState: "handoff",
+  };
 }
 
 export function isCurrentRevealPlayerImposter(match: OfflineInitializedMatch): boolean {
@@ -179,10 +296,10 @@ export function hideCurrentPlayerRole(match: OfflineInitializedMatch): OfflineIn
   const isLastReveal = match.currentRevealIndex >= match.players.length - 1;
 
   if (isLastReveal) {
-    return {
+    return enterDrawingPhase({
       ...match,
       revealState: "completed",
-    };
+    });
   }
 
   return {
