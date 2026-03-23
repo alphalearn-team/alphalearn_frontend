@@ -45,7 +45,8 @@ export interface AssignedGameConcept {
 export type RevealSubstate = "handoff" | "revealed" | "completed";
 export type DrawingSubstate = "handoff" | "drawing" | "review" | "completed";
 export type DiscussionSubstate = "running" | "completed";
-export type MatchPhase = "reveal" | "draw" | "discussion" | "vote";
+export type VotingSubstate = "handoff" | "selecting" | "submitted" | "completed";
+export type MatchPhase = "reveal" | "draw" | "discussion" | "vote" | "vote-result";
 
 export interface CanvasPoint {
   x: number;
@@ -60,12 +61,23 @@ export interface CanvasStroke {
   points: CanvasPoint[];
 }
 
+export interface PlayerVote {
+  voterPlayerId: string;
+  suspectedPlayerId: string;
+}
+
+export interface VoteTally {
+  playerId: string;
+  voteCount: number;
+}
+
 export interface OfflineInitializedMatch {
   mode: GameMode;
   phase: MatchPhase;
   revealState: RevealSubstate;
   drawingState: DrawingSubstate;
   discussionState: DiscussionSubstate;
+  votingState: VotingSubstate;
   players: MatchConfigPlayer[];
   settings: GameSetupSettings;
   concept: AssignedGameConcept;
@@ -76,6 +88,10 @@ export interface OfflineInitializedMatch {
   strokes: CanvasStroke[];
   discussionDurationSeconds: number;
   discussionEndsAt: number | null;
+  currentVotingPlayerIndex: number;
+  votes: PlayerVote[];
+  finalVoteTallies: VoteTally[];
+  accusedPlayerId: string | null;
 }
 
 export interface GameSetupValidationResult {
@@ -164,6 +180,7 @@ export function initializeOfflineMatch(
     revealState: "handoff",
     drawingState: "handoff",
     discussionState: "completed",
+    votingState: "completed",
     players: config.players,
     settings: config.settings,
     concept,
@@ -174,6 +191,10 @@ export function initializeOfflineMatch(
     strokes: [],
     discussionDurationSeconds: config.settings.discussionTimerSeconds,
     discussionEndsAt: null,
+    currentVotingPlayerIndex: 0,
+    votes: [],
+    finalVoteTallies: [],
+    accusedPlayerId: null,
   };
 }
 
@@ -216,11 +237,16 @@ export function enterDrawingPhase(match: OfflineInitializedMatch): OfflineInitia
     revealState: "completed",
     drawingState: "handoff",
     discussionState: "completed",
+    votingState: "completed",
     currentDrawingTurnIndex: 0,
     totalDrawingTurns: match.players.length * match.settings.roundsPerConcept,
     strokes: [],
     discussionDurationSeconds: match.settings.discussionTimerSeconds,
     discussionEndsAt: null,
+    currentVotingPlayerIndex: 0,
+    votes: [],
+    finalVoteTallies: [],
+    accusedPlayerId: null,
   };
 }
 
@@ -320,6 +346,122 @@ export function completeDiscussionPhase(match: OfflineInitializedMatch): Offline
     phase: "vote",
     discussionState: "completed",
     discussionEndsAt: null,
+    votingState: "handoff",
+    currentVotingPlayerIndex: 0,
+    votes: [],
+    finalVoteTallies: [],
+    accusedPlayerId: null,
+  };
+}
+
+export function getCurrentVotingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
+  if (match.players.length === 0 || match.currentVotingPlayerIndex < 0) {
+    return null;
+  }
+
+  return match.players[match.currentVotingPlayerIndex] ?? null;
+}
+
+export function getNextVotingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
+  if (match.currentVotingPlayerIndex >= match.players.length - 1) {
+    return null;
+  }
+
+  return match.players[match.currentVotingPlayerIndex + 1] ?? null;
+}
+
+export function getVotingCandidates(match: OfflineInitializedMatch): MatchConfigPlayer[] {
+  const currentVoter = getCurrentVotingPlayer(match);
+
+  return match.players.filter((player) => player.id !== currentVoter?.id);
+}
+
+export function startVotingTurn(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "vote" || match.votingState !== "handoff" || !getCurrentVotingPlayer(match)) {
+    return match;
+  }
+
+  return {
+    ...match,
+    votingState: "selecting",
+  };
+}
+
+function tallyVotes(votes: PlayerVote[]): VoteTally[] {
+  const counts = new Map<string, number>();
+
+  for (const vote of votes) {
+    counts.set(vote.suspectedPlayerId, (counts.get(vote.suspectedPlayerId) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .map(([playerId, voteCount]) => ({ playerId, voteCount }))
+    .sort((left, right) => {
+      if (right.voteCount !== left.voteCount) {
+        return right.voteCount - left.voteCount;
+      }
+
+      return left.playerId.localeCompare(right.playerId);
+    });
+}
+
+export function submitVote(
+  match: OfflineInitializedMatch,
+  suspectedPlayerId: string,
+): OfflineInitializedMatch {
+  if (match.phase !== "vote" || match.votingState !== "selecting") {
+    return match;
+  }
+
+  const currentVoter = getCurrentVotingPlayer(match);
+
+  if (!currentVoter || currentVoter.id === suspectedPlayerId) {
+    return match;
+  }
+
+  if (match.votes.some((vote) => vote.voterPlayerId === currentVoter.id)) {
+    return match;
+  }
+
+  const nextVotes = [
+    ...match.votes,
+    {
+      voterPlayerId: currentVoter.id,
+      suspectedPlayerId,
+    },
+  ];
+
+  const isFinalVote = nextVotes.length >= match.players.length;
+
+  if (isFinalVote) {
+    const finalVoteTallies = tallyVotes(nextVotes);
+
+    return {
+      ...match,
+      phase: "vote-result",
+      votingState: "completed",
+      votes: nextVotes,
+      finalVoteTallies,
+      accusedPlayerId: finalVoteTallies[0]?.playerId ?? null,
+    };
+  }
+
+  return {
+    ...match,
+    votingState: "submitted",
+    votes: nextVotes,
+  };
+}
+
+export function continueFromSubmittedVote(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "vote" || match.votingState !== "submitted") {
+    return match;
+  }
+
+  return {
+    ...match,
+    currentVotingPlayerIndex: match.currentVotingPlayerIndex + 1,
+    votingState: "handoff",
   };
 }
 
