@@ -28,6 +28,7 @@ import {
 } from "../_lib/gameSetup";
 import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptProvider";
 import { assignImposter } from "../_lib/imposterAssignment";
+import DrawingPhaseScreen from "./DrawingPhaseScreen";
 import PrivateRoleRevealScreen from "./PrivateRoleRevealScreen";
 
 const sectionCardClassName =
@@ -56,6 +57,10 @@ export default function GameSetupScreen() {
   const [startError, setStartError] = useState<string | null>(null);
 
   if (matchConfig) {
+    if (matchConfig.phase === "draw") {
+      return <DrawingPhaseScreen match={matchConfig} onMatchChange={setMatchConfig} />;
+    }
+
     return <PrivateRoleRevealScreen match={matchConfig} onMatchChange={setMatchConfig} />;
   }
 
