@@ -48,8 +48,14 @@ export type RevealSubstate = "handoff" | "revealed" | "completed";
 export type DrawingSubstate = "handoff" | "drawing" | "review" | "completed";
 export type DiscussionSubstate = "running" | "completed";
 export type VotingSubstate = "handoff" | "selecting" | "submitted" | "tie-prompt" | "completed";
-export type MatchPhase = "reveal" | "draw" | "discussion" | "vote" | "vote-result" | "match-summary";
+export type GuessSubstate = "handoff" | "guessing" | "completed";
+export type MatchPhase = "reveal" | "draw" | "discussion" | "vote" | "guess" | "vote-result" | "match-summary";
 export type ConceptWinnerSide = "imposter" | "non-imposters";
+export type ConceptResolution =
+  | "imposter-escaped-vote"
+  | "imposter-correct-guess"
+  | "imposter-wins-final-tie"
+  | "non-imposters-caught-imposter";
 
 export interface CanvasPoint {
   x: number;
@@ -84,9 +90,11 @@ export interface ConceptResult {
   conceptPublicId: string;
   word: string;
   winnerSide: ConceptWinnerSide;
+  resolution: ConceptResolution;
   accusedPlayerId: string | null;
   imposterPlayerId: string;
   imposterWinsByVotingTie: boolean;
+  imposterGuess: string | null;
   finalVoteTallies: VoteTally[];
 }
 
@@ -97,6 +105,7 @@ export interface OfflineInitializedMatch {
   drawingState: DrawingSubstate;
   discussionState: DiscussionSubstate;
   votingState: VotingSubstate;
+  guessState: GuessSubstate;
   players: MatchConfigPlayer[];
   settings: GameSetupSettings;
   totalConceptCount: number;
@@ -120,6 +129,9 @@ export interface OfflineInitializedMatch {
   finalVoteTallies: VoteTally[];
   accusedPlayerId: string | null;
   imposterWinsByVotingTie: boolean;
+  guessDurationSeconds: number;
+  guessEndsAt: number | null;
+  imposterGuess: string;
 }
 
 export interface GameSetupValidationResult {
@@ -216,6 +228,7 @@ export function initializeOfflineMatch(
     drawingState: "handoff",
     discussionState: "completed",
     votingState: "completed",
+    guessState: "completed",
     players: config.players,
     settings: config.settings,
     totalConceptCount: config.settings.conceptCount,
@@ -239,6 +252,9 @@ export function initializeOfflineMatch(
     finalVoteTallies: [],
     accusedPlayerId: null,
     imposterWinsByVotingTie: false,
+    guessDurationSeconds: config.settings.imposterGuessTimerSeconds,
+    guessEndsAt: null,
+    imposterGuess: "",
   };
 }
 
@@ -286,6 +302,7 @@ export function enterDrawingPhase(match: OfflineInitializedMatch): OfflineInitia
     drawingState: "handoff",
     discussionState: "completed",
     votingState: "completed",
+    guessState: "completed",
     currentDrawingTurnIndex: 0,
     totalDrawingTurns: match.players.length * match.settings.roundsPerConcept,
     strokes: [],
@@ -298,6 +315,9 @@ export function enterDrawingPhase(match: OfflineInitializedMatch): OfflineInitia
     finalVoteTallies: [],
     accusedPlayerId: null,
     imposterWinsByVotingTie: false,
+    guessDurationSeconds: match.settings.imposterGuessTimerSeconds,
+    guessEndsAt: null,
+    imposterGuess: "",
   };
 }
 
@@ -398,6 +418,7 @@ export function completeDiscussionPhase(match: OfflineInitializedMatch): Offline
     discussionState: "completed",
     discussionEndsAt: null,
     votingState: "handoff",
+    guessState: "completed",
     currentVotingPlayerIndex: 0,
     currentVotingRound: 1,
     restrictedVoteCandidateIds: null,
@@ -405,6 +426,9 @@ export function completeDiscussionPhase(match: OfflineInitializedMatch): Offline
     finalVoteTallies: [],
     accusedPlayerId: null,
     imposterWinsByVotingTie: false,
+    guessDurationSeconds: match.settings.imposterGuessTimerSeconds,
+    guessEndsAt: null,
+    imposterGuess: "",
   };
 }
 
@@ -413,7 +437,31 @@ function getConceptWinnerSide(match: OfflineInitializedMatch): ConceptWinnerSide
     return "imposter";
   }
 
-  return match.accusedPlayerId === match.imposterPlayerId ? "non-imposters" : "imposter";
+  if (match.accusedPlayerId !== match.imposterPlayerId) {
+    return "imposter";
+  }
+
+  return normalizeGuess(match.imposterGuess) === normalizeGuess(match.concept.word)
+    ? "imposter"
+    : "non-imposters";
+}
+
+function getConceptResolution(match: OfflineInitializedMatch): ConceptResolution {
+  if (match.imposterWinsByVotingTie) {
+    return "imposter-wins-final-tie";
+  }
+
+  if (match.accusedPlayerId !== match.imposterPlayerId) {
+    return "imposter-escaped-vote";
+  }
+
+  return normalizeGuess(match.imposterGuess) === normalizeGuess(match.concept.word)
+    ? "imposter-correct-guess"
+    : "non-imposters-caught-imposter";
+}
+
+function normalizeGuess(value: string): string {
+  return value.trim().toLowerCase();
 }
 
 function awardPointsForConcept(
@@ -441,10 +489,48 @@ function buildConceptResult(match: OfflineInitializedMatch, finalVoteTallies: Vo
     conceptPublicId: match.concept.conceptPublicId,
     word: match.concept.word,
     winnerSide: getConceptWinnerSide(match),
+    resolution: getConceptResolution(match),
     accusedPlayerId: match.accusedPlayerId,
     imposterPlayerId: match.imposterPlayerId,
     imposterWinsByVotingTie: match.imposterWinsByVotingTie,
+    imposterGuess: match.imposterGuess ? match.imposterGuess : null,
     finalVoteTallies,
+  };
+}
+
+export function enterImposterGuessPhase(
+  match: OfflineInitializedMatch,
+  startedAt = Date.now(),
+): OfflineInitializedMatch {
+  if (match.accusedPlayerId !== match.imposterPlayerId) {
+    return match;
+  }
+
+  return {
+    ...match,
+    phase: "guess",
+    votingState: "completed",
+    guessState: "handoff",
+    guessDurationSeconds: match.settings.imposterGuessTimerSeconds,
+    guessEndsAt: startedAt + match.settings.imposterGuessTimerSeconds * 1000,
+    imposterGuess: "",
+  };
+}
+
+export function finalizeConceptResult(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  const conceptResult = buildConceptResult(match, match.finalVoteTallies);
+
+  return {
+    ...match,
+    phase: "vote-result",
+    guessState: "completed",
+    conceptResults: [...match.conceptResults, conceptResult],
+    playerScores: awardPointsForConcept(
+      match.playerScores,
+      match.players,
+      conceptResult.winnerSide,
+      match.imposterPlayerId,
+    ),
   };
 }
 
@@ -478,6 +564,7 @@ export function prepareNextConcept(
     drawingState: "handoff",
     discussionState: "completed",
     votingState: "completed",
+    guessState: "completed",
     currentConceptNumber: match.currentConceptNumber + 1,
     usedConceptPublicIds: [...match.usedConceptPublicIds, concept.conceptPublicId],
     startingPlayerOffset: (match.startingPlayerOffset + 1) % Math.max(match.players.length, 1),
@@ -496,6 +583,9 @@ export function prepareNextConcept(
     finalVoteTallies: [],
     accusedPlayerId: null,
     imposterWinsByVotingTie: false,
+    guessDurationSeconds: match.settings.imposterGuessTimerSeconds,
+    guessEndsAt: null,
+    imposterGuess: "",
   };
 }
 
@@ -627,19 +717,11 @@ export function submitVote(
           finalVoteTallies,
           accusedPlayerId: null,
           imposterWinsByVotingTie: true,
+          guessState: "completed" as const,
+          guessEndsAt: null,
+          imposterGuess: "",
         };
-        const conceptResult = buildConceptResult(resolvedMatch, finalVoteTallies);
-
-        return {
-          ...resolvedMatch,
-          conceptResults: [...match.conceptResults, conceptResult],
-          playerScores: awardPointsForConcept(
-            match.playerScores,
-            match.players,
-            conceptResult.winnerSide,
-            match.imposterPlayerId,
-          ),
-        };
+        return finalizeConceptResult(resolvedMatch);
       }
 
       return {
@@ -652,31 +734,31 @@ export function submitVote(
         finalVoteTallies: finalVoteTallies,
         accusedPlayerId: null,
         imposterWinsByVotingTie: false,
+        guessState: "completed",
+        guessEndsAt: null,
+        imposterGuess: "",
       };
     }
 
     const resolvedMatch = {
       ...match,
-      phase: "vote-result" as const,
+      phase: "vote" as const,
       votingState: "completed" as const,
       restrictedVoteCandidateIds: null,
       votes: nextVotes,
       finalVoteTallies,
       accusedPlayerId: finalVoteTallies[0]?.playerId ?? null,
       imposterWinsByVotingTie: false,
+      guessState: "completed" as const,
+      guessEndsAt: null,
+      imposterGuess: "",
     };
-    const conceptResult = buildConceptResult(resolvedMatch, finalVoteTallies);
 
-    return {
-      ...resolvedMatch,
-      conceptResults: [...match.conceptResults, conceptResult],
-      playerScores: awardPointsForConcept(
-        match.playerScores,
-        match.players,
-        conceptResult.winnerSide,
-        match.imposterPlayerId,
-      ),
-    };
+    if (resolvedMatch.accusedPlayerId === resolvedMatch.imposterPlayerId) {
+      return enterImposterGuessPhase(resolvedMatch);
+    }
+
+    return finalizeConceptResult(resolvedMatch);
   }
 
   return {
@@ -716,6 +798,58 @@ export function getTiedVotingPlayers(match: OfflineInitializedMatch): MatchConfi
   }
 
   return match.players.filter((player) => match.restrictedVoteCandidateIds?.includes(player.id));
+}
+
+export function getImposterPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
+  return match.players.find((player) => player.id === match.imposterPlayerId) ?? null;
+}
+
+export function startImposterGuess(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "guess" || match.guessState !== "handoff") {
+    return match;
+  }
+
+  return {
+    ...match,
+    guessState: "guessing",
+  };
+}
+
+export function updateImposterGuess(
+  match: OfflineInitializedMatch,
+  nextGuess: string,
+): OfflineInitializedMatch {
+  if (match.phase !== "guess" || match.guessState !== "guessing") {
+    return match;
+  }
+
+  return {
+    ...match,
+    imposterGuess: nextGuess,
+  };
+}
+
+export function getGuessRemainingSeconds(
+  match: OfflineInitializedMatch,
+  now = Date.now(),
+): number {
+  if (match.phase !== "guess" || !match.guessEndsAt) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil((match.guessEndsAt - now) / 1000));
+}
+
+export function submitImposterGuess(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "guess" || match.guessState !== "guessing") {
+    return match;
+  }
+
+  return finalizeConceptResult({
+    ...match,
+    guessState: "completed",
+    guessEndsAt: null,
+  });
 }
 
 export function isCurrentRevealPlayerImposter(match: OfflineInitializedMatch): boolean {
