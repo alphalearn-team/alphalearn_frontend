@@ -28,6 +28,7 @@ import {
 } from "../_lib/gameSetup";
 import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptProvider";
 import { assignImposter } from "../_lib/imposterAssignment";
+import PrivateRoleRevealScreen from "./PrivateRoleRevealScreen";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
@@ -53,6 +54,10 @@ export default function GameSetupScreen() {
   const [isStartingMatch, setIsStartingMatch] = useState(false);
   const [matchConfig, setMatchConfig] = useState<OfflineInitializedMatch | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+
+  if (matchConfig) {
+    return <PrivateRoleRevealScreen match={matchConfig} onMatchChange={setMatchConfig} />;
+  }
 
   const updatePlayerName = (playerId: string, nextName: string) => {
     setFormValues((currentValues) => ({
@@ -195,8 +200,8 @@ export default function GameSetupScreen() {
               Prepare an offline match
             </Title>
             <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-              Enter player names, tune the match settings, and create a local offline match config
-              without any backend dependency.
+              Enter player names, tune the match settings, and start a reveal-ready offline match
+              on the same phone.
             </Text>
           </div>
         </Card>
@@ -394,77 +399,6 @@ export default function GameSetupScreen() {
             </div>
           </div>
         </form>
-
-        {matchConfig ? (
-          <Card radius="32px" padding="xl" className={sectionCardClassName}>
-            <Stack gap="lg">
-              <div className="border-b border-white/10 pb-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                  Match created
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-[var(--color-text)]">
-                  Initial offline match is ready
-                </h2>
-                <Text size="sm" className="mt-2 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-                  The game has assigned one concept and one imposter and is ready to move into the
-                  learner-by-learner reveal flow next.
-                </Text>
-              </div>
-
-              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-                <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Mode
-                  </p>
-                  <p className="mt-3 text-lg font-semibold text-[var(--color-text)]">
-                    {matchConfig.mode}
-                  </p>
-                </div>
-
-                <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Phase
-                  </p>
-                  <p className="mt-3 text-lg font-semibold text-[var(--color-text)]">
-                    {matchConfig.phase}
-                  </p>
-                </div>
-
-                <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Players
-                  </p>
-                  <div className="mt-3 space-y-2">
-                    {matchConfig.players.map((player) => (
-                      <p key={player.id} className="text-sm text-[var(--color-text-secondary)]">
-                        <span className="font-semibold text-[var(--color-text)]">{player.name}</span>
-                        {" "}
-                        <span className="text-[var(--color-text-muted)]">({player.id})</span>
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </SimpleGrid>
-
-              <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Concept assignment
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-                  A concept has been assigned automatically and stored in the initial match state.
-                  The word stays hidden from the setup screen so the next reveal story can show it
-                  privately to each learner.
-                </p>
-              </div>
-
-              <div className="rounded-[24px] border border-white/10 bg-black/40 p-4">
-                <pre className="overflow-x-auto text-xs leading-6 text-[var(--color-text-secondary)]">
-                  {JSON.stringify(matchConfig, null, 2)}
-                </pre>
-              </div>
-            </Stack>
-          </Card>
-        ) : null}
       </Stack>
     </Container>
   );
