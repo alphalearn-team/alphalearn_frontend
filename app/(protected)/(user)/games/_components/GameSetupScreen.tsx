@@ -15,11 +15,14 @@ import {
   Title,
 } from "@mantine/core";
 import {
+  finalizeMatch,
+  hasMoreConceptsRemaining,
   createDefaultGameSetupForm,
   createPlayerDraft,
   getNextPlayerSequence,
   hasGameSetupErrors,
   initializeOfflineMatch,
+  prepareNextConcept,
   toOfflineMatchConfig,
   trimPlayerName,
   validateGameSetupForm,
@@ -30,6 +33,7 @@ import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptPr
 import { assignImposter } from "../_lib/imposterAssignment";
 import DiscussionPhaseScreen from "./DiscussionPhaseScreen";
 import DrawingPhaseScreen from "./DrawingPhaseScreen";
+import MatchSummaryScreen from "./MatchSummaryScreen";
 import PrivateRoleRevealScreen from "./PrivateRoleRevealScreen";
 import PrivateVotingScreen from "./PrivateVotingScreen";
 import VotePhasePlaceholderScreen from "./VotePhasePlaceholderScreen";
@@ -56,8 +60,10 @@ export default function GameSetupScreen() {
   const [formValues, setFormValues] = useState<GameSetupFormValues>(() => createDefaultGameSetupForm());
   const [playerErrors, setPlayerErrors] = useState<Record<string, string>>({});
   const [isStartingMatch, setIsStartingMatch] = useState(false);
+  const [isContinuingMatch, setIsContinuingMatch] = useState(false);
   const [matchConfig, setMatchConfig] = useState<OfflineInitializedMatch | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  const [conceptTransitionError, setConceptTransitionError] = useState<string | null>(null);
 
   if (matchConfig) {
     if (matchConfig.phase === "draw") {
@@ -73,7 +79,62 @@ export default function GameSetupScreen() {
     }
 
     if (matchConfig.phase === "vote-result") {
-      return <VotePhasePlaceholderScreen match={matchConfig} />;
+      return (
+        <VotePhasePlaceholderScreen
+          match={matchConfig}
+          onContinue={async () => {
+            const accessToken = session?.access_token;
+
+            if (!accessToken) {
+              setConceptTransitionError("You need to be signed in before continuing the match.");
+              return;
+            }
+
+            setConceptTransitionError(null);
+
+            if (!hasMoreConceptsRemaining(matchConfig)) {
+              setMatchConfig(finalizeMatch(matchConfig));
+              return;
+            }
+
+            setIsContinuingMatch(true);
+
+            try {
+              const concept = await fetchNextGameConcept(accessToken, matchConfig.usedConceptPublicIds);
+              const assignment = assignImposter(matchConfig.players);
+
+              setMatchConfig(
+                prepareNextConcept(
+                  matchConfig,
+                  {
+                    conceptPublicId: concept.conceptPublicId,
+                    word: concept.word,
+                  },
+                  assignment.imposterPlayerId,
+                ),
+              );
+            } catch (error) {
+              if (isEmptyConceptBankError(error)) {
+                setConceptTransitionError(
+                  "No more unused concepts are available for this match. Add more concepts before continuing.",
+                );
+              } else if (error instanceof Error && error.message) {
+                setConceptTransitionError(error.message);
+              } else {
+                setConceptTransitionError("We could not load the next concept right now. Please try again.");
+              }
+            } finally {
+              setIsContinuingMatch(false);
+            }
+          }}
+          isContinuing={isContinuingMatch}
+          errorMessage={conceptTransitionError}
+        />
+      );
+    }
+
+    if (matchConfig.phase === "match-summary") {
+      return <MatchSummaryScreen match={matchConfig} />;
     }
 
     return <PrivateRoleRevealScreen match={matchConfig} onMatchChange={setMatchConfig} />;
@@ -179,6 +240,7 @@ export default function GameSetupScreen() {
 
     setIsStartingMatch(true);
     setStartError(null);
+    setConceptTransitionError(null);
 
     try {
       const concept = await fetchNextGameConcept(accessToken);
