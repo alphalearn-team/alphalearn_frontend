@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
   Alert,
   Button,
@@ -18,12 +19,15 @@ import {
   createPlayerDraft,
   getNextPlayerSequence,
   hasGameSetupErrors,
+  initializeOfflineMatch,
   toOfflineMatchConfig,
   trimPlayerName,
   validateGameSetupForm,
   type GameSetupFormValues,
-  type OfflineMatchConfig,
+  type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
+import { fetchNextGameConcept } from "../_lib/conceptProvider";
+import { assignImposter } from "../_lib/imposterAssignment";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
@@ -43,9 +47,11 @@ const textInputStyles = {
 };
 
 export default function GameSetupScreen() {
+  const { session } = useAuth();
   const [formValues, setFormValues] = useState<GameSetupFormValues>(() => createDefaultGameSetupForm());
   const [playerErrors, setPlayerErrors] = useState<Record<string, string>>({});
-  const [matchConfig, setMatchConfig] = useState<OfflineMatchConfig | null>(null);
+  const [isStartingMatch, setIsStartingMatch] = useState(false);
+  const [matchConfig, setMatchConfig] = useState<OfflineInitializedMatch | null>(null);
 
   const updatePlayerName = (playerId: string, nextName: string) => {
     setFormValues((currentValues) => ({
@@ -111,7 +117,7 @@ export default function GameSetupScreen() {
     }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const trimmedValues: GameSetupFormValues = {
@@ -133,7 +139,32 @@ export default function GameSetupScreen() {
     }
 
     setPlayerErrors({});
-    setMatchConfig(toOfflineMatchConfig(trimmedValues));
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      return;
+    }
+
+    const offlineMatchConfig = toOfflineMatchConfig(trimmedValues);
+
+    setIsStartingMatch(true);
+
+    try {
+      const concept = await fetchNextGameConcept(accessToken);
+      const assignment = assignImposter(offlineMatchConfig.players);
+
+      setMatchConfig(
+        initializeOfflineMatch(
+          offlineMatchConfig,
+          {
+            conceptPublicId: concept.conceptPublicId,
+            word: concept.word,
+          },
+          assignment.imposterPlayerId,
+        ),
+      );
+    } finally {
+      setIsStartingMatch(false);
+    }
   };
 
   return (
@@ -302,8 +333,8 @@ export default function GameSetupScreen() {
                       Ready to create the match
                     </h2>
                     <Text size="sm" className="mt-2 leading-relaxed text-[var(--color-text-secondary)]">
-                      This story stops at local setup. Starting will create a frontend-only match
-                      config for review.
+                      Starting the match now assigns one concept and one imposter automatically,
+                      then prepares the game for the reveal phase.
                     </Text>
                   </div>
 
@@ -325,6 +356,8 @@ export default function GameSetupScreen() {
                     size="lg"
                     fullWidth
                     className="min-h-12"
+                    loading={isStartingMatch}
+                    disabled={!session?.access_token}
                     styles={{
                       root: {
                         backgroundColor: "var(--color-primary)",
@@ -348,11 +381,11 @@ export default function GameSetupScreen() {
                   Match created
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-[var(--color-text)]">
-                  Local offline config is ready
+                  Initial offline match is ready
                 </h2>
                 <Text size="sm" className="mt-2 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-                  This is the temporary debug state for T5-609. It confirms the setup flow is
-                  producing the object needed for the next story.
+                  The game has assigned one concept and one imposter and is ready to move into the
+                  learner-by-learner reveal flow next.
                 </Text>
               </div>
 
@@ -363,6 +396,15 @@ export default function GameSetupScreen() {
                   </p>
                   <p className="mt-3 text-lg font-semibold text-[var(--color-text)]">
                     {matchConfig.mode}
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    Phase
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-[var(--color-text)]">
+                    {matchConfig.phase}
                   </p>
                 </div>
 
@@ -381,6 +423,17 @@ export default function GameSetupScreen() {
                   </div>
                 </div>
               </SimpleGrid>
+
+              <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                  Concept assignment
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                  A concept has been assigned automatically and stored in the initial match state.
+                  The word stays hidden from the setup screen so the next reveal story can show it
+                  privately to each learner.
+                </p>
+              </div>
 
               <div className="rounded-[24px] border border-white/10 bg-black/40 p-4">
                 <pre className="overflow-x-auto text-xs leading-6 text-[var(--color-text-secondary)]">

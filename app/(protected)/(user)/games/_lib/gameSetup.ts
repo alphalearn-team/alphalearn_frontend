@@ -37,6 +37,21 @@ export interface OfflineMatchConfig {
   settings: GameSetupSettings;
 }
 
+export interface AssignedGameConcept {
+  conceptPublicId: string;
+  word: string;
+}
+
+export interface OfflineInitializedMatch {
+  mode: GameMode;
+  phase: "reveal";
+  players: MatchConfigPlayer[];
+  settings: GameSetupSettings;
+  concept: AssignedGameConcept;
+  imposterPlayerId: string;
+  currentRevealIndex: number;
+}
+
 export interface GameSetupValidationResult {
   playerErrors: Record<string, string>;
 }
@@ -109,5 +124,21 @@ export function toOfflineMatchConfig(values: GameSetupFormValues): OfflineMatchC
       discussionTimerSeconds: normalizeWholeNumber(values.settings.discussionTimerSeconds),
       imposterGuessTimerSeconds: normalizeWholeNumber(values.settings.imposterGuessTimerSeconds),
     },
+  };
+}
+
+export function initializeOfflineMatch(
+  config: OfflineMatchConfig,
+  concept: AssignedGameConcept,
+  imposterPlayerId: string,
+): OfflineInitializedMatch {
+  return {
+    mode: config.mode,
+    phase: "reveal",
+    players: config.players,
+    settings: config.settings,
+    concept,
+    imposterPlayerId,
+    currentRevealIndex: 0,
   };
 }
