@@ -13,6 +13,7 @@ import {
   type CanvasStroke,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
+import MatchProgressBadge from "./MatchProgressBadge";
 import SharedCanvas from "./SharedCanvas";
 
 const sectionCardClassName =
@@ -43,6 +44,7 @@ export default function DrawingPhaseScreen({
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
+              <MatchProgressBadge match={match} />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 Drawing phase
               </p>
@@ -99,6 +101,7 @@ export default function DrawingPhaseScreen({
           <Stack gap="lg">
             <div className="flex items-start justify-between gap-4">
               <div>
+                <MatchProgressBadge match={match} />
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                   Turn complete
                 </p>
@@ -160,6 +163,7 @@ export default function DrawingPhaseScreen({
         <Stack gap="lg">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
+              <MatchProgressBadge match={match} />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 Drawing turn
               </p>

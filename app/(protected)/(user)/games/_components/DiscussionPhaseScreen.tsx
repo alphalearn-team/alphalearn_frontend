@@ -8,6 +8,7 @@ import {
   isDiscussionTimerLow,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
+import MatchProgressBadge from "./MatchProgressBadge";
 import SharedCanvas from "./SharedCanvas";
 
 const sectionCardClassName =
@@ -73,6 +74,7 @@ export default function DiscussionPhaseScreen({
         <Stack gap="lg">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
+              <MatchProgressBadge match={match} />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 Discussion phase
               </p>

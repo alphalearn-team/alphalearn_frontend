@@ -14,6 +14,7 @@ import {
   submitVote,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
+import MatchProgressBadge from "./MatchProgressBadge";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
@@ -43,6 +44,7 @@ export default function PrivateVotingScreen({
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
+              <MatchProgressBadge match={match} />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 Vote tied
               </p>
@@ -111,6 +113,7 @@ export default function PrivateVotingScreen({
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
+              <MatchProgressBadge match={match} />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 {match.currentVotingRound > 1 ? "Secret revote" : "Secret vote"}
               </p>
@@ -173,17 +176,18 @@ export default function PrivateVotingScreen({
           <Stack gap="lg">
             <div className="flex items-start justify-between gap-4">
               <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                Vote submitted
-              </p>
-              <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
-                {match.currentVotingRound > 1 ? "Pass the phone to the next revoter" : "Pass the phone to the next learner"}
-              </Title>
-              <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-                The vote is locked in and hidden. No vote totals are shown until the current
-                voting round is complete.
-              </Text>
-            </div>
+                <MatchProgressBadge match={match} />
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                  Vote submitted
+                </p>
+                <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
+                  {match.currentVotingRound > 1 ? "Pass the phone to the next revoter" : "Pass the phone to the next learner"}
+                </Title>
+                <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
+                  The vote is locked in and hidden. No vote totals are shown until the current
+                  voting round is complete.
+                </Text>
+              </div>
 
               <div className="rounded-[20px] border border-white/10 bg-black/20 px-4 py-3 text-right">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
@@ -225,18 +229,19 @@ export default function PrivateVotingScreen({
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                {match.currentVotingRound > 1 ? "Secret revote" : "Secret vote"}
-              </p>
-              <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
-                {currentPlayer.name}, choose the imposter
-              </Title>
-              <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-                {match.currentVotingRound > 1
-                  ? "Pick one tied learner. Your vote stays hidden until the revote round is complete."
-                  : "Pick one learner. Your vote stays hidden until everyone has submitted."}
-              </Text>
-            </div>
+            <MatchProgressBadge match={match} />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+              {match.currentVotingRound > 1 ? "Secret revote" : "Secret vote"}
+            </p>
+            <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
+              {currentPlayer.name}, choose the imposter
+            </Title>
+            <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
+              {match.currentVotingRound > 1
+                ? "Pick one tied learner. Your vote stays hidden until the revote round is complete."
+                : "Pick one learner. Your vote stays hidden until everyone has submitted."}
+            </Text>
+          </div>
 
           <div className="rounded-[24px] border border-white/10 bg-black/20 p-4">
             <Stack gap="sm">

@@ -9,6 +9,7 @@ import {
   revealCurrentPlayerRole,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
+import MatchProgressBadge from "./MatchProgressBadge";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
@@ -32,6 +33,7 @@ export default function PrivateRoleRevealScreen({
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
+              <MatchProgressBadge match={match} />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 Reveal complete
               </p>
@@ -68,6 +70,7 @@ export default function PrivateRoleRevealScreen({
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="lg">
             <div>
+              <MatchProgressBadge match={match} />
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 Private role
               </p>
@@ -115,6 +118,7 @@ export default function PrivateRoleRevealScreen({
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div>
+            <MatchProgressBadge match={match} />
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
               Pass the phone
             </p>

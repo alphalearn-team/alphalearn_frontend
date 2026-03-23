@@ -7,6 +7,7 @@ import {
   hasMoreConceptsRemaining,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
+import MatchProgressBadge from "./MatchProgressBadge";
 import SharedCanvas from "./SharedCanvas";
 
 const sectionCardClassName =
@@ -31,7 +32,9 @@ export default function VotePhasePlaceholderScreen({
     match.currentVotingRound > 1 ? `Resolved after revote round ${match.currentVotingRound}` : "Resolved after the first vote";
   const title = match.imposterWinsByVotingTie
     ? "Voting stayed tied and the imposter wins"
-    : "The group has made an accusation";
+    : conceptResult?.winnerSide === "imposter"
+      ? "The imposter wins this concept"
+      : "The concept holders win this concept";
   const description = match.imposterWinsByVotingTie
     ? `The voting phase remained tied through round ${match.currentVotingRound}. The imposter wins automatically under the final tie rule.`
     : "Votes stayed hidden until everyone submitted. The final accusation is shown here while the next resolution phase is prepared in the following story.";
@@ -42,8 +45,9 @@ export default function VotePhasePlaceholderScreen({
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div>
+            <MatchProgressBadge match={match} />
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-              Voting complete
+              Concept result
             </p>
             <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
               {title}
