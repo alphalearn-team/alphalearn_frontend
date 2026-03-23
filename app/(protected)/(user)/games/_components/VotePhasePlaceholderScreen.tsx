@@ -15,6 +15,8 @@ export default function VotePhasePlaceholderScreen({
   match,
 }: VotePhasePlaceholderScreenProps) {
   const accusedPlayer = match.players.find((player) => player.id === match.accusedPlayerId) ?? null;
+  const roundLabel =
+    match.currentVotingRound > 1 ? `Resolved after revote round ${match.currentVotingRound}` : "Resolved after the first vote";
 
   return (
     <Container size="lg" className="py-6 lg:py-8">
@@ -31,6 +33,15 @@ export default function VotePhasePlaceholderScreen({
               Votes stayed hidden until everyone submitted. The final accusation is shown here
               while the next resolution phase is prepared in the following story.
             </Text>
+          </div>
+
+          <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+              Final vote round
+            </p>
+            <p className="mt-3 text-lg font-semibold text-[var(--color-text)]">
+              {roundLabel}
+            </p>
           </div>
 
           <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
