@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import {
+  Alert,
   Button,
   Card,
   Container,
@@ -16,7 +17,12 @@ import {
   createDefaultGameSetupForm,
   createPlayerDraft,
   getNextPlayerSequence,
+  hasGameSetupErrors,
+  toOfflineMatchConfig,
+  trimPlayerName,
+  validateGameSetupForm,
   type GameSetupFormValues,
+  type OfflineMatchConfig,
 } from "../_lib/gameSetup";
 
 const sectionCardClassName =
@@ -38,6 +44,8 @@ const textInputStyles = {
 
 export default function GameSetupScreen() {
   const [formValues, setFormValues] = useState<GameSetupFormValues>(() => createDefaultGameSetupForm());
+  const [playerErrors, setPlayerErrors] = useState<Record<string, string>>({});
+  const [matchConfig, setMatchConfig] = useState<OfflineMatchConfig | null>(null);
 
   const updatePlayerName = (playerId: string, nextName: string) => {
     setFormValues((currentValues) => ({
@@ -46,6 +54,15 @@ export default function GameSetupScreen() {
         player.id === playerId ? { ...player, name: nextName } : player,
       ),
     }));
+    setPlayerErrors((currentErrors) => {
+      if (!currentErrors[playerId]) {
+        return currentErrors;
+      }
+
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[playerId];
+      return nextErrors;
+    });
   };
 
   const addPlayer = () => {
@@ -70,6 +87,15 @@ export default function GameSetupScreen() {
         players: currentValues.players.filter((player) => player.id !== playerId),
       };
     });
+    setPlayerErrors((currentErrors) => {
+      if (!currentErrors[playerId]) {
+        return currentErrors;
+      }
+
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[playerId];
+      return nextErrors;
+    });
   };
 
   const updateSetting = (
@@ -80,9 +106,34 @@ export default function GameSetupScreen() {
       ...currentValues,
       settings: {
         ...currentValues.settings,
-        [key]: typeof value === "number" ? value : Number(value),
+        [key]: typeof value === "number" ? value : Number(value || 1),
       },
     }));
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedValues: GameSetupFormValues = {
+      ...formValues,
+      players: formValues.players.map((player) => ({
+        ...player,
+        name: trimPlayerName(player.name),
+      })),
+    };
+
+    setFormValues(trimmedValues);
+
+    const validationResult = validateGameSetupForm(trimmedValues);
+
+    if (hasGameSetupErrors(validationResult)) {
+      setPlayerErrors(validationResult.playerErrors);
+      setMatchConfig(null);
+      return;
+    }
+
+    setPlayerErrors({});
+    setMatchConfig(toOfflineMatchConfig(trimmedValues));
   };
 
   return (
@@ -103,7 +154,7 @@ export default function GameSetupScreen() {
           </div>
         </Card>
 
-        <form onSubmit={(event) => event.preventDefault()}>
+        <form onSubmit={handleSubmit}>
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
             <Card radius="32px" padding="xl" className={sectionCardClassName}>
               <Stack gap="lg">
@@ -138,6 +189,12 @@ export default function GameSetupScreen() {
                   </Button>
                 </div>
 
+                {Object.keys(playerErrors).length > 0 ? (
+                  <Alert color="red" radius="lg" variant="light" title="Player names required">
+                    Enter a name for every player before starting the match.
+                  </Alert>
+                ) : null}
+
                 <Stack gap="md">
                   {formValues.players.map((player, index) => (
                     <div
@@ -151,6 +208,7 @@ export default function GameSetupScreen() {
                           value={player.name}
                           onChange={(event) => updatePlayerName(player.id, event.currentTarget.value)}
                           size="md"
+                          error={playerErrors[player.id]}
                           styles={textInputStyles}
                         />
 
@@ -279,6 +337,57 @@ export default function GameSetupScreen() {
             </div>
           </div>
         </form>
+
+        {matchConfig ? (
+          <Card radius="32px" padding="xl" className={sectionCardClassName}>
+            <Stack gap="lg">
+              <div className="border-b border-white/10 pb-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                  Match created
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-[var(--color-text)]">
+                  Local offline config is ready
+                </h2>
+                <Text size="sm" className="mt-2 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
+                  This is the temporary debug state for T5-609. It confirms the setup flow is
+                  producing the object needed for the next story.
+                </Text>
+              </div>
+
+              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+                <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    Mode
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-[var(--color-text)]">
+                    {matchConfig.mode}
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    Players
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    {matchConfig.players.map((player) => (
+                      <p key={player.id} className="text-sm text-[var(--color-text-secondary)]">
+                        <span className="font-semibold text-[var(--color-text)]">{player.name}</span>
+                        {" "}
+                        <span className="text-[var(--color-text-muted)]">({player.id})</span>
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </SimpleGrid>
+
+              <div className="rounded-[24px] border border-white/10 bg-black/40 p-4">
+                <pre className="overflow-x-auto text-xs leading-6 text-[var(--color-text-secondary)]">
+                  {JSON.stringify(matchConfig, null, 2)}
+                </pre>
+              </div>
+            </Stack>
+          </Card>
+        ) : null}
       </Stack>
     </Container>
   );

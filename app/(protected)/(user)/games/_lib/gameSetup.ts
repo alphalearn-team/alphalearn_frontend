@@ -41,6 +41,14 @@ export interface GameSetupValidationResult {
   playerErrors: Record<string, string>;
 }
 
+function normalizeWholeNumber(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.max(1, Math.round(value));
+}
+
 export function createPlayerDraft(sequence: number, name = `Player ${sequence}`): GameSetupPlayerDraft {
   return {
     id: `player-${sequence}`,
@@ -96,10 +104,10 @@ export function toOfflineMatchConfig(values: GameSetupFormValues): OfflineMatchC
       name: trimPlayerName(player.name),
     })),
     settings: {
-      conceptCount: values.settings.conceptCount,
-      roundsPerConcept: values.settings.roundsPerConcept,
-      discussionTimerSeconds: values.settings.discussionTimerSeconds,
-      imposterGuessTimerSeconds: values.settings.imposterGuessTimerSeconds,
+      conceptCount: normalizeWholeNumber(values.settings.conceptCount),
+      roundsPerConcept: normalizeWholeNumber(values.settings.roundsPerConcept),
+      discussionTimerSeconds: normalizeWholeNumber(values.settings.discussionTimerSeconds),
+      imposterGuessTimerSeconds: normalizeWholeNumber(values.settings.imposterGuessTimerSeconds),
     },
   };
 }
