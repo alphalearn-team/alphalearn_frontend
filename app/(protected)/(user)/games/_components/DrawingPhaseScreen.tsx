@@ -30,6 +30,7 @@ export default function DrawingPhaseScreen({
   const activePlayer = getActiveDrawingPlayer(match);
   const nextPlayer = getNextDrawingPlayer(match);
   const currentRound = getCurrentDrawingRound(match);
+  const activePlayerIsImposter = activePlayer?.id === match.imposterPlayerId;
   const [isConceptVisible, setIsConceptVisible] = useState(false);
 
   if (!activePlayer) {
@@ -214,7 +215,7 @@ export default function DrawingPhaseScreen({
                   Your concept
                 </p>
                 <p className="mt-2 text-lg font-semibold text-[var(--color-text)]">
-                  {match.concept.word}
+                  {activePlayerIsImposter ? "You are the imposter" : match.concept.word}
                 </p>
               </div>
             ) : null}

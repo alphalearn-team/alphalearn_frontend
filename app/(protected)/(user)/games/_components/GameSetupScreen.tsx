@@ -28,6 +28,7 @@ import {
 } from "../_lib/gameSetup";
 import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptProvider";
 import { assignImposter } from "../_lib/imposterAssignment";
+import DrawingPhaseCompleteScreen from "./DrawingPhaseCompleteScreen";
 import DrawingPhaseScreen from "./DrawingPhaseScreen";
 import PrivateRoleRevealScreen from "./PrivateRoleRevealScreen";
 
@@ -59,6 +60,10 @@ export default function GameSetupScreen() {
   if (matchConfig) {
     if (matchConfig.phase === "draw") {
       return <DrawingPhaseScreen match={matchConfig} onMatchChange={setMatchConfig} />;
+    }
+
+    if (matchConfig.phase === "discussion") {
+      return <DrawingPhaseCompleteScreen match={matchConfig} />;
     }
 
     return <PrivateRoleRevealScreen match={matchConfig} onMatchChange={setMatchConfig} />;
