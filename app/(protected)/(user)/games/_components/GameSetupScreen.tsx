@@ -26,7 +26,7 @@ import {
   type GameSetupFormValues,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
-import { fetchNextGameConcept } from "../_lib/conceptProvider";
+import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptProvider";
 import { assignImposter } from "../_lib/imposterAssignment";
 
 const sectionCardClassName =
@@ -52,6 +52,7 @@ export default function GameSetupScreen() {
   const [playerErrors, setPlayerErrors] = useState<Record<string, string>>({});
   const [isStartingMatch, setIsStartingMatch] = useState(false);
   const [matchConfig, setMatchConfig] = useState<OfflineInitializedMatch | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const updatePlayerName = (playerId: string, nextName: string) => {
     setFormValues((currentValues) => ({
@@ -60,6 +61,7 @@ export default function GameSetupScreen() {
         player.id === playerId ? { ...player, name: nextName } : player,
       ),
     }));
+    setStartError(null);
     setPlayerErrors((currentErrors) => {
       if (!currentErrors[playerId]) {
         return currentErrors;
@@ -80,6 +82,7 @@ export default function GameSetupScreen() {
         players: [...currentValues.players, createPlayerDraft(nextSequence)],
       };
     });
+    setStartError(null);
   };
 
   const removePlayer = (playerId: string) => {
@@ -93,6 +96,7 @@ export default function GameSetupScreen() {
         players: currentValues.players.filter((player) => player.id !== playerId),
       };
     });
+    setStartError(null);
     setPlayerErrors((currentErrors) => {
       if (!currentErrors[playerId]) {
         return currentErrors;
@@ -115,6 +119,7 @@ export default function GameSetupScreen() {
         [key]: typeof value === "number" ? value : Number(value || 1),
       },
     }));
+    setStartError(null);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -141,12 +146,14 @@ export default function GameSetupScreen() {
     setPlayerErrors({});
     const accessToken = session?.access_token;
     if (!accessToken) {
+      setStartError("You need to be signed in before you can start the match.");
       return;
     }
 
     const offlineMatchConfig = toOfflineMatchConfig(trimmedValues);
 
     setIsStartingMatch(true);
+    setStartError(null);
 
     try {
       const concept = await fetchNextGameConcept(accessToken);
@@ -162,6 +169,15 @@ export default function GameSetupScreen() {
           assignment.imposterPlayerId,
         ),
       );
+    } catch (error) {
+      setMatchConfig(null);
+      if (isEmptyConceptBankError(error)) {
+        setStartError("No concepts are available right now. Add concepts before starting a match.");
+      } else if (error instanceof Error && error.message) {
+        setStartError(error.message);
+      } else {
+        setStartError("We could not start the match right now. Please try again.");
+      }
     } finally {
       setIsStartingMatch(false);
     }
@@ -225,6 +241,12 @@ export default function GameSetupScreen() {
                 {Object.keys(playerErrors).length > 0 ? (
                   <Alert color="red" radius="lg" variant="light" title="Player names required">
                     Enter a name for every player before starting the match.
+                  </Alert>
+                ) : null}
+
+                {startError ? (
+                  <Alert color="red" radius="lg" variant="light" title="Match could not start">
+                    {startError}
                   </Alert>
                 ) : null}
 
