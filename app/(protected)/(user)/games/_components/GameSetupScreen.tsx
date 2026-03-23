@@ -351,7 +351,7 @@ export default function GameSetupScreen() {
                       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                         <TextInput
                           label={`Player ${index + 1}`}
-                          placeholder={`Player ${index + 1}`}
+                          placeholder="Enter name here"
                           value={player.name}
                           onChange={(event) => updatePlayerName(player.id, event.currentTarget.value)}
                           size="md"

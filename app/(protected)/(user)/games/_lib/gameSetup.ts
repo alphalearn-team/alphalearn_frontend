@@ -153,7 +153,7 @@ function createInitialPlayerScores(players: MatchConfigPlayer[]): PlayerScore[] 
   }));
 }
 
-export function createPlayerDraft(sequence: number, name = `Player ${sequence}`): GameSetupPlayerDraft {
+export function createPlayerDraft(sequence: number, name = ""): GameSetupPlayerDraft {
   return {
     id: `player-${sequence}`,
     name,
@@ -161,7 +161,7 @@ export function createPlayerDraft(sequence: number, name = `Player ${sequence}`)
 }
 
 export function createDefaultPlayers(count = DEFAULT_PLAYER_COUNT): GameSetupPlayerDraft[] {
-  return Array.from({ length: count }, (_, index) => createPlayerDraft(index + 1));
+  return Array.from({ length: count }, (_, index) => createPlayerDraft(index + 1, ""));
 }
 
 export function createDefaultGameSetupForm(): GameSetupFormValues {
