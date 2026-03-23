@@ -81,10 +81,10 @@ export default function PrivateRoleRevealScreen({
 
             <div className="rounded-[28px] border border-white/10 bg-black/25 p-6 text-center">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                Your role
+                Your concept
               </p>
               <p className="mt-4 text-[clamp(2.5rem,7vw,4.5rem)] font-semibold tracking-tight text-[var(--color-text)]">
-                {currentPlayerIsImposter ? "Imposter" : match.concept.word}
+                {currentPlayerIsImposter ? "You are the imposter" : match.concept.word}
               </p>
             </div>
 
@@ -102,7 +102,7 @@ export default function PrivateRoleRevealScreen({
                 },
               }}
             >
-              Hide role
+              Hide concept
             </Button>
           </Stack>
         </Card>
