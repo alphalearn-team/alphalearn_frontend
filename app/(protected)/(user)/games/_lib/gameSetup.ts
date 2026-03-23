@@ -44,7 +44,8 @@ export interface AssignedGameConcept {
 
 export type RevealSubstate = "handoff" | "revealed" | "completed";
 export type DrawingSubstate = "handoff" | "drawing" | "review" | "completed";
-export type MatchPhase = "reveal" | "draw" | "discussion";
+export type DiscussionSubstate = "running" | "completed";
+export type MatchPhase = "reveal" | "draw" | "discussion" | "vote";
 
 export interface CanvasPoint {
   x: number;
@@ -64,6 +65,7 @@ export interface OfflineInitializedMatch {
   phase: MatchPhase;
   revealState: RevealSubstate;
   drawingState: DrawingSubstate;
+  discussionState: DiscussionSubstate;
   players: MatchConfigPlayer[];
   settings: GameSetupSettings;
   concept: AssignedGameConcept;
@@ -72,6 +74,8 @@ export interface OfflineInitializedMatch {
   currentDrawingTurnIndex: number;
   totalDrawingTurns: number;
   strokes: CanvasStroke[];
+  discussionDurationSeconds: number;
+  discussionEndsAt: number | null;
 }
 
 export interface GameSetupValidationResult {
@@ -159,6 +163,7 @@ export function initializeOfflineMatch(
     phase: "reveal",
     revealState: "handoff",
     drawingState: "handoff",
+    discussionState: "completed",
     players: config.players,
     settings: config.settings,
     concept,
@@ -167,6 +172,8 @@ export function initializeOfflineMatch(
     currentDrawingTurnIndex: 0,
     totalDrawingTurns: config.players.length * config.settings.roundsPerConcept,
     strokes: [],
+    discussionDurationSeconds: config.settings.discussionTimerSeconds,
+    discussionEndsAt: null,
   };
 }
 
@@ -208,9 +215,26 @@ export function enterDrawingPhase(match: OfflineInitializedMatch): OfflineInitia
     phase: "draw",
     revealState: "completed",
     drawingState: "handoff",
+    discussionState: "completed",
     currentDrawingTurnIndex: 0,
     totalDrawingTurns: match.players.length * match.settings.roundsPerConcept,
     strokes: [],
+    discussionDurationSeconds: match.settings.discussionTimerSeconds,
+    discussionEndsAt: null,
+  };
+}
+
+export function enterDiscussionPhase(
+  match: OfflineInitializedMatch,
+  startedAt = Date.now(),
+): OfflineInitializedMatch {
+  return {
+    ...match,
+    phase: "discussion",
+    drawingState: "completed",
+    discussionState: "running",
+    discussionDurationSeconds: match.settings.discussionTimerSeconds,
+    discussionEndsAt: startedAt + match.settings.discussionTimerSeconds * 1000,
   };
 }
 
@@ -247,11 +271,7 @@ export function finishDrawingTurn(match: OfflineInitializedMatch): OfflineInitia
   const isFinalTurn = match.currentDrawingTurnIndex >= match.totalDrawingTurns - 1;
 
   if (isFinalTurn) {
-    return {
-      ...match,
-      phase: "discussion",
-      drawingState: "completed",
-    };
+    return enterDiscussionPhase(match);
   }
 
   return {
@@ -269,6 +289,37 @@ export function continueFromDrawingReview(match: OfflineInitializedMatch): Offli
     ...match,
     currentDrawingTurnIndex: match.currentDrawingTurnIndex + 1,
     drawingState: "handoff",
+  };
+}
+
+export function getDiscussionRemainingSeconds(
+  match: OfflineInitializedMatch,
+  now = Date.now(),
+): number {
+  if (match.phase !== "discussion" || !match.discussionEndsAt) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil((match.discussionEndsAt - now) / 1000));
+}
+
+export function isDiscussionTimerLow(
+  match: OfflineInitializedMatch,
+  now = Date.now(),
+): boolean {
+  return getDiscussionRemainingSeconds(match, now) <= 10;
+}
+
+export function completeDiscussionPhase(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "discussion") {
+    return match;
+  }
+
+  return {
+    ...match,
+    phase: "vote",
+    discussionState: "completed",
+    discussionEndsAt: null,
   };
 }
 
