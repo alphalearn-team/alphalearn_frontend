@@ -22,27 +22,29 @@ export default function SharedCanvas({
   onStrokeCommit,
   className,
 }: SharedCanvasProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pointerIdRef = useRef<number | null>(null);
+  const draftPointsRef = useRef<CanvasPoint[]>([]);
   const [draftPoints, setDraftPoints] = useState<CanvasPoint[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 320, height: CANVAS_HEIGHT });
 
   useLayoutEffect(() => {
-    const canvas = canvasRef.current;
+    const container = containerRef.current;
 
-    if (!canvas) {
+    if (!container) {
       return undefined;
     }
 
     const updateSize = () => {
-      const nextWidth = Math.max(Math.round(canvas.getBoundingClientRect().width), 1);
+      const nextWidth = Math.max(Math.round(container.getBoundingClientRect().width), 1);
       setCanvasSize({ width: nextWidth, height: CANVAS_HEIGHT });
     };
 
     updateSize();
 
     const resizeObserver = new ResizeObserver(updateSize);
-    resizeObserver.observe(canvas);
+    resizeObserver.observe(container);
 
     return () => {
       resizeObserver.disconnect();
@@ -64,7 +66,7 @@ export default function SharedCanvas({
     const ratio = window.devicePixelRatio || 1;
     canvas.width = canvasSize.width * ratio;
     canvas.height = canvasSize.height * ratio;
-    canvas.style.width = `${canvasSize.width}px`;
+    canvas.style.width = "100%";
     canvas.style.height = `${canvasSize.height}px`;
 
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -88,9 +90,11 @@ export default function SharedCanvas({
       return;
     }
 
+    const point = getCanvasPoint(event);
     pointerIdRef.current = event.pointerId;
     event.currentTarget.setPointerCapture(event.pointerId);
-    setDraftPoints([getCanvasPoint(event)]);
+    draftPointsRef.current = [point];
+    setDraftPoints(draftPointsRef.current);
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
@@ -98,7 +102,9 @@ export default function SharedCanvas({
       return;
     }
 
-    setDraftPoints((currentPoints) => [...currentPoints, getCanvasPoint(event)]);
+    const point = getCanvasPoint(event);
+    draftPointsRef.current = [...draftPointsRef.current, point];
+    setDraftPoints(draftPointsRef.current);
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
@@ -109,19 +115,20 @@ export default function SharedCanvas({
     event.currentTarget.releasePointerCapture(event.pointerId);
     pointerIdRef.current = null;
 
-    setDraftPoints((currentPoints) => {
-      if (currentPoints.length > 0 && activePlayerId && onStrokeCommit) {
-        onStrokeCommit({
-          id: `stroke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          playerId: activePlayerId,
-          color: DEFAULT_STROKE_COLOR,
-          width: DEFAULT_STROKE_WIDTH,
-          points: currentPoints,
-        });
-      }
+    const completedPoints = draftPointsRef.current;
 
-      return [];
-    });
+    if (completedPoints.length > 0 && activePlayerId && onStrokeCommit) {
+      onStrokeCommit({
+        id: `stroke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        playerId: activePlayerId,
+        color: DEFAULT_STROKE_COLOR,
+        width: DEFAULT_STROKE_WIDTH,
+        points: completedPoints,
+      });
+    }
+
+    draftPointsRef.current = [];
+    setDraftPoints([]);
   };
 
   const handlePointerCancel = (event: ReactPointerEvent<HTMLCanvasElement>) => {
@@ -130,24 +137,27 @@ export default function SharedCanvas({
     }
 
     pointerIdRef.current = null;
+    draftPointsRef.current = [];
     setDraftPoints([]);
   };
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={className}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      style={{
-        width: "100%",
-        height: `${CANVAS_HEIGHT}px`,
-        touchAction: isInteractive ? "none" : "auto",
-        cursor: isInteractive ? "crosshair" : "default",
-      }}
-    />
+    <div ref={containerRef} className={className}>
+      <canvas
+        ref={canvasRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        style={{
+          display: "block",
+          width: "100%",
+          height: `${CANVAS_HEIGHT}px`,
+          touchAction: isInteractive ? "none" : "auto",
+          cursor: isInteractive ? "crosshair" : "default",
+        }}
+      />
+    </div>
   );
 }
 
