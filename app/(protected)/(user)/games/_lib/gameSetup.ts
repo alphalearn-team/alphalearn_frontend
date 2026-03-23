@@ -42,9 +42,12 @@ export interface AssignedGameConcept {
   word: string;
 }
 
+export type RevealSubstate = "handoff" | "revealed" | "completed";
+
 export interface OfflineInitializedMatch {
   mode: GameMode;
   phase: "reveal";
+  revealState: RevealSubstate;
   players: MatchConfigPlayer[];
   settings: GameSetupSettings;
   concept: AssignedGameConcept;
@@ -135,10 +138,56 @@ export function initializeOfflineMatch(
   return {
     mode: config.mode,
     phase: "reveal",
+    revealState: "handoff",
     players: config.players,
     settings: config.settings,
     concept,
     imposterPlayerId,
     currentRevealIndex: 0,
+  };
+}
+
+export function getCurrentRevealPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
+  return match.players[match.currentRevealIndex] ?? null;
+}
+
+export function getFirstDrawingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
+  return match.players[0] ?? null;
+}
+
+export function isCurrentRevealPlayerImposter(match: OfflineInitializedMatch): boolean {
+  const currentPlayer = getCurrentRevealPlayer(match);
+  return currentPlayer?.id === match.imposterPlayerId;
+}
+
+export function revealCurrentPlayerRole(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.revealState !== "handoff" || !getCurrentRevealPlayer(match)) {
+    return match;
+  }
+
+  return {
+    ...match,
+    revealState: "revealed",
+  };
+}
+
+export function hideCurrentPlayerRole(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.revealState !== "revealed" || !getCurrentRevealPlayer(match)) {
+    return match;
+  }
+
+  const isLastReveal = match.currentRevealIndex >= match.players.length - 1;
+
+  if (isLastReveal) {
+    return {
+      ...match,
+      revealState: "completed",
+    };
+  }
+
+  return {
+    ...match,
+    currentRevealIndex: match.currentRevealIndex + 1,
+    revealState: "handoff",
   };
 }
