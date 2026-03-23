@@ -48,7 +48,8 @@ export type RevealSubstate = "handoff" | "revealed" | "completed";
 export type DrawingSubstate = "handoff" | "drawing" | "review" | "completed";
 export type DiscussionSubstate = "running" | "completed";
 export type VotingSubstate = "handoff" | "selecting" | "submitted" | "tie-prompt" | "completed";
-export type MatchPhase = "reveal" | "draw" | "discussion" | "vote" | "vote-result";
+export type MatchPhase = "reveal" | "draw" | "discussion" | "vote" | "vote-result" | "match-summary";
+export type ConceptWinnerSide = "imposter" | "non-imposters";
 
 export interface CanvasPoint {
   x: number;
@@ -73,6 +74,22 @@ export interface VoteTally {
   voteCount: number;
 }
 
+export interface PlayerScore {
+  playerId: string;
+  points: number;
+}
+
+export interface ConceptResult {
+  conceptNumber: number;
+  conceptPublicId: string;
+  word: string;
+  winnerSide: ConceptWinnerSide;
+  accusedPlayerId: string | null;
+  imposterPlayerId: string;
+  imposterWinsByVotingTie: boolean;
+  finalVoteTallies: VoteTally[];
+}
+
 export interface OfflineInitializedMatch {
   mode: GameMode;
   phase: MatchPhase;
@@ -82,6 +99,12 @@ export interface OfflineInitializedMatch {
   votingState: VotingSubstate;
   players: MatchConfigPlayer[];
   settings: GameSetupSettings;
+  totalConceptCount: number;
+  currentConceptNumber: number;
+  usedConceptPublicIds: string[];
+  conceptResults: ConceptResult[];
+  playerScores: PlayerScore[];
+  startingPlayerOffset: number;
   concept: AssignedGameConcept;
   imposterPlayerId: string;
   currentRevealIndex: number;
@@ -109,6 +132,13 @@ function normalizeWholeNumber(value: number): number {
   }
 
   return Math.max(1, Math.round(value));
+}
+
+function createInitialPlayerScores(players: MatchConfigPlayer[]): PlayerScore[] {
+  return players.map((player) => ({
+    playerId: player.id,
+    points: 0,
+  }));
 }
 
 export function createPlayerDraft(sequence: number, name = `Player ${sequence}`): GameSetupPlayerDraft {
@@ -188,6 +218,12 @@ export function initializeOfflineMatch(
     votingState: "completed",
     players: config.players,
     settings: config.settings,
+    totalConceptCount: config.settings.conceptCount,
+    currentConceptNumber: 1,
+    usedConceptPublicIds: [concept.conceptPublicId],
+    conceptResults: [],
+    playerScores: createInitialPlayerScores(config.players),
+    startingPlayerOffset: 0,
     concept,
     imposterPlayerId,
     currentRevealIndex: 0,
@@ -211,7 +247,11 @@ export function getCurrentRevealPlayer(match: OfflineInitializedMatch): MatchCon
 }
 
 export function getFirstDrawingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
-  return match.players[0] ?? null;
+  if (match.players.length === 0) {
+    return null;
+  }
+
+  return match.players[match.startingPlayerOffset % match.players.length] ?? null;
 }
 
 export function getCurrentDrawingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
@@ -219,7 +259,7 @@ export function getCurrentDrawingPlayer(match: OfflineInitializedMatch): MatchCo
     return null;
   }
 
-  return match.players[match.currentDrawingTurnIndex % match.players.length] ?? null;
+  return match.players[(match.startingPlayerOffset + match.currentDrawingTurnIndex) % match.players.length] ?? null;
 }
 
 export function getNextDrawingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
@@ -227,7 +267,7 @@ export function getNextDrawingPlayer(match: OfflineInitializedMatch): MatchConfi
     return null;
   }
 
-  return match.players[(match.currentDrawingTurnIndex + 1) % match.players.length] ?? null;
+  return match.players[(match.startingPlayerOffset + match.currentDrawingTurnIndex + 1) % match.players.length] ?? null;
 }
 
 export function getCurrentDrawingRound(match: OfflineInitializedMatch): number {
@@ -368,6 +408,104 @@ export function completeDiscussionPhase(match: OfflineInitializedMatch): Offline
   };
 }
 
+function getConceptWinnerSide(match: OfflineInitializedMatch): ConceptWinnerSide {
+  if (match.imposterWinsByVotingTie) {
+    return "imposter";
+  }
+
+  return match.accusedPlayerId === match.imposterPlayerId ? "non-imposters" : "imposter";
+}
+
+function awardPointsForConcept(
+  playerScores: PlayerScore[],
+  players: MatchConfigPlayer[],
+  winnerSide: ConceptWinnerSide,
+  imposterPlayerId: string,
+): PlayerScore[] {
+  const winningPlayerIds =
+    winnerSide === "imposter"
+      ? new Set([imposterPlayerId])
+      : new Set(players.filter((player) => player.id !== imposterPlayerId).map((player) => player.id));
+
+  return playerScores.map((playerScore) => ({
+    ...playerScore,
+    points: winningPlayerIds.has(playerScore.playerId)
+      ? playerScore.points + 1
+      : playerScore.points,
+  }));
+}
+
+function buildConceptResult(match: OfflineInitializedMatch, finalVoteTallies: VoteTally[]): ConceptResult {
+  return {
+    conceptNumber: match.currentConceptNumber,
+    conceptPublicId: match.concept.conceptPublicId,
+    word: match.concept.word,
+    winnerSide: getConceptWinnerSide(match),
+    accusedPlayerId: match.accusedPlayerId,
+    imposterPlayerId: match.imposterPlayerId,
+    imposterWinsByVotingTie: match.imposterWinsByVotingTie,
+    finalVoteTallies,
+  };
+}
+
+export function getLatestConceptResult(match: OfflineInitializedMatch): ConceptResult | null {
+  return match.conceptResults.at(-1) ?? null;
+}
+
+export function hasMoreConceptsRemaining(match: OfflineInitializedMatch): boolean {
+  return match.currentConceptNumber < match.totalConceptCount;
+}
+
+export function getPlayerScore(match: OfflineInitializedMatch, playerId: string): number {
+  return match.playerScores.find((playerScore) => playerScore.playerId === playerId)?.points ?? 0;
+}
+
+export function getMatchLeaders(match: OfflineInitializedMatch): MatchConfigPlayer[] {
+  const highestScore = Math.max(0, ...match.playerScores.map((playerScore) => playerScore.points));
+
+  return match.players.filter((player) => getPlayerScore(match, player.id) === highestScore);
+}
+
+export function prepareNextConcept(
+  match: OfflineInitializedMatch,
+  concept: AssignedGameConcept,
+  imposterPlayerId: string,
+): OfflineInitializedMatch {
+  return {
+    ...match,
+    phase: "reveal",
+    revealState: "handoff",
+    drawingState: "handoff",
+    discussionState: "completed",
+    votingState: "completed",
+    currentConceptNumber: match.currentConceptNumber + 1,
+    usedConceptPublicIds: [...match.usedConceptPublicIds, concept.conceptPublicId],
+    startingPlayerOffset: (match.startingPlayerOffset + 1) % Math.max(match.players.length, 1),
+    concept,
+    imposterPlayerId,
+    currentRevealIndex: 0,
+    currentDrawingTurnIndex: 0,
+    totalDrawingTurns: match.players.length * match.settings.roundsPerConcept,
+    strokes: [],
+    discussionDurationSeconds: match.settings.discussionTimerSeconds,
+    discussionEndsAt: null,
+    currentVotingPlayerIndex: 0,
+    currentVotingRound: 1,
+    restrictedVoteCandidateIds: null,
+    votes: [],
+    finalVoteTallies: [],
+    accusedPlayerId: null,
+    imposterWinsByVotingTie: false,
+  };
+}
+
+export function finalizeMatch(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  return {
+    ...match,
+    phase: "match-summary",
+  };
+}
+
 export function getCurrentVotingPlayer(match: OfflineInitializedMatch): MatchConfigPlayer | null {
   if (match.players.length === 0 || match.currentVotingPlayerIndex < 0) {
     return null;
@@ -480,15 +618,27 @@ export function submitVote(
 
     if (tiedCandidateIds.length > 0) {
       if (match.currentVotingRound >= MAX_VOTING_ROUNDS) {
-        return {
+        const resolvedMatch = {
           ...match,
-          phase: "vote-result",
-          votingState: "completed",
+          phase: "vote-result" as const,
+          votingState: "completed" as const,
           restrictedVoteCandidateIds: tiedCandidateIds,
           votes: nextVotes,
           finalVoteTallies,
           accusedPlayerId: null,
           imposterWinsByVotingTie: true,
+        };
+        const conceptResult = buildConceptResult(resolvedMatch, finalVoteTallies);
+
+        return {
+          ...resolvedMatch,
+          conceptResults: [...match.conceptResults, conceptResult],
+          playerScores: awardPointsForConcept(
+            match.playerScores,
+            match.players,
+            conceptResult.winnerSide,
+            match.imposterPlayerId,
+          ),
         };
       }
 
@@ -505,15 +655,27 @@ export function submitVote(
       };
     }
 
-    return {
+    const resolvedMatch = {
       ...match,
-      phase: "vote-result",
-      votingState: "completed",
+      phase: "vote-result" as const,
+      votingState: "completed" as const,
       restrictedVoteCandidateIds: null,
       votes: nextVotes,
       finalVoteTallies,
       accusedPlayerId: finalVoteTallies[0]?.playerId ?? null,
       imposterWinsByVotingTie: false,
+    };
+    const conceptResult = buildConceptResult(resolvedMatch, finalVoteTallies);
+
+    return {
+      ...resolvedMatch,
+      conceptResults: [...match.conceptResults, conceptResult],
+      playerScores: awardPointsForConcept(
+        match.playerScores,
+        match.players,
+        conceptResult.winnerSide,
+        match.imposterPlayerId,
+      ),
     };
   }
 
