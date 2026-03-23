@@ -30,14 +30,24 @@ export default function VotePhasePlaceholderScreen({
   const accusedPlayer = match.players.find((player) => player.id === match.accusedPlayerId) ?? null;
   const roundLabel =
     match.currentVotingRound > 1 ? `Resolved after revote round ${match.currentVotingRound}` : "Resolved after the first vote";
-  const title = match.imposterWinsByVotingTie
-    ? "Voting stayed tied and the imposter wins"
-    : conceptResult?.winnerSide === "imposter"
-      ? "The imposter wins this concept"
-      : "The concept holders win this concept";
-  const description = match.imposterWinsByVotingTie
-    ? `The voting phase remained tied through round ${match.currentVotingRound}. The imposter wins automatically under the final tie rule.`
-    : "Votes stayed hidden until everyone submitted. The final accusation is shown here while the next resolution phase is prepared in the following story.";
+  const title =
+    conceptResult?.resolution === "imposter-correct-guess"
+      ? "The imposter guessed correctly and wins"
+      : conceptResult?.resolution === "non-imposters-caught-imposter"
+        ? "The concept holders caught the imposter"
+        : conceptResult?.resolution === "imposter-escaped-vote"
+          ? "The imposter escaped the vote and wins"
+          : "Voting stayed tied and the imposter wins";
+  const description =
+    conceptResult?.resolution === "imposter-correct-guess"
+      ? `The imposter was accused but guessed "${conceptResult.imposterGuess}" correctly before time ran out.`
+      : conceptResult?.resolution === "non-imposters-caught-imposter"
+        ? conceptResult.imposterGuess
+          ? `The imposter was accused and guessed "${conceptResult.imposterGuess}" incorrectly, so the concept holders win.`
+          : "The imposter was accused and did not submit a correct guess before time ran out, so the concept holders win."
+        : conceptResult?.resolution === "imposter-escaped-vote"
+          ? "The final accusation landed on the wrong learner, so the imposter wins this concept."
+          : `The voting phase remained tied through round ${match.currentVotingRound}. The imposter wins automatically under the final tie rule.`;
   const canContinueToNextConcept = hasMoreConceptsRemaining(match);
 
   return (
@@ -83,6 +93,17 @@ export default function VotePhasePlaceholderScreen({
               {match.imposterWinsByVotingTie ? "Imposter wins" : accusedPlayer?.name ?? "No accusation"}
             </p>
           </div>
+
+          {conceptResult?.accusedPlayerId === conceptResult?.imposterPlayerId ? (
+            <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                Final guess
+              </p>
+              <p className="mt-3 text-2xl font-semibold text-[var(--color-text)]">
+                {conceptResult.imposterGuess ?? "No correct guess submitted"}
+              </p>
+            </div>
+          ) : null}
 
           <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
