@@ -14,6 +14,7 @@ const defaultLabelOverrides: Record<string, string> = {
   // User routes
   lessons: "Lessons",
   concepts: "Concepts",
+  games: "Game",
   profile: "Profile",
   "weekly-quest": "Weekly Quest",
   mine: "My Lessons",
