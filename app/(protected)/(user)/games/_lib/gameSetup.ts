@@ -45,7 +45,7 @@ export interface AssignedGameConcept {
 export type RevealSubstate = "handoff" | "revealed" | "completed";
 export type DrawingSubstate = "handoff" | "drawing" | "review" | "completed";
 export type DiscussionSubstate = "running" | "completed";
-export type VotingSubstate = "handoff" | "selecting" | "submitted" | "completed";
+export type VotingSubstate = "handoff" | "selecting" | "submitted" | "tie-prompt" | "completed";
 export type MatchPhase = "reveal" | "draw" | "discussion" | "vote" | "vote-result";
 
 export interface CanvasPoint {
@@ -89,6 +89,8 @@ export interface OfflineInitializedMatch {
   discussionDurationSeconds: number;
   discussionEndsAt: number | null;
   currentVotingPlayerIndex: number;
+  currentVotingRound: number;
+  restrictedVoteCandidateIds: string[] | null;
   votes: PlayerVote[];
   finalVoteTallies: VoteTally[];
   accusedPlayerId: string | null;
@@ -192,6 +194,8 @@ export function initializeOfflineMatch(
     discussionDurationSeconds: config.settings.discussionTimerSeconds,
     discussionEndsAt: null,
     currentVotingPlayerIndex: 0,
+    currentVotingRound: 1,
+    restrictedVoteCandidateIds: null,
     votes: [],
     finalVoteTallies: [],
     accusedPlayerId: null,
@@ -244,6 +248,8 @@ export function enterDrawingPhase(match: OfflineInitializedMatch): OfflineInitia
     discussionDurationSeconds: match.settings.discussionTimerSeconds,
     discussionEndsAt: null,
     currentVotingPlayerIndex: 0,
+    currentVotingRound: 1,
+    restrictedVoteCandidateIds: null,
     votes: [],
     finalVoteTallies: [],
     accusedPlayerId: null,
@@ -348,6 +354,8 @@ export function completeDiscussionPhase(match: OfflineInitializedMatch): Offline
     discussionEndsAt: null,
     votingState: "handoff",
     currentVotingPlayerIndex: 0,
+    currentVotingRound: 1,
+    restrictedVoteCandidateIds: null,
     votes: [],
     finalVoteTallies: [],
     accusedPlayerId: null,
@@ -372,8 +380,19 @@ export function getNextVotingPlayer(match: OfflineInitializedMatch): MatchConfig
 
 export function getVotingCandidates(match: OfflineInitializedMatch): MatchConfigPlayer[] {
   const currentVoter = getCurrentVotingPlayer(match);
+  const restrictedIds = match.restrictedVoteCandidateIds;
 
-  return match.players.filter((player) => player.id !== currentVoter?.id);
+  return match.players.filter((player) => {
+    if (player.id === currentVoter?.id) {
+      return false;
+    }
+
+    if (!restrictedIds) {
+      return true;
+    }
+
+    return restrictedIds.includes(player.id);
+  });
 }
 
 export function startVotingTurn(match: OfflineInitializedMatch): OfflineInitializedMatch {
@@ -403,6 +422,22 @@ function tallyVotes(votes: PlayerVote[]): VoteTally[] {
 
       return left.playerId.localeCompare(right.playerId);
     });
+}
+
+function getTiedHighestCandidateIds(tallies: VoteTally[]): string[] {
+  const highestVoteCount = tallies[0]?.voteCount;
+
+  if (!highestVoteCount) {
+    return [];
+  }
+
+  const tiedTallies = tallies.filter((tally) => tally.voteCount === highestVoteCount);
+
+  if (tiedTallies.length <= 1) {
+    return [];
+  }
+
+  return tiedTallies.map((tally) => tally.playerId);
 }
 
 export function submitVote(
@@ -435,11 +470,26 @@ export function submitVote(
 
   if (isFinalVote) {
     const finalVoteTallies = tallyVotes(nextVotes);
+    const tiedCandidateIds = getTiedHighestCandidateIds(finalVoteTallies);
+
+    if (tiedCandidateIds.length > 0) {
+      return {
+        ...match,
+        votingState: "tie-prompt",
+        currentVotingPlayerIndex: 0,
+        currentVotingRound: match.currentVotingRound + 1,
+        restrictedVoteCandidateIds: tiedCandidateIds,
+        votes: [],
+        finalVoteTallies: finalVoteTallies,
+        accusedPlayerId: null,
+      };
+    }
 
     return {
       ...match,
       phase: "vote-result",
       votingState: "completed",
+      restrictedVoteCandidateIds: null,
       votes: nextVotes,
       finalVoteTallies,
       accusedPlayerId: finalVoteTallies[0]?.playerId ?? null,
@@ -463,6 +513,26 @@ export function continueFromSubmittedVote(match: OfflineInitializedMatch): Offli
     currentVotingPlayerIndex: match.currentVotingPlayerIndex + 1,
     votingState: "handoff",
   };
+}
+
+export function continueFromTiePrompt(match: OfflineInitializedMatch): OfflineInitializedMatch {
+  if (match.phase !== "vote" || match.votingState !== "tie-prompt") {
+    return match;
+  }
+
+  return {
+    ...match,
+    votingState: "handoff",
+    currentVotingPlayerIndex: 0,
+  };
+}
+
+export function getTiedVotingPlayers(match: OfflineInitializedMatch): MatchConfigPlayer[] {
+  if (!match.restrictedVoteCandidateIds) {
+    return [];
+  }
+
+  return match.players.filter((player) => match.restrictedVoteCandidateIds?.includes(player.id));
 }
 
 export function isCurrentRevealPlayerImposter(match: OfflineInitializedMatch): boolean {
