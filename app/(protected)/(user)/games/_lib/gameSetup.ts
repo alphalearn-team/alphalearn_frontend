@@ -7,6 +7,8 @@ export const DEFAULT_GAME_SETTINGS = {
   imposterGuessTimerSeconds: 30,
 } as const;
 
+export const MAX_VOTING_ROUNDS = 3;
+
 export type GameMode = "offline";
 
 export interface GameSetupPlayerDraft {
@@ -94,6 +96,7 @@ export interface OfflineInitializedMatch {
   votes: PlayerVote[];
   finalVoteTallies: VoteTally[];
   accusedPlayerId: string | null;
+  imposterWinsByVotingTie: boolean;
 }
 
 export interface GameSetupValidationResult {
@@ -199,6 +202,7 @@ export function initializeOfflineMatch(
     votes: [],
     finalVoteTallies: [],
     accusedPlayerId: null,
+    imposterWinsByVotingTie: false,
   };
 }
 
@@ -253,6 +257,7 @@ export function enterDrawingPhase(match: OfflineInitializedMatch): OfflineInitia
     votes: [],
     finalVoteTallies: [],
     accusedPlayerId: null,
+    imposterWinsByVotingTie: false,
   };
 }
 
@@ -359,6 +364,7 @@ export function completeDiscussionPhase(match: OfflineInitializedMatch): Offline
     votes: [],
     finalVoteTallies: [],
     accusedPlayerId: null,
+    imposterWinsByVotingTie: false,
   };
 }
 
@@ -473,6 +479,19 @@ export function submitVote(
     const tiedCandidateIds = getTiedHighestCandidateIds(finalVoteTallies);
 
     if (tiedCandidateIds.length > 0) {
+      if (match.currentVotingRound >= MAX_VOTING_ROUNDS) {
+        return {
+          ...match,
+          phase: "vote-result",
+          votingState: "completed",
+          restrictedVoteCandidateIds: tiedCandidateIds,
+          votes: nextVotes,
+          finalVoteTallies,
+          accusedPlayerId: null,
+          imposterWinsByVotingTie: true,
+        };
+      }
+
       return {
         ...match,
         votingState: "tie-prompt",
@@ -482,6 +501,7 @@ export function submitVote(
         votes: [],
         finalVoteTallies: finalVoteTallies,
         accusedPlayerId: null,
+        imposterWinsByVotingTie: false,
       };
     }
 
@@ -493,6 +513,7 @@ export function submitVote(
       votes: nextVotes,
       finalVoteTallies,
       accusedPlayerId: finalVoteTallies[0]?.playerId ?? null,
+      imposterWinsByVotingTie: false,
     };
   }
 

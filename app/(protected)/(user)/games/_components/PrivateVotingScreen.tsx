@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Card, Container, Radio, Stack, Text, Title } from "@mantine/core";
+import { Button, Card, Container, Stack, Text, Title } from "@mantine/core";
 import {
+  MAX_VOTING_ROUNDS,
   continueFromTiePrompt,
   continueFromSubmittedVote,
   getCurrentVotingPlayer,
@@ -52,6 +53,15 @@ export default function PrivateVotingScreen({
                 The highest vote count was shared. Start another private voting round using only
                 the tied learners.
               </Text>
+            </div>
+
+            <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                Tie rule
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                If round {MAX_VOTING_ROUNDS} also ends in a tie, the imposter wins immediately.
+              </p>
             </div>
 
             <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
@@ -228,34 +238,47 @@ export default function PrivateVotingScreen({
               </Text>
             </div>
 
-          <Radio.Group
-            value={selectedPlayerId}
-            onChange={setSelectedPlayerId}
-            className="rounded-[24px] border border-white/10 bg-black/20 p-4"
-          >
+          <div className="rounded-[24px] border border-white/10 bg-black/20 p-4">
             <Stack gap="sm">
               {candidates.map((player) => (
-                <Radio
+                <button
                   key={player.id}
-                  value={player.id}
-                  label={player.name}
-                  color="var(--color-primary)"
-                  styles={{
-                    root: {
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: "18px",
-                      padding: "14px 16px",
-                      backgroundColor: "rgba(0,0,0,0.16)",
-                    },
-                    label: {
-                      color: "var(--color-text)",
-                      fontWeight: 600,
-                    },
+                  type="button"
+                  onClick={() => setSelectedPlayerId(player.id)}
+                  className="flex w-full items-center justify-between rounded-[18px] border px-4 py-3 text-left transition-colors"
+                  style={{
+                    borderColor:
+                      selectedPlayerId === player.id
+                        ? "var(--color-primary)"
+                        : "rgba(255,255,255,0.08)",
+                    backgroundColor:
+                      selectedPlayerId === player.id
+                        ? "rgba(176, 237, 96, 0.12)"
+                        : "rgba(0,0,0,0.16)",
                   }}
-                />
+                >
+                  <span className="text-sm font-semibold text-[var(--color-text)]">
+                    {player.name}
+                  </span>
+                  <span
+                    className="flex h-5 w-5 items-center justify-center rounded-full border text-[11px] font-semibold"
+                    style={{
+                      borderColor:
+                        selectedPlayerId === player.id
+                          ? "var(--color-primary)"
+                          : "rgba(255,255,255,0.2)",
+                      color:
+                        selectedPlayerId === player.id
+                          ? "var(--color-primary)"
+                          : "transparent",
+                    }}
+                  >
+                    •
+                  </span>
+                </button>
               ))}
             </Stack>
-          </Radio.Group>
+          </div>
 
           <Button
             type="button"

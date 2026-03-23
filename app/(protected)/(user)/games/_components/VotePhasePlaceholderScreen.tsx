@@ -17,6 +17,12 @@ export default function VotePhasePlaceholderScreen({
   const accusedPlayer = match.players.find((player) => player.id === match.accusedPlayerId) ?? null;
   const roundLabel =
     match.currentVotingRound > 1 ? `Resolved after revote round ${match.currentVotingRound}` : "Resolved after the first vote";
+  const title = match.imposterWinsByVotingTie
+    ? "Voting stayed tied and the imposter wins"
+    : "The group has made an accusation";
+  const description = match.imposterWinsByVotingTie
+    ? `The voting phase remained tied through round ${match.currentVotingRound}. The imposter wins automatically under the final tie rule.`
+    : "Votes stayed hidden until everyone submitted. The final accusation is shown here while the next resolution phase is prepared in the following story.";
 
   return (
     <Container size="lg" className="py-6 lg:py-8">
@@ -27,11 +33,10 @@ export default function VotePhasePlaceholderScreen({
               Voting complete
             </p>
             <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
-              The group has made an accusation
+              {title}
             </Title>
             <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-              Votes stayed hidden until everyone submitted. The final accusation is shown here
-              while the next resolution phase is prepared in the following story.
+              {description}
             </Text>
           </div>
 
@@ -46,10 +51,10 @@ export default function VotePhasePlaceholderScreen({
 
           <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-              Accused learner
+              {match.imposterWinsByVotingTie ? "Outcome" : "Accused learner"}
             </p>
             <p className="mt-3 text-2xl font-semibold text-[var(--color-text)]">
-              {accusedPlayer?.name ?? "No accusation"}
+              {match.imposterWinsByVotingTie ? "Imposter wins" : accusedPlayer?.name ?? "No accusation"}
             </p>
           </div>
 
