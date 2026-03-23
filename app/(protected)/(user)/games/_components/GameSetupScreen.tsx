@@ -31,6 +31,7 @@ import { assignImposter } from "../_lib/imposterAssignment";
 import DiscussionPhaseScreen from "./DiscussionPhaseScreen";
 import DrawingPhaseScreen from "./DrawingPhaseScreen";
 import PrivateRoleRevealScreen from "./PrivateRoleRevealScreen";
+import PrivateVotingScreen from "./PrivateVotingScreen";
 import VotePhasePlaceholderScreen from "./VotePhasePlaceholderScreen";
 
 const sectionCardClassName =
@@ -68,6 +69,10 @@ export default function GameSetupScreen() {
     }
 
     if (matchConfig.phase === "vote") {
+      return <PrivateVotingScreen match={matchConfig} onMatchChange={setMatchConfig} />;
+    }
+
+    if (matchConfig.phase === "vote-result") {
       return <VotePhasePlaceholderScreen match={matchConfig} />;
     }
 
