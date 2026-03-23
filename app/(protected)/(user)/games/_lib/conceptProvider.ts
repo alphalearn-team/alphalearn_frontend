@@ -15,7 +15,7 @@ export async function fetchNextGameConcept(
   excludedConceptPublicIds: string[] = [],
 ): Promise<AssignedGameConcept> {
   return apiClientFetch<AssignedGameConcept>(
-    "/api/games/imposter/concepts/next",
+    "/games/imposter/concepts/next",
     accessToken,
     {
       method: "POST",
