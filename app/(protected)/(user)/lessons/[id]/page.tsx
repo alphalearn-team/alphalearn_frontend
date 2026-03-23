@@ -62,11 +62,9 @@ export default async function LessonPage({
 
         <LessonContentDisplay sections={lesson.sections || []} />
         <LessonQuizSection
+          lessonId={lessonId}
           quizzes={quizzes}
           quizLoadError={quizLoadError}
-          status={status}
-          role={role}
-          isOwner={isOwner}
         />
       </div>
     </Container>
