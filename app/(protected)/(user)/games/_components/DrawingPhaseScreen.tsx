@@ -6,7 +6,7 @@ import {
   addCanvasStroke,
   continueFromDrawingReview,
   finishDrawingTurn,
-  getActiveDrawingPlayer,
+  getCurrentDrawingPlayer,
   getCurrentDrawingRound,
   getNextDrawingPlayer,
   startDrawingTurn,
@@ -27,7 +27,7 @@ export default function DrawingPhaseScreen({
   match,
   onMatchChange,
 }: DrawingPhaseScreenProps) {
-  const activePlayer = getActiveDrawingPlayer(match);
+  const activePlayer = getCurrentDrawingPlayer(match);
   const nextPlayer = getNextDrawingPlayer(match);
   const currentRound = getCurrentDrawingRound(match);
   const activePlayerIsImposter = activePlayer?.id === match.imposterPlayerId;
