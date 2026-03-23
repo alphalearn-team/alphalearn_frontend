@@ -28,9 +28,10 @@ import {
 } from "../_lib/gameSetup";
 import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptProvider";
 import { assignImposter } from "../_lib/imposterAssignment";
-import DrawingPhaseCompleteScreen from "./DrawingPhaseCompleteScreen";
+import DiscussionPhaseScreen from "./DiscussionPhaseScreen";
 import DrawingPhaseScreen from "./DrawingPhaseScreen";
 import PrivateRoleRevealScreen from "./PrivateRoleRevealScreen";
+import VotePhasePlaceholderScreen from "./VotePhasePlaceholderScreen";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
@@ -63,7 +64,11 @@ export default function GameSetupScreen() {
     }
 
     if (matchConfig.phase === "discussion") {
-      return <DrawingPhaseCompleteScreen match={matchConfig} />;
+      return <DiscussionPhaseScreen match={matchConfig} onMatchChange={setMatchConfig} />;
+    }
+
+    if (matchConfig.phase === "vote") {
+      return <VotePhasePlaceholderScreen match={matchConfig} />;
     }
 
     return <PrivateRoleRevealScreen match={matchConfig} onMatchChange={setMatchConfig} />;

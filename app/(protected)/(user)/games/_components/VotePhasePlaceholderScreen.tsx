@@ -7,36 +7,32 @@ import SharedCanvas from "./SharedCanvas";
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
 
-interface DrawingPhaseCompleteScreenProps {
+interface VotePhasePlaceholderScreenProps {
   match: OfflineInitializedMatch;
 }
 
-export default function DrawingPhaseCompleteScreen({
+export default function VotePhasePlaceholderScreen({
   match,
-}: DrawingPhaseCompleteScreenProps) {
+}: VotePhasePlaceholderScreenProps) {
   return (
     <Container size="lg" className="py-6 lg:py-8">
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="lg">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-              Drawing complete
+              Discussion complete
             </p>
             <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
-              The shared drawing is ready for the next phase
+              Discussion has ended
             </Title>
             <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-              All assigned drawing turns are complete. The finished canvas stays visible here while
-              the next phase is prepared in the following story.
+              Time is up. The completed drawing remains visible here while the voting phase is
+              prepared in the next story.
             </Text>
           </div>
 
           <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white">
-            <SharedCanvas
-              strokes={match.strokes}
-              readOnly
-              className="block w-full"
-            />
+            <SharedCanvas strokes={match.strokes} readOnly className="block w-full" />
           </div>
         </Stack>
       </Card>
