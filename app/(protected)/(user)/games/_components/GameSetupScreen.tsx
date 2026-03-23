@@ -177,11 +177,13 @@ export default function GameSetupScreen() {
                     radius="xl"
                     size="md"
                     onClick={addPlayer}
-                    className="min-h-11"
+                    className="min-h-11 self-start px-6 sm:min-w-[11rem]"
                     styles={{
                       root: {
                         backgroundColor: "var(--color-primary)",
                         color: "var(--color-background)",
+                        flexShrink: 0,
+                        whiteSpace: "nowrap",
                       },
                     }}
                   >
