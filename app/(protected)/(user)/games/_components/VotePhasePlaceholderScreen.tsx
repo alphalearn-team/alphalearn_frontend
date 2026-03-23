@@ -27,6 +27,7 @@ export default function VotePhasePlaceholderScreen({
   errorMessage,
 }: VotePhasePlaceholderScreenProps) {
   const conceptResult = getLatestConceptResult(match);
+  const conceptGuess = conceptResult?.imposterGuess ?? null;
   const accusedPlayer = match.players.find((player) => player.id === match.accusedPlayerId) ?? null;
   const roundLabel =
     match.currentVotingRound > 1 ? `Resolved after revote round ${match.currentVotingRound}` : "Resolved after the first vote";
@@ -40,10 +41,10 @@ export default function VotePhasePlaceholderScreen({
           : "Voting stayed tied and the imposter wins";
   const description =
     conceptResult?.resolution === "imposter-correct-guess"
-      ? `The imposter was accused but guessed "${conceptResult.imposterGuess}" correctly before time ran out.`
+      ? `The imposter was accused but guessed "${conceptGuess}" correctly before time ran out.`
       : conceptResult?.resolution === "non-imposters-caught-imposter"
-        ? conceptResult.imposterGuess
-          ? `The imposter was accused and guessed "${conceptResult.imposterGuess}" incorrectly, so the concept holders win.`
+        ? conceptGuess
+          ? `The imposter was accused and guessed "${conceptGuess}" incorrectly, so the concept holders win.`
           : "The imposter was accused and did not submit a correct guess before time ran out, so the concept holders win."
         : conceptResult?.resolution === "imposter-escaped-vote"
           ? "The final accusation landed on the wrong learner, so the imposter wins this concept."
@@ -100,7 +101,7 @@ export default function VotePhasePlaceholderScreen({
                 Final guess
               </p>
               <p className="mt-3 text-2xl font-semibold text-[var(--color-text)]">
-                {conceptResult.imposterGuess ?? "No correct guess submitted"}
+                {conceptGuess ?? "No correct guess submitted"}
               </p>
             </div>
           ) : null}
