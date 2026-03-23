@@ -8,6 +8,11 @@ export const DEFAULT_GAME_SETTINGS = {
 } as const;
 
 export const MAX_VOTING_ROUNDS = 3;
+export const MAX_CONCEPT_COUNT = 10;
+export const MAX_PLAYER_COUNT = 10;
+export const MAX_ROUNDS_PER_CONCEPT = 3;
+export const MIN_TIMER_SECONDS = 10;
+export const MAX_TIMER_SECONDS = 120;
 
 export type GameMode = "offline";
 
@@ -146,6 +151,18 @@ function normalizeWholeNumber(value: number): number {
   return Math.max(1, Math.round(value));
 }
 
+function normalizeConceptCount(value: number): number {
+  return Math.min(MAX_CONCEPT_COUNT, normalizeWholeNumber(value));
+}
+
+function normalizeRoundsPerConcept(value: number): number {
+  return Math.min(MAX_ROUNDS_PER_CONCEPT, normalizeWholeNumber(value));
+}
+
+function normalizeTimerSeconds(value: number): number {
+  return Math.min(MAX_TIMER_SECONDS, Math.max(MIN_TIMER_SECONDS, normalizeWholeNumber(value)));
+}
+
 function createInitialPlayerScores(players: MatchConfigPlayer[]): PlayerScore[] {
   return players.map((player) => ({
     playerId: player.id,
@@ -161,7 +178,7 @@ export function createPlayerDraft(sequence: number, name = ""): GameSetupPlayerD
 }
 
 export function createDefaultPlayers(count = DEFAULT_PLAYER_COUNT): GameSetupPlayerDraft[] {
-  return Array.from({ length: count }, (_, index) => createPlayerDraft(index + 1, ""));
+  return Array.from({ length: Math.min(count, MAX_PLAYER_COUNT) }, (_, index) => createPlayerDraft(index + 1, ""));
 }
 
 export function createDefaultGameSetupForm(): GameSetupFormValues {
@@ -208,10 +225,10 @@ export function toOfflineMatchConfig(values: GameSetupFormValues): OfflineMatchC
       name: trimPlayerName(player.name),
     })),
     settings: {
-      conceptCount: normalizeWholeNumber(values.settings.conceptCount),
-      roundsPerConcept: normalizeWholeNumber(values.settings.roundsPerConcept),
-      discussionTimerSeconds: normalizeWholeNumber(values.settings.discussionTimerSeconds),
-      imposterGuessTimerSeconds: normalizeWholeNumber(values.settings.imposterGuessTimerSeconds),
+      conceptCount: normalizeConceptCount(values.settings.conceptCount),
+      roundsPerConcept: normalizeRoundsPerConcept(values.settings.roundsPerConcept),
+      discussionTimerSeconds: normalizeTimerSeconds(values.settings.discussionTimerSeconds),
+      imposterGuessTimerSeconds: normalizeTimerSeconds(values.settings.imposterGuessTimerSeconds),
     },
   };
 }

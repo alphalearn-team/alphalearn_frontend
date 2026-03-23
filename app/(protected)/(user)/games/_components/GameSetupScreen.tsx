@@ -15,6 +15,11 @@ import {
   Title,
 } from "@mantine/core";
 import {
+  MAX_CONCEPT_COUNT,
+  MAX_PLAYER_COUNT,
+  MAX_ROUNDS_PER_CONCEPT,
+  MAX_TIMER_SECONDS,
+  MIN_TIMER_SECONDS,
   finalizeMatch,
   hasMoreConceptsRemaining,
   createDefaultGameSetupForm,
@@ -166,6 +171,10 @@ export default function GameSetupScreen() {
 
   const addPlayer = () => {
     setFormValues((currentValues) => {
+      if (currentValues.players.length >= MAX_PLAYER_COUNT) {
+        return currentValues;
+      }
+
       const nextSequence = getNextPlayerSequence(currentValues.players);
 
       return {
@@ -317,6 +326,7 @@ export default function GameSetupScreen() {
                     size="md"
                     onClick={addPlayer}
                     className="min-h-11 self-start px-6 sm:min-w-[11rem]"
+                    disabled={formValues.players.length >= MAX_PLAYER_COUNT}
                     styles={{
                       root: {
                         backgroundColor: "var(--color-primary)",
@@ -355,7 +365,6 @@ export default function GameSetupScreen() {
                           value={player.name}
                           onChange={(event) => updatePlayerName(player.id, event.currentTarget.value)}
                           size="md"
-                          error={playerErrors[player.id]}
                           styles={textInputStyles}
                         />
 
@@ -400,6 +409,7 @@ export default function GameSetupScreen() {
                     <NumberInput
                       label="Number of concepts"
                       min={1}
+                      max={MAX_CONCEPT_COUNT}
                       value={formValues.settings.conceptCount}
                       onChange={(value) => updateSetting("conceptCount", value)}
                       allowDecimal={false}
@@ -409,6 +419,7 @@ export default function GameSetupScreen() {
                     <NumberInput
                       label="Rounds per concept"
                       min={1}
+                      max={MAX_ROUNDS_PER_CONCEPT}
                       value={formValues.settings.roundsPerConcept}
                       onChange={(value) => updateSetting("roundsPerConcept", value)}
                       allowDecimal={false}
@@ -417,7 +428,8 @@ export default function GameSetupScreen() {
                     />
                     <NumberInput
                       label="Discussion timer (seconds)"
-                      min={1}
+                      min={MIN_TIMER_SECONDS}
+                      max={MAX_TIMER_SECONDS}
                       value={formValues.settings.discussionTimerSeconds}
                       onChange={(value) => updateSetting("discussionTimerSeconds", value)}
                       allowDecimal={false}
@@ -426,7 +438,8 @@ export default function GameSetupScreen() {
                     />
                     <NumberInput
                       label="Imposter guess timer (seconds)"
-                      min={1}
+                      min={MIN_TIMER_SECONDS}
+                      max={MAX_TIMER_SECONDS}
                       value={formValues.settings.imposterGuessTimerSeconds}
                       onChange={(value) => updateSetting("imposterGuessTimerSeconds", value)}
                       allowDecimal={false}
