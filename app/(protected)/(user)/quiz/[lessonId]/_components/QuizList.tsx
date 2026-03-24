@@ -1,7 +1,6 @@
 "use client";
 
 import { Alert, Card, Group, Stack, Text, Badge, SimpleGrid } from "@mantine/core";
-import Link from "next/link";
 import GlowButton from "@/components/GlowButton";
 import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
 import { formatDateTime } from "@/lib/utils/formatDate";
@@ -62,7 +61,7 @@ export default function QuizList({
                    Quiz {idx + 1}
                  </Text>
                  <Text size="sm" mt={2} className="text-[var(--color-text-muted)]">
-                   {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'} • Added {formatDateTime(quiz.createdAt)}
+                   {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
                  </Text>
               </div>
 
