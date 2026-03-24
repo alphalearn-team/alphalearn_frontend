@@ -279,6 +279,8 @@ export interface LessonQuizQuestion {
 export interface LessonQuiz {
   quizPublicId: string;
   lessonPublicId: string;
+  contributorId: string;
+  lessonTitle: string;
   createdAt: string;
   questions: LessonQuizQuestion[];
 }

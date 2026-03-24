@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Alert, Button, Card, Checkbox, Group, Radio, Stack, Text, Title } from "@mantine/core";
+import { useState, useEffect } from "react";
+import { Alert, Button, Card, Checkbox, Group, Radio, Stack, Text, Title, Center, Loader } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
@@ -40,6 +40,31 @@ export default function QuizAttemptView({
   const [answers, setAnswers] = useState<LessonQuizAnswers>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [isStarted, setIsStarted] = useState(false);
+  const [bestAttempt, setBestAttempt] = useState<QuizAttemptSummary | null>(null);
+  const [isLoadingBest, setIsLoadingBest] = useState(true);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setIsLoadingBest(false);
+      return;
+    }
+    const abortController = new AbortController();
+    apiClientFetch<QuizAttemptSummary>(
+      `/me/quizzes/${quiz.quizPublicId}/attempts/best`,
+      accessToken,
+      { signal: abortController.signal }
+    )
+      .then((summary) => {
+        setBestAttempt(summary);
+        setIsLoadingBest(false);
+      })
+      .catch(() => {
+        setIsLoadingBest(false);
+      });
+    return () => abortController.abort();
+  }, [accessToken, quiz.quizPublicId]);
 
   const setSelectedOptionIds = (
     questionPublicId: string,
@@ -120,6 +145,47 @@ export default function QuizAttemptView({
   
   const shouldHideSubmitButton =
     submissionBlockReason === "owner" || submissionBlockReason === "not-approved";
+
+  if (!isStarted) {
+    return (
+      <div className="space-y-6">
+         <div>
+           <Title order={2}>Quiz Overview</Title>
+           <Text size="sm" className="text-[var(--color-text-muted)] mt-1">
+             {quiz.questions.length} {quiz.questions.length === 1 ? 'Question' : 'Questions'}
+           </Text>
+         </div>
+
+         <Card padding="xl" className="border border-[var(--color-border)] bg-[var(--color-surface)] shadow-md" style={{ borderRadius: "0.75rem" }}>
+            {isLoadingBest ? (
+               <Center p="xl"><Loader color="var(--color-primary)" /></Center>
+            ) : bestAttempt ? (
+               <Stack>
+                 <div className="rounded-lg bg-[var(--color-primary-light)] p-4 border border-[var(--color-primary)] opacity-90">
+                    <Text size="xs" fw={700} className="uppercase tracking-wider text-[var(--color-text-muted)] mb-1">Best Attempt</Text>
+                    <Group justify="space-between">
+                      <Text fw={600} style={{ color: "var(--color-text)" }}>Score: {bestAttempt.score} / {bestAttempt.totalQuestions}</Text>
+                    </Group>
+                    <Text size="xs" className="text-[var(--color-text-muted)] mt-1">
+                      {new Date(bestAttempt.attemptedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                    </Text>
+                 </div>
+                 <Button mt="md" size="md" radius="xl" onClick={() => setIsStarted(true)}>
+                   Retake Quiz
+                 </Button>
+               </Stack>
+            ) : (
+               <Stack align="center" gap="md" py="lg">
+                 <Text size="lg" fw={500} className="text-[var(--color-text)]">Ready to begin?</Text>
+                 <Button size="md" radius="xl" onClick={() => setIsStarted(true)}>
+                   Start Quiz
+                 </Button>
+               </Stack>
+            )}
+         </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

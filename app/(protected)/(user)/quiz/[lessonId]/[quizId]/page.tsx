@@ -1,7 +1,7 @@
 import { Container } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { getUserRole } from "@/lib/auth/server/rbac";
-import { getLessonDetailViewModel } from "@/app/(protected)/(user)/lessons/[id]/lessonDetailData";
+import { fetchLessonQuizzes, checkIsOwnerFromQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
 import QuizAttemptView from "@/app/(protected)/(user)/quiz/_components/QuizAttemptView";
 
 export default async function QuizAttemptPage({
@@ -11,13 +11,8 @@ export default async function QuizAttemptPage({
 }) {
   const { lessonId, quizId } = await params;
   const role = await getUserRole();
-  const viewModel = await getLessonDetailViewModel(lessonId, role);
-  
-  if (!viewModel) {
-    return notFound();
-  }
-
-  const { quizzes, lesson, status, isOwner } = viewModel;
+  const { quizzes } = await fetchLessonQuizzes(lessonId);
+  const isOwner = await checkIsOwnerFromQuizzes(quizzes);
   
   const activeQuiz = quizzes.find((q) => q.quizPublicId === quizId);
   if (!activeQuiz) {
@@ -32,7 +27,7 @@ export default async function QuizAttemptPage({
            lessonId={lessonId} 
            quiz={activeQuiz} 
            role={role}
-           status={status}
+           status="APPROVED"
            isOwner={isOwner}
         />
       </div>

@@ -1,7 +1,6 @@
-import type { Lesson, LessonQuiz, LessonSummary } from "@/interfaces/interfaces";
+import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api/api";
 import type { UserRole } from "@/lib/auth/server/rbac";
-import { normalizeLessonQuizzes } from "@/lib/utils/lessonQuiz";
 import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
 
 function normalizeLessonDetail(lesson: Lesson): Lesson {
@@ -18,38 +17,14 @@ function normalizeLessonDetail(lesson: Lesson): Lesson {
 export async function fetchLessonContent(id: string): Promise<Lesson | null> {
   try {
     const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
+    console.log("this is the lesson",lesson);
     return normalizeLessonDetail(lesson);
   } catch {
     return null;
   }
 }
 
-export interface LessonQuizLoadResult {
-  error: string | null;
-  quizzes: LessonQuiz[];
-}
 
-export async function fetchLessonQuizzes(
-  lessonPublicId: string,
-): Promise<LessonQuizLoadResult> {
-  try {
-    // console.log(lessonPublicId);
-    const quizzes = await apiFetch<LessonQuiz[]>(`/quizzes/${lessonPublicId}`);
-    console.log(JSON.stringify(quizzes,null,2));
-    return {
-      error: null,
-      quizzes: normalizeLessonQuizzes(quizzes),
-    };
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unable to load lesson quizzes right now.",
-      quizzes: [],
-    };
-  }
-}
 
 export async function checkLessonOwnership(
   role: string,
@@ -81,7 +56,7 @@ export function getLessonConceptLabels(lesson: Lesson): string[] {
     .filter(Boolean) as string[];
 }
 
-function resolveLessonStatus(lesson: Lesson): string {
+export function resolveLessonStatus(lesson: Lesson): string {
   return resolveLessonModerationStatus(lesson, "APPROVED");
 }
 
@@ -93,12 +68,12 @@ export interface LessonDetailViewModel {
   lessonConceptLabels: string[];
   lessonId: string;
   moderationMeta: ReturnType<typeof getLessonModerationMeta>;
-  quizLoadError: string | null;
-  quizzes: LessonQuiz[];
   shouldShowModerationState: boolean;
   showBackToMine: boolean;
   status: string;
 }
+
+
 
 function isDeletableLessonStatus(status: string): boolean {
   return (
@@ -126,8 +101,6 @@ export async function getLessonDetailViewModel(
     return null;
   }
 
-  const quizResult = await fetchLessonQuizzes(lessonId);
-
   return {
     canDelete: ownsLesson && isDeletableLessonStatus(status),
     canEdit: role === "CONTRIBUTOR" && ownsLesson,
@@ -136,11 +109,11 @@ export async function getLessonDetailViewModel(
     lessonConceptLabels: getLessonConceptLabels(lesson),
     lessonId,
     moderationMeta: getLessonModerationMeta(status),
-    quizLoadError: quizResult.error,
-    quizzes: quizResult.quizzes,
     shouldShowModerationState:
       ownsLesson || (role === "CONTRIBUTOR" && hasModerationFeedback(lesson)),
     showBackToMine: role === "CONTRIBUTOR" && ownsLesson,
     status,
   };
 }
+
+

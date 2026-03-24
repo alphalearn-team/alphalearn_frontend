@@ -28,8 +28,6 @@ export default async function LessonPage({
     lessonConceptLabels,
     lessonId,
     moderationMeta,
-    quizLoadError,
-    quizzes,
     shouldShowModerationState,
     showBackToMine,
     status,
@@ -61,11 +59,7 @@ export default async function LessonPage({
         )}
 
         <LessonContentDisplay sections={lesson.sections || []} />
-        <LessonQuizSection
-          lessonId={lessonId}
-          quizzes={quizzes}
-          quizLoadError={quizLoadError}
-        />
+        <LessonQuizSection lessonId={lessonId} />
       </div>
     </Container>
   );
