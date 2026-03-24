@@ -23,7 +23,6 @@ export default async function LessonPage({
   const {
     canDelete,
     canEdit,
-    isOwner,
     lesson,
     lessonConceptLabels,
     lessonId,

@@ -3,7 +3,6 @@
 import { Alert, Card, Group, Stack, Text, Badge, SimpleGrid } from "@mantine/core";
 import GlowButton from "@/components/GlowButton";
 import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
-import { formatDateTime } from "@/lib/utils/formatDate";
 
 interface QuizListProps {
   lessonId: string;

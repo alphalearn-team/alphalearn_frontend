@@ -73,7 +73,7 @@ export default function QuizResultsPanel({
       <Stack gap="lg">
         {quiz.questions.map((question, idx) => {
           const rawSelectedIds = answers[question.questionPublicId] ?? [];
-          const rawCorrectIds = question.correctAnswerIds || (question as any).correct_answer_ids || [];
+          const rawCorrectIds = question.correctAnswerIds || [];
           
           const selectedIds = rawSelectedIds.map((id: string) => id.toLowerCase());
           const correctIds = rawCorrectIds.map((id: string) => id.toLowerCase());
@@ -124,7 +124,6 @@ export default function QuizResultsPanel({
 
                       let bgColor = "transparent";
                       let borderColor = "var(--color-border)";
-                      let indicatorColor = wasSelected ? (isCorrectOption ? "bg-green-500" : "bg-red-500") : "border-gray-300";
 
                       if (isCorrectOption) {
                         bgColor = "rgba(40, 199, 111, 0.08)";

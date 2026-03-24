@@ -1,9 +1,7 @@
 "use client";
 
-import { Alert, Card, Group, Text } from "@mantine/core";
-import Link from "next/link";
+import { Card, Group, Text } from "@mantine/core";
 import GlowButton from "@/components/GlowButton";
-import type { LessonQuiz } from "@/interfaces/interfaces";
 
 interface LessonQuizSectionProps {
   lessonId: string;
