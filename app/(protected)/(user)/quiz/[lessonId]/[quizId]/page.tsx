@@ -1,5 +1,5 @@
 import { Container } from "@mantine/core";
-import { notFound } from "next/navigation";
+import NotFound from "@/components/NotFound";
 import { getUserRole } from "@/lib/auth/server/rbac";
 import { fetchLessonQuizzes, checkIsOwnerFromQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
 import QuizAttemptView from "@/app/(protected)/(user)/quiz/_components/quizviewer/QuizAttemptView";
@@ -16,7 +16,7 @@ export default async function QuizAttemptPage({
   
   const activeQuiz = quizzes.find((q) => q.quizPublicId === quizId);
   if (!activeQuiz) {
-    return notFound();
+    return <NotFound/>
   }
 
   return (

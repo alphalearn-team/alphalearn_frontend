@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Alert, Group, Stack, Text, Title, Modal, Badge } from "@mantine/core";
+import { Alert, Card, Group, Stack, Text, Title, Modal, Badge } from "@mantine/core";
 import CommonButton from "@/components/CommonButton";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/client/AuthContext";
@@ -167,6 +167,25 @@ export default function QuizAttemptView({
     );
   }
 
+
+  if (isOwner) {
+    return (
+      <Card padding="xl" radius="lg" className="border border-[var(--color-border)] bg-[var(--color-surface)] shadow-md text-center py-12">
+        <Stack align="center" gap="md">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+            <Text size="xl" fw={900}>!</Text>
+          </div>
+          <Title order={2} className="text-2xl font-black">restricted</Title>
+          <Text size="md" className="text-[var(--color-text-muted)] max-w-sm mx-auto">
+            As the creator of the quiz, you cannot attempt it
+          </Text>
+          <CommonButton mt="lg" onClick={() => router.push(`/quiz/${lessonId}`)}>
+            Back to Quizzes
+          </CommonButton>
+        </Stack>
+      </Card>
+    );
+  }
 
   if (!isStarted) {
     return (
