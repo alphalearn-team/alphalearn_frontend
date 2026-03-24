@@ -2,7 +2,7 @@ import { Container } from "@mantine/core";
 import { notFound } from "next/navigation";
 import { getUserRole } from "@/lib/auth/server/rbac";
 import { fetchLessonQuizzes, checkIsOwnerFromQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
-import QuizAttemptView from "@/app/(protected)/(user)/quiz/_components/QuizAttemptView";
+import QuizAttemptView from "@/app/(protected)/(user)/quiz/_components/quizviewer/QuizAttemptView";
 
 export default async function QuizAttemptPage({
   params,
