@@ -274,6 +274,7 @@ export interface LessonQuizQuestion {
   prompt: string;
   orderIndex: number;
   options: LessonQuizOption[];
+  correctAnswerIds: string[];
 }
 
 export interface LessonQuiz {

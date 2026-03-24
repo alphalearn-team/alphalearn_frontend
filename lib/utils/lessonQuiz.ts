@@ -30,6 +30,7 @@ function normalizeQuestion(question: LessonQuizQuestion): LessonQuizQuestion {
   return {
     ...question,
     options: Array.isArray(question.options) ? question.options : [],
+    correctAnswerIds: Array.isArray(question.correctAnswerIds) ? question.correctAnswerIds : [],
   };
 }
 

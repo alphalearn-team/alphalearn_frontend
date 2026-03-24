@@ -11,10 +11,12 @@ interface CommonButtonProps extends ButtonProps, Omit<React.ComponentPropsWithou
  * interactive glow/scale effects of the GlowButton.
  */
 export default function CommonButton({ children, className = "", ...props }: CommonButtonProps) {
+  const isPrimary = !props.variant || props.variant === "filled";
+  
   return (
     <Button
       radius="xl"
-      className={`!bg-[var(--color-primary)] hover:!bg-[var(--color-primary-hover)] active:!bg-[var(--color-primary-active)] !text-[var(--color-surface)] shadow-[0_0_20px_var(--color-shadow)] ${className}`}
+      className={`${isPrimary ? "!bg-[var(--color-primary)] hover:!bg-[var(--color-primary-hover)] active:!bg-[var(--color-primary-active)] !text-[var(--color-surface)] shadow-[0_0_20px_var(--color-shadow)]" : ""} ${className}`}
       {...props}
     >
       {children}
