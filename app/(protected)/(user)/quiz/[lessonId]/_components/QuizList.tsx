@@ -8,7 +8,6 @@ interface QuizListProps {
   lessonId: string;
   quizzes: LessonQuiz[];
   quizLoadError: string | null;
-  isOwner: boolean;
   bestAttempts: Record<string, { summary: QuizAttemptSummary | null; error: string | null }>;
 }
 
@@ -16,7 +15,6 @@ export default function QuizList({
   lessonId,
   quizzes,
   quizLoadError,
-  isOwner,
   bestAttempts,
 }: QuizListProps) {
   
@@ -56,7 +54,7 @@ export default function QuizList({
               </div>
             )}
             
-            {isOwner && (
+            {!quiz.canAttempt && (
               <div className="absolute top-4 right-4 z-10">
                 <Badge color="blue" radius="sm">Owner</Badge>
               </div>
@@ -73,12 +71,12 @@ export default function QuizList({
               </div>
 
               {/* Error displaying attempts if any */}
-              {best?.error && !best?.summary && !isOwner && (
+              {best?.error && !best?.summary && quiz.canAttempt && (
                   <Alert color="yellow" title="Could not load attempt data">{best.error}</Alert>
               )}
 
               <Group justify="flex-end" mt="md">
-                {isOwner ? (
+                {!quiz.canAttempt ? (
                   <Text size="xs" fw={600} className="text-[var(--color-text-muted)] italic">
                     Owners cannot attempt their own quizzes
                   </Text>

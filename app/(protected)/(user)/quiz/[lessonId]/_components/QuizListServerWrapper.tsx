@@ -6,14 +6,12 @@ interface QuizListServerWrapperProps {
   lessonId: string;
   quizzes: LessonQuiz[];
   quizLoadError: string | null;
-  isOwner: boolean;
 }
 
 export default async function QuizListServerWrapper({
   lessonId,
   quizzes,
   quizLoadError,
-  isOwner,
 }: QuizListServerWrapperProps) {
   const bestAttempts = await fetchUserQuizAttempts(quizzes);
 
@@ -22,7 +20,6 @@ export default async function QuizListServerWrapper({
       lessonId={lessonId}
       quizzes={quizzes}
       quizLoadError={quizLoadError}
-      isOwner={isOwner}
       bestAttempts={bestAttempts}
     />
   );

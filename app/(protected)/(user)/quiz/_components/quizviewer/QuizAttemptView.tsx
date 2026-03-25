@@ -27,7 +27,6 @@ interface QuizAttemptViewProps {
   quiz: LessonQuiz;
   role: UserRole;
   status: string;
-  isOwner: boolean;
 }
 
 export default function QuizAttemptView({
@@ -35,7 +34,6 @@ export default function QuizAttemptView({
   quiz,
   role,
   status,
-  isOwner,
 }: QuizAttemptViewProps) {
   const { session } = useAuth();
   const router = useRouter();
@@ -114,7 +112,7 @@ export default function QuizAttemptView({
   const handleSubmit = async () => {
     const unansweredCount = getUnansweredQuizQuestionIds(quiz, answers).length;
     if (!accessToken || !canSubmitLessonQuiz({
-      lessonStatus: status, role, isOwner, 
+      lessonStatus: status, role, canAttempt: quiz.canAttempt, 
       hasAccessToken: true, allQuestionsAnswered: unansweredCount === 0, isSubmitting
     })) return;
 
@@ -151,7 +149,7 @@ export default function QuizAttemptView({
 
   const unansweredCount = getUnansweredQuizQuestionIds(quiz, answers).length;
   const submissionBlockReason = getLessonQuizSubmissionBlockReason({
-    lessonStatus: status, role, isOwner, 
+    lessonStatus: status, role, canAttempt: quiz.canAttempt, 
     hasAccessToken: Boolean(accessToken), allQuestionsAnswered: unansweredCount === 0, isSubmitting
   });
   const helperMessage = getLessonQuizSubmissionHelperMessage(submissionBlockReason, unansweredCount);
@@ -168,7 +166,7 @@ export default function QuizAttemptView({
   }
 
 
-  if (isOwner) {
+  if (!quiz.canAttempt) {
     return (
       <Card padding="xl" radius="lg" className="border border-[var(--color-border)] bg-[var(--color-surface)] shadow-md text-center py-12">
         <Stack align="center" gap="md">

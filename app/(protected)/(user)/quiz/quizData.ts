@@ -29,15 +29,6 @@ export async function fetchLessonQuizzes(
   }
 }
 
-export async function checkIsOwnerFromQuizzes(quizzes: LessonQuiz[]): Promise<boolean> {
-  if (quizzes.length === 0) return false;
-
-  const session = await getServerSession();
-  if (!session?.user?.id) return false;
-
-  return quizzes[0].contributorId === session.user.id;
-}
-
 export type AttemptRecord = { summary: QuizAttemptSummary | null; error: string | null };
 
 export async function fetchUserQuizAttempts(

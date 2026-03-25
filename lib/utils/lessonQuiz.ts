@@ -20,7 +20,7 @@ export type LessonQuizSubmissionBlockReason =
 export interface LessonQuizSubmissionEligibilityInput {
   lessonStatus: string;
   role: UserRole | null;
-  isOwner: boolean;
+  canAttempt: boolean;
   hasAccessToken: boolean;
   allQuestionsAnswered: boolean;
   isSubmitting: boolean;
@@ -80,7 +80,7 @@ export function buildQuizAttemptPayload(
 export function getLessonQuizSubmissionBlockReason({
   lessonStatus,
   role,
-  isOwner,
+  canAttempt,
   hasAccessToken,
   allQuestionsAnswered,
   isSubmitting,
@@ -89,7 +89,7 @@ export function getLessonQuizSubmissionBlockReason({
     return "not-approved";
   }
 
-  if (isOwner) {
+  if (!canAttempt) {
     return "owner";
   }
 

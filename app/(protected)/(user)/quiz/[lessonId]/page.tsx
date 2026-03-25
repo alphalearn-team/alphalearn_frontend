@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Container, Title } from "@mantine/core";
 import NotFound from "@/components/NotFound";
-import { fetchLessonQuizzes, checkIsOwnerFromQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
+import { fetchLessonQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
 import QuizListServerWrapper from "./_components/QuizListServerWrapper";
 import QuizListSkeleton from "./_components/QuizListSkeleton";
 
@@ -12,7 +12,6 @@ export default async function QuizListPage({
 }) {
   const { lessonId } = await params;
   const { quizzes, error: quizLoadError } = await fetchLessonQuizzes(lessonId);
-  const isOwner = await checkIsOwnerFromQuizzes(quizzes);
   
   if (quizzes.length === 0 && quizLoadError) {
     return <NotFound/>
@@ -33,7 +32,6 @@ export default async function QuizListPage({
              lessonId={lessonId} 
              quizzes={quizzes} 
              quizLoadError={quizLoadError} 
-             isOwner={isOwner}
           />
         </Suspense>
       </div>
