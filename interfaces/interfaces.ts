@@ -15,6 +15,11 @@ export interface PublicAuthor {
   username: string;
 }
 
+export interface PublicLearner {
+  publicId: string;
+  username: string;
+}
+
 export type LessonContent = unknown;
 export type LessonModerationStatus = "PENDING" | "APPROVED" | "REJECTED" | "UNPUBLISHED";
 
