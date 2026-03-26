@@ -1,11 +1,85 @@
 "use client";
 
-import { Card, Stack, Text, Title } from "@mantine/core";
-import type { PublicLearner } from "@/interfaces/interfaces";
+import { Button, Card, Stack, Text, Title } from "@mantine/core";
+import type { LearnerPublic } from "@/interfaces/interfaces";
 
-type LearnerCardProps = PublicLearner;
+export type LearnerCardFriendshipState =
+  | "ready"
+  | "loading"
+  | "sending"
+  | "requested"
+  | "incoming-request"
+  | "connected"
+  | "unavailable";
 
-export default function LearnerCard({ username }: LearnerCardProps) {
+interface LearnerCardProps extends LearnerPublic {
+  friendshipState: LearnerCardFriendshipState;
+  onSendFriendRequest: (learner: LearnerPublic) => void;
+}
+
+function getFriendshipAction(friendshipState: LearnerCardFriendshipState) {
+  switch (friendshipState) {
+    case "loading":
+      return {
+        label: "Checking...",
+        helperText: "Loading your friend request status.",
+        disabled: true,
+        loading: true,
+      };
+    case "sending":
+      return {
+        label: "Sending...",
+        helperText: "Submitting your friend request now.",
+        disabled: true,
+        loading: true,
+      };
+    case "requested":
+      return {
+        label: "Requested",
+        helperText: "A pending friend request is already waiting.",
+        disabled: true,
+        loading: false,
+      };
+    case "incoming-request":
+      return {
+        label: "Respond Below",
+        helperText: "This learner already sent you a request.",
+        disabled: true,
+        loading: false,
+      };
+    case "connected":
+      return {
+        label: "Connected",
+        helperText: "You already have an active friendship here.",
+        disabled: true,
+        loading: false,
+      };
+    case "unavailable":
+      return {
+        label: "Unavailable",
+        helperText: "Refresh the page if friend actions are unavailable.",
+        disabled: true,
+        loading: false,
+      };
+    case "ready":
+    default:
+      return {
+        label: "Add Friend",
+        helperText: "Send a friend request from the learner directory.",
+        disabled: false,
+        loading: false,
+      };
+  }
+}
+
+export default function LearnerCard({
+  publicId,
+  username,
+  friendshipState,
+  onSendFriendRequest,
+}: LearnerCardProps) {
+  const action = getFriendshipAction(friendshipState);
+
   return (
     <Card
       padding="xl"
@@ -49,6 +123,43 @@ export default function LearnerCard({ username }: LearnerCardProps) {
             className="text-[var(--color-card-text-muted)] font-light leading-relaxed"
           >
             Visible in the learner directory.
+          </Text>
+        </Stack>
+
+        <Stack gap={6}>
+          <Button
+            fullWidth
+            radius="xl"
+            size="md"
+            onClick={() => onSendFriendRequest({ publicId, username })}
+            disabled={action.disabled}
+            loading={action.loading}
+            styles={{
+              root: {
+                background:
+                  friendshipState === "ready"
+                    ? "var(--color-primary)"
+                    : "rgba(255,255,255,0.04)",
+                border:
+                  friendshipState === "ready"
+                    ? "none"
+                    : "1px solid var(--color-card-border)",
+                color:
+                  friendshipState === "ready"
+                    ? "#111111"
+                    : "var(--color-card-text)",
+              },
+              label: {
+                fontWeight: 700,
+                letterSpacing: "0.01em",
+              },
+            }}
+          >
+            {action.label}
+          </Button>
+
+          <Text size="xs" className="text-[var(--color-card-text-muted)]">
+            {action.helperText}
           </Text>
         </Stack>
 
