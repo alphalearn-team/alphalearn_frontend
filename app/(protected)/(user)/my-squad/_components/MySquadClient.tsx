@@ -299,7 +299,7 @@ function MySquadEmptyState() {
 
       <Button
         component={Link}
-        href="/learners"
+        href="/my-squad#learners-list"
         variant="outline"
         radius="xl"
         styles={{
