@@ -372,7 +372,7 @@ async function fetchConnectedFriendIds(
   currentLearnerPublicId?: string | null,
   signal?: AbortSignal,
 ) {
-  const endpointCandidates = ["/friendships", "/friends"];
+  const endpointCandidates = ["/friends"];
 
   for (const endpoint of endpointCandidates) {
     try {
