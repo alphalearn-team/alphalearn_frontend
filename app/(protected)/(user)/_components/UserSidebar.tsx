@@ -15,6 +15,7 @@ const sections: SidebarNavSection[] = [
       { label: "Concepts", href: "/concepts", icon: "library_books" },
       { label: "Lessons", href: "/lessons", icon: "menu_book" },
       { label: "Learners", href: "/learners", icon: "groups" },
+      { label: "My Squad", href: "/my-squad", icon: "diversity_3" },
       { label: "Profile", href: "/profile", icon: "person" },
     ],
   },
