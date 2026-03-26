@@ -34,6 +34,11 @@ export interface PublicLearner {
 
 export type LearnerPublic = PublicLearner;
 
+export interface FriendPublic {
+  publicId: string;
+  username: string;
+}
+
 export type FriendRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface FriendRequest {
