@@ -120,7 +120,7 @@ function resolveFriendshipStateFromStatus(
 function resolveFriendshipStateFromLearner(
   learner: LearnerPublic,
 ): ResolvedRemoteFriendshipState | null {
-  const learnerRecord = learner as Record<string, unknown>;
+  const learnerRecord = learner as unknown as Record<string, unknown>;
 
   if (
     learnerRecord.isFriend === true
