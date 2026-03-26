@@ -18,6 +18,38 @@ export interface PublicAuthor {
 export interface PublicLearner {
   publicId: string;
   username: string;
+  friendshipStatus?: string | null;
+  friendshipDirection?: string | null;
+  relationshipStatus?: string | null;
+  relationshipDirection?: string | null;
+  connectionStatus?: string | null;
+  connectionDirection?: string | null;
+  friendRequestStatus?: FriendRequestStatus | null;
+  friendRequestDirection?: string | null;
+  isFriend?: boolean | null;
+  areFriends?: boolean | null;
+  isConnected?: boolean | null;
+  connected?: boolean | null;
+}
+
+export type LearnerPublic = PublicLearner;
+
+export type FriendRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface FriendRequest {
+  requestId: number;
+  otherUserPublicId: string;
+  otherUsername: string;
+  status: FriendRequestStatus;
+  createdAt: string;
+}
+
+export interface CreateFriendRequestPayload {
+  receiverPublicId: string;
+}
+
+export interface UpdateFriendRequestStatusPayload {
+  status: Extract<FriendRequestStatus, "APPROVED" | "REJECTED">;
 }
 
 export type LessonContent = unknown;
