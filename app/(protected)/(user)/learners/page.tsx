@@ -68,7 +68,12 @@ async function LearnersListRenderer() {
     return true;
   });
 
-  return <LearnersGrid learners={visibleLearners} />;
+  return (
+    <LearnersGrid
+      learners={visibleLearners}
+      currentLearnerPublicId={currentLearnerPublicId}
+    />
+  );
 }
 
 export default function LearnersPage() {
