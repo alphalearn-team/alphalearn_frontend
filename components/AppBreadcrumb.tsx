@@ -14,6 +14,7 @@ const defaultLabelOverrides: Record<string, string> = {
   // User routes
   lessons: "Lessons",
   concepts: "Concepts",
+  quiz: "Quizzes",
   games: "Game",
   profile: "Profile",
   "weekly-quest": "Weekly Quest",
@@ -64,10 +65,26 @@ export default function AppBreadcrumb({
     const path = "/" + allSegments.slice(0, startIndex + index + 1).join("/");
     const isLast = index === relevantSegments.length - 1;
 
+    let label = formatSegment(segment, mergedOverrides);
+
+    // Custom logic for UUID segments in quiz path to prevent "Detail > Detail"
+    if (/^[a-zA-Z0-9_-]{8,}$/.test(segment)) {
+      const prevSegment = index > 0 ? relevantSegments[index - 1] : null;
+      if (prevSegment === "quiz") {
+        label = "Lesson";
+      } else if (prevSegment && /^[a-zA-Z0-9_-]{8,}$/.test(prevSegment)) {
+        // Check if the one before THAT was 'quiz'
+        const prevPrevSegment = index > 1 ? relevantSegments[index - 2] : null;
+        if (prevPrevSegment === "quiz") {
+          label = "Quiz";
+        }
+      }
+    }
+
     return {
       path,
       isLast,
-      label: formatSegment(segment, mergedOverrides),
+      label,
     };
   });
 

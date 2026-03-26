@@ -274,13 +274,16 @@ export interface LessonQuizQuestion {
   prompt: string;
   orderIndex: number;
   options: LessonQuizOption[];
+  correctAnswerIds: string[];
 }
 
 export interface LessonQuiz {
   quizPublicId: string;
   lessonPublicId: string;
+  lessonTitle: string;
   createdAt: string;
   questions: LessonQuizQuestion[];
+  canAttempt: boolean;
 }
 
 export interface SubmitQuizQuestionAnswer {

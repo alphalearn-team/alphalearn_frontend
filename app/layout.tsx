@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   description: "Learn concepts and build lessons with community moderation.",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{

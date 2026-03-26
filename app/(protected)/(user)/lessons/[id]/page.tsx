@@ -23,13 +23,10 @@ export default async function LessonPage({
   const {
     canDelete,
     canEdit,
-    isOwner,
     lesson,
     lessonConceptLabels,
     lessonId,
     moderationMeta,
-    quizLoadError,
-    quizzes,
     shouldShowModerationState,
     showBackToMine,
     status,
@@ -61,13 +58,7 @@ export default async function LessonPage({
         )}
 
         <LessonContentDisplay sections={lesson.sections || []} />
-        <LessonQuizSection
-          quizzes={quizzes}
-          quizLoadError={quizLoadError}
-          status={status}
-          role={role}
-          isOwner={isOwner}
-        />
+        <LessonQuizSection lessonId={lessonId} />
       </div>
     </Container>
   );
