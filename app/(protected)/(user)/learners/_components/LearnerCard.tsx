@@ -8,15 +8,19 @@ import {
 } from "./learnerFriendshipAction";
 
 interface LearnerCardProps extends LearnerPublic {
+  description?: string | null;
   friendshipState: LearnerFriendshipState;
   onSendFriendRequest: (learner: LearnerPublic) => void;
+  showActionHelperText?: boolean;
 }
 
 export default function LearnerCard({
+  description = "Visible in the learner directory.",
   publicId,
   username,
   friendshipState,
   onSendFriendRequest,
+  showActionHelperText = true,
 }: LearnerCardProps) {
   const action = getLearnerFriendshipAction(friendshipState);
 
@@ -58,12 +62,14 @@ export default function LearnerCard({
             {username}
           </Title>
 
-          <Text
-            size="sm"
-            className="text-[var(--color-card-text-muted)] font-light leading-relaxed"
-          >
-            Visible in the learner directory.
-          </Text>
+          {description ? (
+            <Text
+              size="sm"
+              className="text-[var(--color-card-text-muted)] font-light leading-relaxed"
+            >
+              {description}
+            </Text>
+          ) : null}
         </Stack>
 
         <Stack gap={6}>
@@ -98,9 +104,11 @@ export default function LearnerCard({
             {action.label}
           </Button>
 
-          <Text size="xs" className="text-[var(--color-card-text-muted)]">
-            {action.helperText}
-          </Text>
+          {showActionHelperText ? (
+            <Text size="xs" className="text-[var(--color-card-text-muted)]">
+              {action.helperText}
+            </Text>
+          ) : null}
         </Stack>
 
         <div className="flex items-center justify-between border-t border-[var(--color-card-border)] pt-4">

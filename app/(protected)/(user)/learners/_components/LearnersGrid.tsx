@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  SimpleGrid,
   Stack,
   Text,
   Title,
@@ -18,6 +19,7 @@ import { useAuth } from "@/lib/auth/client/AuthContext";
 import { apiClientFetch } from "@/lib/api/apiClient";
 import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
 import IncomingFriendRequestsPanel from "./IncomingFriendRequestsPanel";
+import LearnerCard from "./LearnerCard";
 import LearnerSearchBox from "./LearnerSearchBox";
 import type { LearnerFriendshipState } from "./learnerFriendshipAction";
 
@@ -365,6 +367,12 @@ function compareLearnersForSuggestions(
   return normalizedLeftUsername.localeCompare(normalizedRightUsername);
 }
 
+function compareLearnersAlphabetically(left: LearnerPublic, right: LearnerPublic) {
+  return left.username.localeCompare(right.username, undefined, {
+    sensitivity: "base",
+  });
+}
+
 async function fetchFriendRequestLists(
   accessToken: string,
   signal?: AbortSignal,
@@ -623,6 +631,17 @@ export default function LearnersGrid({
         .sort((left, right) => compareLearnersForSuggestions(left, right, normalizedQuery))
         .slice(0, MAX_SEARCH_SUGGESTIONS)
     : [];
+  const squadMembers = [...learners]
+    .filter((learner) => {
+      const normalizedPublicId = normalizePublicId(learner.publicId);
+      const remoteFriendshipState = remoteFriendshipStates.get(normalizedPublicId) ?? null;
+
+      return (
+        connectedUserIds.has(normalizedPublicId)
+        || remoteFriendshipState === "connected"
+      );
+    })
+    .sort(compareLearnersAlphabetically);
 
   const getLearnerFriendshipState = (learnerPublicId: string): LearnerFriendshipState => {
     const normalizedPublicId = normalizePublicId(learnerPublicId);
@@ -835,6 +854,13 @@ export default function LearnersGrid({
             onSearchChange={setSearchQuery}
             onSendFriendRequest={handleSendFriendRequest}
           />
+
+          {squadMembers.length > 0 && (
+            <SquadMembersSection
+              learners={squadMembers}
+              onSendFriendRequest={handleSendFriendRequest}
+            />
+          )}
         </>
       )}
     </Stack>
@@ -887,6 +913,49 @@ function LearnersEmptyState() {
       <Text className="text-sm text-[var(--color-text-muted)]">
         No learner profiles are available to browse right now.
       </Text>
+    </Stack>
+  );
+}
+
+function SquadMembersSection({
+  learners,
+  onSendFriendRequest,
+}: {
+  learners: LearnerPublic[];
+  onSendFriendRequest: (learner: LearnerPublic) => void;
+}) {
+  const countLabel = `${learners.length} ${learners.length === 1 ? "friend" : "friends"} in your squad`;
+
+  return (
+    <Stack gap="lg">
+      <Stack gap="xs" className="px-1">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+          Your Squad
+        </span>
+
+        <div className="flex flex-col items-start gap-2">
+          <Title order={2} className="text-3xl font-bold tracking-tight text-[var(--color-text)]">
+            Friends you have added
+          </Title>
+
+          <Text size="sm" className="text-[var(--color-text-muted)]">
+            {countLabel}
+          </Text>
+        </div>
+      </Stack>
+
+      <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
+        {learners.map((learner) => (
+          <LearnerCard
+            key={learner.publicId}
+            {...learner}
+            description={null}
+            friendshipState="connected"
+            onSendFriendRequest={onSendFriendRequest}
+            showActionHelperText={false}
+          />
+        ))}
+      </SimpleGrid>
     </Stack>
   );
 }
