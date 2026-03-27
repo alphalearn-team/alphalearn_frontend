@@ -1,11 +1,10 @@
 import { Suspense } from "react";
-import { Container } from "@mantine/core";
+import { Container, Stack, Text, Title } from "@mantine/core";
 import NotFound from "@/components/NotFound";
 import { apiFetch } from "@/lib/api/api";
 import type { PublicLearner } from "@/interfaces/interfaces";
 import { createClient } from "@/lib/supabase/server";
 import LearnersGrid from "./_components/LearnersGrid";
-import LearnersHeroSection from "./_components/LearnersHeroSection";
 import LearnersSkeleton from "./_components/LearnersSkeleton";
 
 function normalizeValue(value: string | null | undefined) {
@@ -79,12 +78,29 @@ async function LearnersListRenderer() {
 export default function LearnersPage() {
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      <LearnersHeroSection />
+      <Container fluid id="learners-list" className="pt-10 pb-32">
+        <Stack gap="xl">
+          <Stack gap="xs" className="max-w-3xl px-1">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">
+              My Squad
+            </span>
 
-      <Container id="learners-list" size="lg" className="py-14 pb-32 scroll-mt-24">
-        <Suspense fallback={<LearnersSkeleton />}>
-          <LearnersListRenderer />
-        </Suspense>
+            <Title
+              order={1}
+              className="text-[clamp(2rem,3vw,3rem)] font-bold tracking-tight leading-[1.1]"
+            >
+              Add friends to your squad
+            </Title>
+
+            <Text size="lg" className="font-light leading-relaxed text-[var(--color-text-muted)]">
+              Search for people by username and send friend requests to build your squad.
+            </Text>
+          </Stack>
+
+          <Suspense fallback={<LearnersSkeleton />}>
+            <LearnersListRenderer />
+          </Suspense>
+        </Stack>
       </Container>
     </div>
   );

@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react";
 import {
-  Button,
-  Group,
-  SimpleGrid,
   Stack,
   Text,
-  TextInput,
   Title,
 } from "@mantine/core";
-import Pagination from "@/components/pagination/Pagination";
 import type {
   CreateFriendRequestPayload,
   FriendRequest,
@@ -23,7 +18,8 @@ import { useAuth } from "@/lib/auth/client/AuthContext";
 import { apiClientFetch } from "@/lib/api/apiClient";
 import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
 import IncomingFriendRequestsPanel from "./IncomingFriendRequestsPanel";
-import LearnerCard, { type LearnerCardFriendshipState } from "./LearnerCard";
+import LearnerSearchBox from "./LearnerSearchBox";
+import type { LearnerFriendshipState } from "./learnerFriendshipAction";
 
 interface LearnersGridProps {
   learners: LearnerPublic[];
@@ -32,14 +28,18 @@ interface LearnersGridProps {
 
 type FriendRequestDecision = Extract<FriendRequestStatus, "APPROVED" | "REJECTED">;
 type ResolvedRemoteFriendshipState = Extract<
-  LearnerCardFriendshipState,
+  LearnerFriendshipState,
   "requested" | "incoming-request" | "connected"
 >;
 
-const ITEMS_PER_PAGE = 6;
+const MAX_SEARCH_SUGGESTIONS = 8;
 
 function normalizePublicId(publicId: string) {
   return publicId.trim().toLowerCase();
+}
+
+function normalizeSearchValue(value: string) {
+  return value.trim().toLowerCase();
 }
 
 function sortFriendRequests(requests: FriendRequest[]) {
@@ -344,6 +344,27 @@ function upsertFriendRequest(requests: FriendRequest[], nextRequest: FriendReque
   ]);
 }
 
+function learnerMatchesSearchQuery(learner: LearnerPublic, normalizedQuery: string) {
+  return learner.username.toLowerCase().includes(normalizedQuery);
+}
+
+function compareLearnersForSuggestions(
+  left: LearnerPublic,
+  right: LearnerPublic,
+  normalizedQuery: string,
+) {
+  const normalizedLeftUsername = left.username.toLowerCase();
+  const normalizedRightUsername = right.username.toLowerCase();
+  const leftPrefixRank = normalizedLeftUsername.startsWith(normalizedQuery) ? 0 : 1;
+  const rightPrefixRank = normalizedRightUsername.startsWith(normalizedQuery) ? 0 : 1;
+
+  if (leftPrefixRank !== rightPrefixRank) {
+    return leftPrefixRank - rightPrefixRank;
+  }
+
+  return normalizedLeftUsername.localeCompare(normalizedRightUsername);
+}
+
 async function fetchFriendRequestLists(
   accessToken: string,
   signal?: AbortSignal,
@@ -419,7 +440,6 @@ export default function LearnersGrid({
   const authUserId = session?.user.id ?? null;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
   const [friendRequestsLoadError, setFriendRequestsLoadError] = useState<string | null>(null);
@@ -432,10 +452,6 @@ export default function LearnersGrid({
   >({});
   const [localConnectedUserIds, setLocalConnectedUserIds] = useState<string[]>([]);
   const [remoteConnectedUserIds, setRemoteConnectedUserIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
 
   useEffect(() => {
     setIncomingRequests([]);
@@ -598,16 +614,17 @@ export default function LearnersGrid({
     }
   }
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const normalizedQuery = normalizeSearchValue(searchQuery);
   const filteredLearners = normalizedQuery
-    ? learners.filter((learner) => learner.username.toLowerCase().includes(normalizedQuery))
+    ? learners.filter((learner) => learnerMatchesSearchQuery(learner, normalizedQuery))
     : learners;
+  const suggestedLearners = normalizedQuery
+    ? [...filteredLearners]
+        .sort((left, right) => compareLearnersForSuggestions(left, right, normalizedQuery))
+        .slice(0, MAX_SEARCH_SUGGESTIONS)
+    : [];
 
-  const totalPages = Math.ceil(filteredLearners.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedLearners = filteredLearners.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const getLearnerFriendshipState = (learnerPublicId: string): LearnerCardFriendshipState => {
+  const getLearnerFriendshipState = (learnerPublicId: string): LearnerFriendshipState => {
     const normalizedPublicId = normalizePublicId(learnerPublicId);
     const remoteFriendshipState = remoteFriendshipStates.get(normalizedPublicId) ?? null;
 
@@ -790,60 +807,34 @@ export default function LearnersGrid({
 
   return (
     <Stack gap="xl">
-      <IncomingFriendRequestsPanel
-        requests={pendingIncomingRequests}
-        isLoading={isLoadingFriendRequests && !hasLoadedFriendRequests}
-        isRefreshing={isRefreshingFriendRequests}
-        loadError={friendRequestsLoadError}
-        requestMutations={requestMutations}
-        onAccept={(request) => handleUpdateFriendRequest(request, "APPROVED")}
-        onReject={(request) => handleUpdateFriendRequest(request, "REJECTED")}
-        onRetry={() => {
-          void refreshFriendRequests({ showFailureToast: true });
-        }}
-      />
+      {pendingIncomingRequests.length > 0 && (
+        <IncomingFriendRequestsPanel
+          requests={pendingIncomingRequests}
+          isLoading={isLoadingFriendRequests && !hasLoadedFriendRequests}
+          isRefreshing={isRefreshingFriendRequests}
+          loadError={friendRequestsLoadError}
+          requestMutations={requestMutations}
+          onAccept={(request) => handleUpdateFriendRequest(request, "APPROVED")}
+          onReject={(request) => handleUpdateFriendRequest(request, "REJECTED")}
+          onRetry={() => {
+            void refreshFriendRequests({ showFailureToast: true });
+          }}
+        />
+      )}
 
       {learners.length === 0 ? (
         <LearnersEmptyState />
       ) : (
         <>
           <LearnersHeader
+            getLearnerFriendshipState={getLearnerFriendshipState}
             filteredCount={filteredLearners.length}
             searchQuery={searchQuery}
+            suggestedLearners={suggestedLearners}
             totalCount={learners.length}
             onSearchChange={setSearchQuery}
+            onSendFriendRequest={handleSendFriendRequest}
           />
-
-          {filteredLearners.length === 0 ? (
-            <LearnersNoResultsState
-              query={searchQuery}
-              onClearSearch={() => setSearchQuery("")}
-            />
-          ) : (
-            <>
-              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-                {paginatedLearners.map((learner) => (
-                  <LearnerCard
-                    key={learner.publicId}
-                    {...learner}
-                    friendshipState={getLearnerFriendshipState(learner.publicId)}
-                    onSendFriendRequest={handleSendFriendRequest}
-                  />
-                ))}
-              </SimpleGrid>
-
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredLearners.length}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                  itemLabel="learners"
-                  onPageChange={setCurrentPage}
-                />
-              )}
-            </>
-          )}
         </>
       )}
     </Stack>
@@ -851,49 +842,32 @@ export default function LearnersGrid({
 }
 
 function LearnersHeader({
+  getLearnerFriendshipState,
   filteredCount,
   searchQuery,
+  suggestedLearners,
   totalCount,
   onSearchChange,
+  onSendFriendRequest,
 }: {
+  getLearnerFriendshipState: (learnerPublicId: string) => LearnerFriendshipState;
   filteredCount: number;
   searchQuery: string;
+  suggestedLearners: LearnerPublic[];
   totalCount: number;
   onSearchChange: (value: string) => void;
+  onSendFriendRequest: (learner: LearnerPublic) => void;
 }) {
-  const hasQuery = searchQuery.trim().length > 0;
-  const countLabel = hasQuery
-    ? `${filteredCount} of ${totalCount} ${totalCount === 1 ? "learner" : "learners"}`
-    : `${totalCount} ${totalCount === 1 ? "learner" : "learners"} available`;
-
   return (
-    <Group justify="space-between" align="center" className="gap-4">
-      <span className="px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--color-text-muted)]">
-        {countLabel}
-      </span>
-
-      <div className="w-full max-w-sm">
-        <TextInput
-          aria-label="Search learners by username"
-          value={searchQuery}
-          onChange={(event) => onSearchChange(event.currentTarget.value)}
-          placeholder="Search learners..."
-          leftSection={
-            <span className="material-symbols-outlined text-[18px] text-[var(--color-text-muted)]">
-              search
-            </span>
-          }
-          styles={{
-            input: {
-              minHeight: "46px",
-              backgroundColor: "var(--color-surface)",
-              borderColor: "var(--color-border)",
-              color: "var(--color-text)",
-            },
-          }}
-        />
-      </div>
-    </Group>
+    <LearnerSearchBox
+      filteredCount={filteredCount}
+      getLearnerFriendshipState={getLearnerFriendshipState}
+      searchQuery={searchQuery}
+      suggestions={suggestedLearners}
+      totalCount={totalCount}
+      onSearchChange={onSearchChange}
+      onSendFriendRequest={onSendFriendRequest}
+    />
   );
 }
 
@@ -913,46 +887,6 @@ function LearnersEmptyState() {
       <Text className="text-sm text-[var(--color-text-muted)]">
         No learner profiles are available to browse right now.
       </Text>
-    </Stack>
-  );
-}
-
-function LearnersNoResultsState({
-  query,
-  onClearSearch,
-}: {
-  query: string;
-  onClearSearch: () => void;
-}) {
-  return (
-    <Stack align="center" py={100} gap="md">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-        <span className="material-symbols-outlined text-3xl text-[var(--color-text-muted)]">
-          person_search
-        </span>
-      </div>
-
-      <Title order={3} className="text-center text-[var(--color-text-muted)]">
-        No learners match your search
-      </Title>
-
-      <Text className="max-w-md text-center text-sm text-[var(--color-text-muted)]">
-        No usernames matched &quot;{query.trim()}&quot;. Try a different search or clear the filter.
-      </Text>
-
-      <Button
-        variant="outline"
-        radius="xl"
-        onClick={onClearSearch}
-        styles={{
-          root: {
-            borderColor: "var(--color-border)",
-            color: "var(--color-text)",
-          },
-        }}
-      >
-        Clear Search
-      </Button>
     </Stack>
   );
 }
