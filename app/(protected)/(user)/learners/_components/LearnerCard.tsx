@@ -2,74 +2,14 @@
 
 import { Button, Card, Stack, Text, Title } from "@mantine/core";
 import type { LearnerPublic } from "@/interfaces/interfaces";
-
-export type LearnerCardFriendshipState =
-  | "ready"
-  | "loading"
-  | "sending"
-  | "requested"
-  | "incoming-request"
-  | "connected"
-  | "unavailable";
+import {
+  getLearnerFriendshipAction,
+  type LearnerFriendshipState,
+} from "./learnerFriendshipAction";
 
 interface LearnerCardProps extends LearnerPublic {
-  friendshipState: LearnerCardFriendshipState;
+  friendshipState: LearnerFriendshipState;
   onSendFriendRequest: (learner: LearnerPublic) => void;
-}
-
-function getFriendshipAction(friendshipState: LearnerCardFriendshipState) {
-  switch (friendshipState) {
-    case "loading":
-      return {
-        label: "Checking...",
-        helperText: "Loading your friend request status.",
-        disabled: true,
-        loading: true,
-      };
-    case "sending":
-      return {
-        label: "Sending...",
-        helperText: "Submitting your friend request now.",
-        disabled: true,
-        loading: true,
-      };
-    case "requested":
-      return {
-        label: "Requested",
-        helperText: "A pending friend request is already waiting.",
-        disabled: true,
-        loading: false,
-      };
-    case "incoming-request":
-      return {
-        label: "Respond Below",
-        helperText: "This learner already sent you a request.",
-        disabled: true,
-        loading: false,
-      };
-    case "connected":
-      return {
-        label: "Connected",
-        helperText: "You already have an active friendship here.",
-        disabled: true,
-        loading: false,
-      };
-    case "unavailable":
-      return {
-        label: "Unavailable",
-        helperText: "Refresh the page if friend actions are unavailable.",
-        disabled: true,
-        loading: false,
-      };
-    case "ready":
-    default:
-      return {
-        label: "Add Friend",
-        helperText: "Send a friend request from the learner directory.",
-        disabled: false,
-        loading: false,
-      };
-  }
 }
 
 export default function LearnerCard({
@@ -78,7 +18,7 @@ export default function LearnerCard({
   friendshipState,
   onSendFriendRequest,
 }: LearnerCardProps) {
-  const action = getFriendshipAction(friendshipState);
+  const action = getLearnerFriendshipAction(friendshipState);
 
   return (
     <Card
