@@ -3,6 +3,7 @@ import { Container } from "@mantine/core";
 import { notFound } from "next/navigation";
 import LessonModerationFeedbackPanel from "@/app/(protected)/(user)/lessons/_components/LessonModerationFeedbackPanel";
 import { getUserRole } from "@/lib/auth/server/rbac";
+import EnrollmentGate from "./_components/EnrollmentGate";
 import { LessonContentDisplay } from "./_components/LessonContentDisplay";
 import LessonDetailHeader from "./_components/LessonDetailHeader";
 import LessonQuizSection from "./_components/LessonQuizSection";
@@ -57,8 +58,17 @@ export default async function LessonPage({
           />
         )}
 
-        <LessonContentDisplay sections={lesson.sections || []} />
-        <LessonQuizSection lessonId={lessonId} />
+        {viewModel.isEnrolled || viewModel.isOwner ? (
+          <LessonContentDisplay sections={lesson.sections || []} />
+        ) : (
+          <EnrollmentGate lessonId={lessonId} />
+        )}
+        
+        <LessonQuizSection 
+          lessonId={lessonId} 
+          isEnrolled={viewModel.isEnrolled} 
+          isOwner={viewModel.isOwner} 
+        />
       </div>
     </Container>
   );

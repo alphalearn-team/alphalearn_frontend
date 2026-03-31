@@ -40,9 +40,6 @@ export default function GlowButton({
 
   const innerContent = (
     <div className="relative group w-fit">
-      {/* 1. THE UNDER-GLOW 
-          Uses the theme primary color so the glow follows light/dark mode.
-      */}
       <div className="absolute -inset-0.5 rounded-full blur-md opacity-0 group-hover:opacity-60 transition duration-500 bg-[var(--color-primary)]" />
 
       <Button

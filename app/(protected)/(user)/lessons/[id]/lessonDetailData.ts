@@ -17,7 +17,6 @@ function normalizeLessonDetail(lesson: Lesson): Lesson {
 export async function fetchLessonContent(id: string): Promise<Lesson | null> {
   try {
     const lesson = await apiFetch<Lesson>(`/lessons/${id}`);
-    console.log("this is the lesson",lesson);
     return normalizeLessonDetail(lesson);
   } catch {
     return null;
@@ -64,6 +63,7 @@ export interface LessonDetailViewModel {
   canDelete: boolean;
   canEdit: boolean;
   isOwner: boolean;
+  isEnrolled: boolean;
   lesson: Lesson;
   lessonConceptLabels: string[];
   lessonId: string;
@@ -101,10 +101,13 @@ export async function getLessonDetailViewModel(
     return null;
   }
 
+  const isEnrolled = ownsLesson || Boolean(lesson.enrolled);
+
   return {
     canDelete: ownsLesson && isDeletableLessonStatus(status),
     canEdit: role === "CONTRIBUTOR" && ownsLesson,
     isOwner: ownsLesson,
+    isEnrolled,
     lesson,
     lessonConceptLabels: getLessonConceptLabels(lesson),
     lessonId,

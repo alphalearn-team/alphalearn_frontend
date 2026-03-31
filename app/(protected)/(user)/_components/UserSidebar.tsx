@@ -15,6 +15,7 @@ const sections: SidebarNavSection[] = [
       { label: "Concepts", href: "/concepts", icon: "library_books" },
       { label: "Lessons", href: "/lessons", icon: "menu_book" },
       { label: "Profile", href: "/profile", icon: "person" },
+      { label: "My Enrolled Lessons", href: "/my-enrollments", icon: "bookmark" },
     ],
   },
 ];

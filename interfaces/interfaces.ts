@@ -95,6 +95,7 @@ export type Lesson = {
   latestModerationEventType?: string | null
   latestModeratedAt?: string | null
   adminRejectionReason?: string | null
+  enrolled?: boolean
 }
 
 export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" | "createdAt" | "moderationStatus"> & {

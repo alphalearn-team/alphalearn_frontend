@@ -3,9 +3,11 @@ import { apiFetch } from "@/lib/api/api";
 import { normalizeLessonQuizzes } from "@/lib/utils/lessonQuiz";
 import { toFriendlyBestQuizAttemptError } from "@/lib/utils/lessonQuiz";
 import { getServerSession } from "@/lib/auth/server/session";
+import { ApiError } from "@/lib/api/apiErrors";
 
 export interface LessonQuizLoadResult {
   error: string | null;
+  status: number | null;
   quizzes: LessonQuiz[];
 }
 
@@ -16,6 +18,7 @@ export async function fetchLessonQuizzes(
     const quizzes = await apiFetch<LessonQuiz[]>(`/quizzes/${lessonPublicId}`);
     return {
       error: null,
+      status: 200,
       quizzes: normalizeLessonQuizzes(quizzes),
     };
   } catch (error) {
@@ -24,6 +27,7 @@ export async function fetchLessonQuizzes(
         error instanceof Error
           ? error.message
           : "Unable to load lesson quizzes right now.",
+      status: error instanceof ApiError ? error.status : null,
       quizzes: [],
     };
   }
