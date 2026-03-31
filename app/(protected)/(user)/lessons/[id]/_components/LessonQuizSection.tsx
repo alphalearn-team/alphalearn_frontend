@@ -42,7 +42,7 @@ export default function LessonQuizSection({
             </Text>
           </div>
             <GlowButton
-              href={`/quiz/${lessonId}`}
+              href={`/lessons/${lessonId}/quiz`}
               className="w-full sm:w-auto"
             >
               View Quizzes

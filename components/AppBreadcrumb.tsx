@@ -67,17 +67,11 @@ export default function AppBreadcrumb({
 
     let label = formatSegment(segment, mergedOverrides);
 
-    // Custom logic for UUID segments in quiz path to prevent "Detail > Detail"
+    // UUID after 'quiz' segment → label as "Quiz"
     if (/^[a-zA-Z0-9_-]{8,}$/.test(segment)) {
       const prevSegment = index > 0 ? relevantSegments[index - 1] : null;
       if (prevSegment === "quiz") {
-        label = "Lesson";
-      } else if (prevSegment && /^[a-zA-Z0-9_-]{8,}$/.test(prevSegment)) {
-        // Check if the one before THAT was 'quiz'
-        const prevPrevSegment = index > 1 ? relevantSegments[index - 2] : null;
-        if (prevPrevSegment === "quiz") {
-          label = "Quiz";
-        }
+        label = "Quiz";
       }
     }
 

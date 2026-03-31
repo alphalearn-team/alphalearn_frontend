@@ -2,31 +2,30 @@ import { Container } from "@mantine/core";
 import NotFound from "@/components/NotFound";
 import { getUserRole } from "@/lib/auth/server/rbac";
 import { fetchLessonQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
-import QuizAttemptView from "../../../lessons/[id]/quiz/_components/quizviewer/QuizAttemptView";
+import QuizAttemptView from "../_components/quizviewer/QuizAttemptView";
 
 export default async function QuizAttemptPage({
   params,
 }: {
-  params: Promise<{ lessonId: string; quizId: string }>;
+  params: Promise<{ id: string; quizId: string }>;
 }) {
-  const { lessonId, quizId } = await params;
+  const { id, quizId } = await params;
   const role = await getUserRole();
-  const { quizzes } = await fetchLessonQuizzes(lessonId);
-  
+  const { quizzes } = await fetchLessonQuizzes(id);
+
   const activeQuiz = quizzes.find((q) => q.quizPublicId === quizId);
   if (!activeQuiz) {
-    return <NotFound/>
+    return <NotFound />;
   }
 
   return (
     <Container size="md" py="xl">
       <div className="flex flex-col gap-6">
-        
-        <QuizAttemptView 
-           lessonId={lessonId} 
-           quiz={activeQuiz} 
-           role={role}
-           status="APPROVED"
+        <QuizAttemptView
+          lessonId={id}
+          quiz={activeQuiz}
+          role={role}
+          status="APPROVED"
         />
       </div>
     </Container>
