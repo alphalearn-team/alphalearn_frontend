@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Container, Title } from "@mantine/core";
 import { redirect } from "next/navigation";
 import NotFound from "@/components/NotFound";
-import { fetchLessonQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
+import { fetchLessonQuizzes } from "./_components/quizData";
 import QuizListServerWrapper from "./_components/QuizListServerWrapper";
 import QuizListSkeleton from "./_components/QuizListSkeleton";
 

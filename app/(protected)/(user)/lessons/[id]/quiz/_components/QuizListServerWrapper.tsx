@@ -1,5 +1,5 @@
 import type { LessonQuiz } from "@/interfaces/interfaces";
-import { fetchUserQuizAttempts } from "@/app/(protected)/(user)/quiz/quizData";
+import { fetchUserQuizAttempts } from "./quizData";
 import QuizList from "./QuizList";
 
 interface QuizListServerWrapperProps {

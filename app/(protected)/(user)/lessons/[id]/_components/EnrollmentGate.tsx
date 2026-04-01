@@ -2,17 +2,14 @@
 
 import { Card, Text, Group } from "@mantine/core";
 import { enrollInLessonAction } from "./enrollmentActions";
-import GlowButton from "@/components/GlowButton";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { notifications } from "@mantine/notifications";
+import CommonButton from "@/components/CommonButton";
 
 export default function EnrollmentGate({ lessonId }: { lessonId: string }) {
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleEnroll = async () => {
-    setLoading(true);
     try {
       await enrollInLessonAction(lessonId);
       notifications.show({
@@ -27,8 +24,6 @@ export default function EnrollmentGate({ lessonId }: { lessonId: string }) {
         message: "Something went wrong. Please try again.",
         color: "red",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -50,9 +45,9 @@ export default function EnrollmentGate({ lessonId }: { lessonId: string }) {
         Enroll in this lesson to unlock all sections and attempt the quizzes.
       </Text>
       <Group justify="center">
-        <GlowButton onClick={handleEnroll} size="lg">
+        <CommonButton onClick={handleEnroll} size="lg">
           Enroll Now
-        </GlowButton>
+        </CommonButton>
       </Group>
     </Card>
   );

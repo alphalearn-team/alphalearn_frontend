@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Group, Text, Button } from "@mantine/core";
+import { Card, Group, Text } from "@mantine/core";
 import GlowButton from "@/components/GlowButton";
 
 interface LessonQuizSectionProps {

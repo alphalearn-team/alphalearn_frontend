@@ -1,7 +1,7 @@
 import { Container } from "@mantine/core";
 import NotFound from "@/components/NotFound";
 import { getUserRole } from "@/lib/auth/server/rbac";
-import { fetchLessonQuizzes } from "@/app/(protected)/(user)/quiz/quizData";
+import { fetchLessonQuizzes } from "../_components/quizData";
 import QuizAttemptView from "../_components/quizviewer/QuizAttemptView";
 
 export default async function QuizAttemptPage({

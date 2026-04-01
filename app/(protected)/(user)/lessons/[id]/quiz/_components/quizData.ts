@@ -2,7 +2,6 @@ import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api/api";
 import { normalizeLessonQuizzes } from "@/lib/utils/lessonQuiz";
 import { toFriendlyBestQuizAttemptError } from "@/lib/utils/lessonQuiz";
-import { getServerSession } from "@/lib/auth/server/session";
 import { ApiError } from "@/lib/api/apiErrors";
 
 export interface LessonQuizLoadResult {
