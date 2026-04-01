@@ -1,4 +1,5 @@
-import { apiFetch } from "./api";
+"use server";
+import { apiFetch } from "@/lib/api/api";
 
 export interface EnrolledLessonSummary {
   lessonPublicId: string;

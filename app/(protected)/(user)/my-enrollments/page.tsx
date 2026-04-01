@@ -1,5 +1,5 @@
 import { Container, SimpleGrid, Title, Text, Card, Group, Badge } from "@mantine/core";
-import { getMyEnrollments } from "@/lib/api/enrollment";
+import { getMyEnrollments } from "@/app/(protected)/(user)/lessons/[id]/_lib/enrollment";
 import Link from "next/link";
 
 export default async function MyEnrollmentsPage() {

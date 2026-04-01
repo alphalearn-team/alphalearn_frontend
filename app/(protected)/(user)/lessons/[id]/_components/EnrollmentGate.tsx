@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Text, Group } from "@mantine/core";
-import { enrollInLessonAction } from "./enrollmentActions";
+import { enrollInLesson } from "../_lib/enrollment";
 import { useRouter } from "next/navigation";
 import { notifications } from "@mantine/notifications";
 import CommonButton from "@/components/CommonButton";
@@ -11,7 +11,7 @@ export default function EnrollmentGate({ lessonId }: { lessonId: string }) {
 
   const handleEnroll = async () => {
     try {
-      await enrollInLessonAction(lessonId);
+      await enrollInLesson(lessonId);
       notifications.show({
         title: "Enrolled Successfully!",
         message: "You now have access to this lesson's content and quizzes.",
