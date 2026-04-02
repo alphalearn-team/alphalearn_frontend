@@ -8,6 +8,7 @@ import {
   Card,
   Container,
   NumberInput,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Text,
@@ -34,7 +35,13 @@ import {
   type GameSetupFormValues,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
-import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptProvider";
+import {
+  createPrivateImposterLobby,
+  fetchNextGameConcept,
+  isEmptyConceptBankError,
+  toFriendlyCreateLobbyError,
+  toFriendlyLobbyAccessError,
+} from "../_lib/conceptProvider";
 import { assignImposter } from "../_lib/imposterAssignment";
 import DiscussionPhaseScreen from "./DiscussionPhaseScreen";
 import DrawingPhaseScreen from "./DrawingPhaseScreen";
@@ -110,7 +117,11 @@ export default function GameSetupScreen() {
             setIsContinuingMatch(true);
 
             try {
-              const concept = await fetchNextGameConcept(accessToken, matchConfig.usedConceptPublicIds);
+              const concept = await fetchNextGameConcept(
+                accessToken,
+                matchConfig.usedConceptPublicIds,
+                matchConfig.lobbyPublicId,
+              );
               const assignment = assignImposter(matchConfig.players);
 
               setMatchConfig(
@@ -124,10 +135,14 @@ export default function GameSetupScreen() {
                 ),
               );
             } catch (error) {
+              const lobbyError = toFriendlyLobbyAccessError(error);
+
               if (isEmptyConceptBankError(error)) {
                 setConceptTransitionError(
                   "No more unused concepts are available for this match. Add more concepts before continuing.",
                 );
+              } else if (lobbyError) {
+                setConceptTransitionError(lobbyError);
               } else if (error instanceof Error && error.message) {
                 setConceptTransitionError(error.message);
               } else {
@@ -208,8 +223,8 @@ export default function GameSetupScreen() {
     });
   };
 
-  const updateSetting = (
-    key: keyof GameSetupFormValues["settings"],
+  const updateNumberSetting = (
+    key: "conceptCount" | "roundsPerConcept" | "discussionTimerSeconds" | "imposterGuessTimerSeconds",
     value: string | number,
   ) => {
     setFormValues((currentValues) => ({
@@ -217,6 +232,17 @@ export default function GameSetupScreen() {
       settings: {
         ...currentValues.settings,
         [key]: typeof value === "number" ? value : Number(value || 1),
+      },
+    }));
+    setStartError(null);
+  };
+
+  const updateConceptPoolMode = (value: "CURRENT_MONTH_PACK" | "FULL_CONCEPT_POOL") => {
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      settings: {
+        ...currentValues.settings,
+        conceptPoolMode: value,
       },
     }));
     setStartError(null);
@@ -257,7 +283,8 @@ export default function GameSetupScreen() {
     setConceptTransitionError(null);
 
     try {
-      const concept = await fetchNextGameConcept(accessToken);
+      const lobby = await createPrivateImposterLobby(accessToken, offlineMatchConfig.settings.conceptPoolMode);
+      const concept = await fetchNextGameConcept(accessToken, [], lobby.publicId);
       const assignment = assignImposter(offlineMatchConfig.players);
 
       setMatchConfig(
@@ -268,12 +295,21 @@ export default function GameSetupScreen() {
             word: concept.word,
           },
           assignment.imposterPlayerId,
+          lobby.publicId,
+          offlineMatchConfig.settings.conceptPoolMode,
         ),
       );
     } catch (error) {
+      const createLobbyError = toFriendlyCreateLobbyError(error);
+      const lobbyAccessError = toFriendlyLobbyAccessError(error);
+
       setMatchConfig(null);
-      if (isEmptyConceptBankError(error)) {
+      if (createLobbyError) {
+        setStartError(createLobbyError);
+      } else if (isEmptyConceptBankError(error)) {
         setStartError("No concepts are available right now. Add concepts before starting a match.");
+      } else if (lobbyAccessError) {
+        setStartError(lobbyAccessError);
       } else if (error instanceof Error && error.message) {
         setStartError(error.message);
       } else {
@@ -411,7 +447,7 @@ export default function GameSetupScreen() {
                       min={1}
                       max={MAX_CONCEPT_COUNT}
                       value={formValues.settings.conceptCount}
-                      onChange={(value) => updateSetting("conceptCount", value)}
+                      onChange={(value) => updateNumberSetting("conceptCount", value)}
                       allowDecimal={false}
                       clampBehavior="strict"
                       styles={textInputStyles}
@@ -421,7 +457,7 @@ export default function GameSetupScreen() {
                       min={1}
                       max={MAX_ROUNDS_PER_CONCEPT}
                       value={formValues.settings.roundsPerConcept}
-                      onChange={(value) => updateSetting("roundsPerConcept", value)}
+                      onChange={(value) => updateNumberSetting("roundsPerConcept", value)}
                       allowDecimal={false}
                       clampBehavior="strict"
                       styles={textInputStyles}
@@ -431,7 +467,7 @@ export default function GameSetupScreen() {
                       min={MIN_TIMER_SECONDS}
                       max={MAX_TIMER_SECONDS}
                       value={formValues.settings.discussionTimerSeconds}
-                      onChange={(value) => updateSetting("discussionTimerSeconds", value)}
+                      onChange={(value) => updateNumberSetting("discussionTimerSeconds", value)}
                       allowDecimal={false}
                       clampBehavior="strict"
                       styles={textInputStyles}
@@ -441,12 +477,30 @@ export default function GameSetupScreen() {
                       min={MIN_TIMER_SECONDS}
                       max={MAX_TIMER_SECONDS}
                       value={formValues.settings.imposterGuessTimerSeconds}
-                      onChange={(value) => updateSetting("imposterGuessTimerSeconds", value)}
+                      onChange={(value) => updateNumberSetting("imposterGuessTimerSeconds", value)}
                       allowDecimal={false}
                       clampBehavior="strict"
                       styles={textInputStyles}
                     />
                   </SimpleGrid>
+
+                  <div>
+                    <Text size="sm" fw={600} className="mb-2 text-[var(--color-text)]">
+                      Concept source
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      radius="xl"
+                      value={formValues.settings.conceptPoolMode}
+                      onChange={(value) =>
+                        updateConceptPoolMode(value as "CURRENT_MONTH_PACK" | "FULL_CONCEPT_POOL")
+                      }
+                      data={[
+                        { label: "Current month pack", value: "CURRENT_MONTH_PACK" },
+                        { label: "Full concept pool", value: "FULL_CONCEPT_POOL" },
+                      ]}
+                    />
+                  </div>
                 </Stack>
               </Card>
 
@@ -473,7 +527,11 @@ export default function GameSetupScreen() {
                       {" "}
                       {formValues.settings.discussionTimerSeconds}s discussion,
                       {" "}
-                      {formValues.settings.imposterGuessTimerSeconds}s guess timer.
+                      {formValues.settings.imposterGuessTimerSeconds}s guess timer, source:{" "}
+                      {formValues.settings.conceptPoolMode === "CURRENT_MONTH_PACK"
+                        ? "Current month pack"
+                        : "Full concept pool"}
+                      .
                     </p>
                   </div>
 
