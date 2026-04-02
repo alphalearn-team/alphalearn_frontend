@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   Alert,
   Badge,
@@ -45,11 +45,6 @@ export default function ImposterMonthlyPackScaffold({
   const [featuredSlotConceptIds, setFeaturedSlotConceptIds] = useState<string[]>(
     toFeaturedSlots(pack.weeklyFeaturedConceptPublicIds),
   );
-
-  useEffect(() => {
-    setSelectedConceptPublicIds(pack.concepts.map((entry) => entry.conceptPublicId));
-    setFeaturedSlotConceptIds(toFeaturedSlots(pack.weeklyFeaturedConceptPublicIds));
-  }, [pack]);
 
   const conceptByPublicId = useMemo(
     () => new Map(concepts.map((concept) => [concept.publicId, concept])),

@@ -28,6 +28,7 @@ export default async function ImposterMonthlyPackPage({
         />
 
         <ImposterMonthlyPackScaffold
+          key={selectedMonth + "-" + pack.yearMonth + "-" + String(pack.exists)}
           selectedMonth={selectedMonth}
           concepts={concepts}
           pack={pack}
