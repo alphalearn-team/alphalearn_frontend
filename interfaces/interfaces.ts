@@ -329,6 +329,27 @@ export interface SaveAdminImposterMonthlyPackRequest {
   weeklyFeaturedConceptPublicIds: string[];
 }
 
+export interface LearnerImposterMonthlyPackVisibleConcept {
+  conceptPublicId: string;
+  title: string;
+  weeklyFeatured: boolean;
+  weekSlot: number | null;
+}
+
+export interface LearnerImposterMonthlyPackWeeklyFeaturedSlot {
+  weekSlot: number;
+  revealed: boolean;
+  conceptPublicId: string | null;
+  conceptTitle: string | null;
+}
+
+export interface LearnerCurrentImposterMonthlyPack {
+  exists: boolean;
+  yearMonth: string | null;
+  visibleConcepts: LearnerImposterMonthlyPackVisibleConcept[];
+  weeklyFeaturedSlots: LearnerImposterMonthlyPackWeeklyFeaturedSlot[];
+}
+
 export interface LearnerWeeklyQuestConcept {
   publicId: string;
   title: string;
