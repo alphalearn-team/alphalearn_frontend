@@ -11,6 +11,10 @@ export interface CreatePrivateImposterLobbyRequest {
   conceptPoolMode: ImposterConceptPoolMode;
 }
 
+export interface JoinPrivateImposterLobbyRequest {
+  lobbyCode: string;
+}
+
 export interface PrivateImposterLobby {
   lobbyCode: string;
   publicId?: string;
@@ -18,6 +22,11 @@ export interface PrivateImposterLobby {
   conceptPoolMode: ImposterConceptPoolMode;
   pinnedYearMonth: string | null;
   createdAt: string;
+}
+
+export interface JoinedPrivateImposterLobby extends PrivateImposterLobby {
+  joinedAt: string;
+  alreadyMember: boolean;
 }
 
 interface NextGameConceptRequest {
@@ -41,6 +50,25 @@ export async function createPrivateImposterLobby(
       body: JSON.stringify({
         conceptPoolMode,
       } satisfies CreatePrivateImposterLobbyRequest),
+    },
+  );
+}
+
+export async function joinPrivateImposterLobby(
+  accessToken: string,
+  lobbyCode: string,
+): Promise<JoinedPrivateImposterLobby> {
+  return apiClientFetch<JoinedPrivateImposterLobby>(
+    "/me/imposter/lobbies/private/join",
+    accessToken,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        lobbyCode,
+      } satisfies JoinPrivateImposterLobbyRequest),
     },
   );
 }
@@ -108,6 +136,28 @@ export function toFriendlyLobbyAccessError(error: unknown): string | null {
 
     if (error.status === 404) {
       return "This lobby no longer exists. Start a new match to continue.";
+    }
+  }
+
+  return null;
+}
+
+export function toFriendlyJoinLobbyError(error: unknown): string | null {
+  if (error instanceof ApiError) {
+    if (error.status === 400) {
+      return error.message || "Enter a valid lobby code.";
+    }
+
+    if (error.status === 403) {
+      return error.message || "You are not allowed to join this lobby.";
+    }
+
+    if (error.status === 404) {
+      return "This lobby code was not found. Ask the host to verify and try again.";
+    }
+
+    if (error.status >= 500) {
+      return "The server could not join the lobby right now. Please try again.";
     }
   }
 
