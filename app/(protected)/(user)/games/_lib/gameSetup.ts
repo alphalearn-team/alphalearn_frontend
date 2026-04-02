@@ -107,7 +107,7 @@ export interface ConceptResult {
 
 export interface OfflineInitializedMatch {
   mode: GameMode;
-  lobbyPublicId: string;
+  lobbyCode: string;
   conceptPoolMode: ImposterConceptPoolMode;
   phase: MatchPhase;
   revealState: RevealSubstate;
@@ -245,12 +245,12 @@ export function initializeOfflineMatch(
   config: OfflineMatchConfig,
   concept: AssignedGameConcept,
   imposterPlayerId: string,
-  lobbyPublicId: string,
+  lobbyCode: string,
   conceptPoolMode: ImposterConceptPoolMode,
 ): OfflineInitializedMatch {
   return {
     mode: config.mode,
-    lobbyPublicId,
+    lobbyCode,
     conceptPoolMode,
     phase: "reveal",
     revealState: "handoff",

@@ -12,7 +12,8 @@ export interface CreatePrivateImposterLobbyRequest {
 }
 
 export interface PrivateImposterLobby {
-  publicId: string;
+  lobbyCode: string;
+  publicId?: string;
   isPrivate: boolean;
   conceptPoolMode: ImposterConceptPoolMode;
   pinnedYearMonth: string | null;
@@ -21,6 +22,7 @@ export interface PrivateImposterLobby {
 
 interface NextGameConceptRequest {
   excludedConceptPublicIds: string[];
+  lobbyCode?: string;
   lobbyPublicId?: string;
 }
 
@@ -46,10 +48,16 @@ export async function createPrivateImposterLobby(
 export async function fetchNextGameConcept(
   accessToken: string,
   excludedConceptPublicIds: string[] = [],
+  lobbyCode?: string,
   lobbyPublicId?: string,
 ): Promise<AssignedGameConcept> {
+  if (lobbyCode && lobbyPublicId && lobbyCode !== lobbyPublicId) {
+    throw new Error("Lobby code mismatch. Please restart the match.");
+  }
+
   const payload: NextGameConceptRequest = {
     excludedConceptPublicIds,
+    ...(lobbyCode ? { lobbyCode } : {}),
     ...(lobbyPublicId ? { lobbyPublicId } : {}),
   };
 

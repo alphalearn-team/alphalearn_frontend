@@ -124,7 +124,7 @@ export default function OfflineGameSetupScreen() {
               const concept = await fetchNextGameConcept(
                 accessToken,
                 matchConfig.usedConceptPublicIds,
-                matchConfig.lobbyPublicId,
+                matchConfig.lobbyCode,
               );
               const assignment = assignImposter(matchConfig.players);
 
@@ -288,7 +288,7 @@ export default function OfflineGameSetupScreen() {
 
     try {
       const lobby = await createPrivateImposterLobby(accessToken, offlineMatchConfig.settings.conceptPoolMode);
-      const concept = await fetchNextGameConcept(accessToken, [], lobby.publicId);
+      const concept = await fetchNextGameConcept(accessToken, [], lobby.lobbyCode);
       const assignment = assignImposter(offlineMatchConfig.players);
 
       setMatchConfig(
@@ -299,7 +299,7 @@ export default function OfflineGameSetupScreen() {
             word: concept.word,
           },
           assignment.imposterPlayerId,
-          lobby.publicId,
+          lobby.lobbyCode,
           offlineMatchConfig.settings.conceptPoolMode,
         ),
       );

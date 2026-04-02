@@ -17,11 +17,30 @@ const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
 
 interface CreatedLobbySummary {
-  publicId: string;
+  lobbyCode: string;
   isPrivate: boolean;
   conceptPoolMode: ImposterConceptPoolMode;
   pinnedYearMonth: string | null;
   createdAt: string;
+}
+
+function toPinnedMonthLabel(pinnedYearMonth: string | null): string {
+  const fallback = new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  if (!pinnedYearMonth) {
+    return `Current month (${fallback})`;
+  }
+
+  const [yearRaw, monthRaw] = pinnedYearMonth.split("-");
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    return `Current month (${fallback})`;
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, 1));
+  return `Current month (${date.toLocaleDateString(undefined, { month: "long", year: "numeric" })})`;
 }
 
 export default function OnlineLobbyCreateScreen() {
@@ -50,7 +69,7 @@ export default function OnlineLobbyCreateScreen() {
       const lobby = await createPrivateImposterLobby(accessToken, conceptPoolMode);
 
       setCreatedLobby({
-        publicId: lobby.publicId,
+        lobbyCode: lobby.lobbyCode,
         isPrivate: lobby.isPrivate,
         conceptPoolMode: lobby.conceptPoolMode,
         pinnedYearMonth: lobby.pinnedYearMonth,
@@ -65,12 +84,12 @@ export default function OnlineLobbyCreateScreen() {
   };
 
   const handleCopyLobbyCode = async () => {
-    if (!createdLobby?.publicId) {
+    if (!createdLobby?.lobbyCode) {
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(createdLobby.publicId);
+      await navigator.clipboard.writeText(createdLobby.lobbyCode);
       setCopyStatus("Lobby code copied.");
     } catch {
       setCopyStatus("Could not copy automatically. Please copy the code manually.");
@@ -143,7 +162,7 @@ export default function OnlineLobbyCreateScreen() {
 
             <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Lobby code</p>
-              <Code className="mt-2 text-base">{createdLobby.publicId}</Code>
+              <Code className="mt-2 text-base">{createdLobby.lobbyCode}</Code>
             </div>
 
             <div className="rounded-[20px] border border-white/10 bg-black/20 p-4 text-sm text-[var(--color-text-secondary)]">
@@ -151,7 +170,7 @@ export default function OnlineLobbyCreateScreen() {
               <br />
               Source: {getConceptPoolModeLabel(createdLobby.conceptPoolMode)}
               <br />
-              Pinned month: {createdLobby.pinnedYearMonth ?? "Not pinned"}
+              Pinned month: {toPinnedMonthLabel(createdLobby.pinnedYearMonth)}
               <br />
               Created: {new Date(createdLobby.createdAt).toLocaleString()}
             </div>
