@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth/client/AuthContext";
+import { ApiError } from "@/lib/api/apiErrors";
 import {
   Alert,
   Badge,
@@ -9,12 +10,14 @@ import {
   Card,
   Code,
   Group,
+  Modal,
   SegmentedControl,
   Stack,
   Text,
   TextInput,
   Title,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import {
   createPrivateImposterLobby,
   getPrivateImposterLobbyState,
@@ -84,6 +87,7 @@ export default function OnlineLobbyCreateScreen() {
   const [isLeavingLobby, setIsLeavingLobby] = useState(false);
 
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
 
   const [createErrorMessage, setCreateErrorMessage] = useState<string | null>(null);
   const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
@@ -103,6 +107,15 @@ export default function OnlineLobbyCreateScreen() {
     setStartErrorMessage(null);
     setLeaveErrorMessage(null);
   };
+
+  const exitLobbyScreen = useCallback(() => {
+    setLobbyState(null);
+    setCurrentLobbyPublicId(null);
+    setCopyStatus(null);
+    setLobbyCodeInput("");
+    setIsLeaveConfirmOpen(false);
+    clearLobbyActionMessages();
+  }, []);
 
   const fetchLobbyState = useCallback(
     async (lobbyPublicId: string, silent = false): Promise<PrivateImposterLobbyState | null> => {
@@ -124,6 +137,28 @@ export default function OnlineLobbyCreateScreen() {
         setLobbyStateErrorMessage(null);
         return nextLobbyState;
       } catch (error) {
+        if (error instanceof ApiError) {
+          if (error.status === 404) {
+            notifications.show({
+              color: "orange",
+              title: "Lobby closed",
+              message: "This lobby no longer exists.",
+            });
+            exitLobbyScreen();
+            return null;
+          }
+
+          if (error.status === 403) {
+            notifications.show({
+              color: "orange",
+              title: "Access removed",
+              message: "You are no longer allowed in this lobby.",
+            });
+            exitLobbyScreen();
+            return null;
+          }
+        }
+
         setLobbyStateErrorMessage(
           toFriendlyLobbyStateError(error) ?? "We could not load this lobby right now. Please try again.",
         );
@@ -134,7 +169,7 @@ export default function OnlineLobbyCreateScreen() {
         }
       }
     },
-    [session?.access_token],
+    [exitLobbyScreen, session?.access_token],
   );
 
   useEffect(() => {
@@ -240,6 +275,34 @@ export default function OnlineLobbyCreateScreen() {
       await startPrivateImposterLobby(accessToken, currentLobbyPublicId);
       await fetchLobbyState(currentLobbyPublicId);
     } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.status === 403) {
+          notifications.show({
+            color: "orange",
+            title: "Access removed",
+            message: "You are no longer allowed to manage this lobby.",
+          });
+          exitLobbyScreen();
+          return;
+        }
+
+        if (error.status === 404) {
+          notifications.show({
+            color: "orange",
+            title: "Lobby closed",
+            message: "This lobby no longer exists.",
+          });
+          exitLobbyScreen();
+          return;
+        }
+
+        if (error.status === 409) {
+          setStartErrorMessage(toFriendlyStartLobbyError(error) ?? "This lobby cannot be started right now.");
+          await fetchLobbyState(currentLobbyPublicId);
+          return;
+        }
+      }
+
       setStartErrorMessage(toFriendlyStartLobbyError(error) ?? "We could not start this lobby right now. Please try again.");
     } finally {
       setIsStartingLobby(false);
@@ -264,18 +327,74 @@ export default function OnlineLobbyCreateScreen() {
     setLobbyStateErrorMessage(null);
 
     try {
-      await leavePrivateImposterLobby(accessToken, currentLobbyPublicId);
-      await fetchLobbyState(currentLobbyPublicId, true);
+      const response = await leavePrivateImposterLobby(accessToken, currentLobbyPublicId);
 
-      setLobbyState(null);
-      setCurrentLobbyPublicId(null);
-      setCopyStatus(null);
-      setLobbyCodeInput("");
+      if (response.result === "LEFT") {
+        if (response.lobbyState) {
+          setLobbyState(response.lobbyState);
+          setCurrentLobbyPublicId(response.lobbyState.publicId);
+          notifications.show({
+            color: "blue",
+            title: "Left lobby",
+            message: "You left the lobby.",
+          });
+        } else {
+          await fetchLobbyState(currentLobbyPublicId);
+        }
+      } else if (response.result === "LEFT_AND_PROMOTED_HOST") {
+        if (response.lobbyState) {
+          setLobbyState(response.lobbyState);
+          setCurrentLobbyPublicId(response.lobbyState.publicId);
+        } else {
+          await fetchLobbyState(currentLobbyPublicId);
+        }
+        notifications.show({
+          color: "blue",
+          title: "New host assigned",
+          message: "You left. Host role moved to another player.",
+        });
+      } else if (response.result === "LEFT_AND_LOBBY_DELETED") {
+        notifications.show({
+          color: "orange",
+          title: "Lobby closed",
+          message: "You left. Lobby was closed because no players remained.",
+        });
+        exitLobbyScreen();
+      }
     } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.status === 403) {
+          notifications.show({
+            color: "orange",
+            title: "Access removed",
+            message: "You are no longer allowed in this lobby.",
+          });
+          exitLobbyScreen();
+          return;
+        }
+
+        if (error.status === 404) {
+          notifications.show({
+            color: "orange",
+            title: "Lobby closed",
+            message: "This lobby no longer exists.",
+          });
+          exitLobbyScreen();
+          return;
+        }
+
+        if (error.status === 409) {
+          setLeaveErrorMessage(toFriendlyLeaveLobbyError(error) ?? "You cannot leave this lobby right now.");
+          await fetchLobbyState(currentLobbyPublicId);
+          return;
+        }
+      }
+
       setLeaveErrorMessage(toFriendlyLeaveLobbyError(error) ?? "We could not leave this lobby right now. Please try again.");
       await fetchLobbyState(currentLobbyPublicId);
     } finally {
       setIsLeavingLobby(false);
+      setIsLeaveConfirmOpen(false);
     }
   };
 
@@ -315,6 +434,27 @@ export default function OnlineLobbyCreateScreen() {
           Create a private lobby as host, or join an existing one with a lobby code.
         </Text>
       </Card>
+
+      <Modal
+        opened={isLeaveConfirmOpen}
+        onClose={() => setIsLeaveConfirmOpen(false)}
+        title="Leave lobby?"
+        centered
+      >
+        <Stack>
+          <Text size="sm" className="text-[var(--color-text-secondary)]">
+            Are you sure you want to leave?
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setIsLeaveConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button color="red" loading={isLeavingLobby} onClick={handleLeaveLobby}>
+              Leave lobby
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       <Card radius="32px" padding="xl" className={sectionCardClassName}>
         <Stack gap="sm">
@@ -479,12 +619,18 @@ export default function OnlineLobbyCreateScreen() {
               ) : (
                 <Stack gap={6}>
                   {lobbyState.activeMembers.map((member) => (
-                    <Text key={member.learnerPublicId} size="sm" className="text-[var(--color-text-secondary)]">
-                      {member.username}
-                      {member.host ? " (Host)" : ""}
-                      {" • Joined "}
-                      {new Date(member.joinedAt).toLocaleString()}
-                    </Text>
+                    <Group key={member.learnerPublicId} justify="space-between" wrap="nowrap" gap="xs">
+                      <Text size="sm" className="truncate text-[var(--color-text-secondary)]">
+                        {member.username}
+                        {" • Joined "}
+                        {new Date(member.joinedAt).toLocaleString()}
+                      </Text>
+                      {member.host ? (
+                        <Badge size="xs" radius="sm" color="yellow" variant="light">
+                          Host
+                        </Badge>
+                      ) : null}
+                    </Group>
                   ))}
                 </Stack>
               )}
@@ -509,7 +655,7 @@ export default function OnlineLobbyCreateScreen() {
             ) : null}
 
             <Group>
-              {!lobbyState.startedAt && lobbyState.canStart ? (
+              {lobbyState.canStart ? (
                 <Button
                   type="button"
                   radius="xl"
@@ -527,14 +673,13 @@ export default function OnlineLobbyCreateScreen() {
                 </Button>
               ) : null}
 
-              {lobbyState.canLeave && !lobbyState.startedAt ? (
+              {lobbyState.canLeave ? (
                 <Button
                   type="button"
                   radius="xl"
                   variant="default"
-                  onClick={handleLeaveLobby}
-                  loading={isLeavingLobby}
-                  disabled={isRefreshingLobbyState || isStartingLobby}
+                  onClick={() => setIsLeaveConfirmOpen(true)}
+                  disabled={isRefreshingLobbyState || isStartingLobby || isLeavingLobby}
                 >
                   Leave
                 </Button>
