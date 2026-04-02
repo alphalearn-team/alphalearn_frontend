@@ -37,10 +37,6 @@ export default function GameSetupScreen() {
           </Card>
         </Container>
 
-        <Container size="lg" className="pt-2">
-          <CurrentMonthlyPackSection />
-        </Container>
-
         <OfflineGameSetupScreen />
       </>
     );

@@ -17,7 +17,6 @@ import {
 } from "@mantine/core";
 import {
   MAX_CONCEPT_COUNT,
-  MAX_PLAYER_COUNT,
   MAX_ROUNDS_PER_CONCEPT,
   MAX_TIMER_SECONDS,
   MIN_TIMER_SECONDS,
@@ -56,6 +55,8 @@ import VotePhasePlaceholderScreen from "./VotePhasePlaceholderScreen";
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
 const OFFLINE_MATCH_LOBBY_CODE = "OFFLINE_LOCAL";
+const OFFLINE_MIN_PLAYER_COUNT = 3;
+const OFFLINE_MAX_PLAYER_COUNT = 8;
 
 const textInputStyles = {
   label: {
@@ -123,6 +124,9 @@ export default function OfflineGameSetupScreen() {
               const concept = await fetchNextGameConcept(
                 accessToken,
                 matchConfig.usedConceptPublicIds,
+                undefined,
+                undefined,
+                matchConfig.conceptPoolMode,
               );
               const assignment = assignImposter(matchConfig.players);
 
@@ -188,7 +192,7 @@ export default function OfflineGameSetupScreen() {
 
   const addPlayer = () => {
     setFormValues((currentValues) => {
-      if (currentValues.players.length >= MAX_PLAYER_COUNT) {
+      if (currentValues.players.length >= OFFLINE_MAX_PLAYER_COUNT) {
         return currentValues;
       }
 
@@ -204,7 +208,7 @@ export default function OfflineGameSetupScreen() {
 
   const removePlayer = (playerId: string) => {
     setFormValues((currentValues) => {
-      if (currentValues.players.length <= 2) {
+      if (currentValues.players.length <= OFFLINE_MIN_PLAYER_COUNT) {
         return currentValues;
       }
 
@@ -263,6 +267,15 @@ export default function OfflineGameSetupScreen() {
 
     setFormValues(trimmedValues);
 
+    if (
+      trimmedValues.players.length < OFFLINE_MIN_PLAYER_COUNT ||
+      trimmedValues.players.length > OFFLINE_MAX_PLAYER_COUNT
+    ) {
+      setStartError(`Offline mode supports ${OFFLINE_MIN_PLAYER_COUNT} to ${OFFLINE_MAX_PLAYER_COUNT} players.`);
+      setMatchConfig(null);
+      return;
+    }
+
     const validationResult = validateGameSetupForm(trimmedValues);
 
     if (hasGameSetupErrors(validationResult)) {
@@ -285,7 +298,13 @@ export default function OfflineGameSetupScreen() {
     setConceptTransitionError(null);
 
     try {
-      const concept = await fetchNextGameConcept(accessToken, []);
+      const concept = await fetchNextGameConcept(
+        accessToken,
+        [],
+        undefined,
+        undefined,
+        offlineMatchConfig.settings.conceptPoolMode,
+      );
       const assignment = assignImposter(offlineMatchConfig.players);
 
       setMatchConfig(
@@ -360,7 +379,7 @@ export default function OfflineGameSetupScreen() {
                     size="md"
                     onClick={addPlayer}
                     className="min-h-11 self-start px-6 sm:min-w-[11rem]"
-                    disabled={formValues.players.length >= MAX_PLAYER_COUNT}
+                    disabled={formValues.players.length >= OFFLINE_MAX_PLAYER_COUNT}
                     styles={{
                       root: {
                         backgroundColor: "var(--color-primary)",
@@ -408,7 +427,7 @@ export default function OfflineGameSetupScreen() {
                           radius="xl"
                           size="md"
                           className="min-h-11"
-                          disabled={formValues.players.length <= 2}
+                          disabled={formValues.players.length <= OFFLINE_MIN_PLAYER_COUNT}
                           onClick={() => removePlayer(player.id)}
                           styles={{
                             root: {

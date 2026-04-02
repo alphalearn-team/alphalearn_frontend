@@ -65,6 +65,7 @@ interface NextGameConceptRequest {
   excludedConceptPublicIds: string[];
   lobbyCode?: string;
   lobbyPublicId?: string;
+  conceptPoolMode?: ImposterConceptPoolMode;
 }
 
 export async function createPrivateImposterLobby(
@@ -149,6 +150,7 @@ export async function fetchNextGameConcept(
   excludedConceptPublicIds: string[] = [],
   lobbyCode?: string,
   lobbyPublicId?: string,
+  conceptPoolMode?: ImposterConceptPoolMode,
 ): Promise<AssignedGameConcept> {
   if (lobbyCode && lobbyPublicId && lobbyCode !== lobbyPublicId) {
     throw new Error("Lobby code mismatch. Please restart the match.");
@@ -158,6 +160,7 @@ export async function fetchNextGameConcept(
     excludedConceptPublicIds,
     ...(lobbyCode ? { lobbyCode } : {}),
     ...(lobbyPublicId ? { lobbyPublicId } : {}),
+    ...(conceptPoolMode ? { conceptPoolMode } : {}),
   };
 
   return apiClientFetch<AssignedGameConcept>(
