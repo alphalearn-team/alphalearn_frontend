@@ -7,7 +7,7 @@ import EnrollmentGate from "./_components/EnrollmentGate";
 import { LessonContentDisplay } from "./_components/LessonContentDisplay";
 import LessonDetailHeader from "./_components/LessonDetailHeader";
 import LessonQuizSection from "./_components/LessonQuizSection";
-import { getLessonDetailViewModel } from "./lessonDetailData";
+import { getLessonDetailViewModel } from "./_lib/lessonDetailData";
 
 export default async function LessonPage({
   params,
