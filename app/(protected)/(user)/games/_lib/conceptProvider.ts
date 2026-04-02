@@ -51,6 +51,16 @@ export interface PrivateImposterLobbyState {
   canStart: boolean;
 }
 
+export type PrivateImposterLobbyLeaveResult =
+  | "LEFT"
+  | "LEFT_AND_PROMOTED_HOST"
+  | "LEFT_AND_LOBBY_DELETED";
+
+export interface LeavePrivateImposterLobbyResponse {
+  result: PrivateImposterLobbyLeaveResult;
+  lobbyState: PrivateImposterLobbyState | null;
+}
+
 interface NextGameConceptRequest {
   excludedConceptPublicIds: string[];
   lobbyCode?: string;
@@ -124,8 +134,8 @@ export async function startPrivateImposterLobby(
 export async function leavePrivateImposterLobby(
   accessToken: string,
   lobbyPublicId: string,
-): Promise<void> {
-  return apiClientFetch<void>(
+): Promise<LeavePrivateImposterLobbyResponse> {
+  return apiClientFetch<LeavePrivateImposterLobbyResponse>(
     `/me/imposter/lobbies/private/${lobbyPublicId}/leave`,
     accessToken,
     {
