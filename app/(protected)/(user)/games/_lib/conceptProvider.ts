@@ -148,6 +148,10 @@ export function toFriendlyJoinLobbyError(error: unknown): string | null {
       return error.message || "Enter a valid lobby code.";
     }
 
+    if (error.status === 409) {
+      return error.message || "You are already active in this lobby.";
+    }
+
     if (error.status === 403) {
       return error.message || "You are not allowed to join this lobby.";
     }
