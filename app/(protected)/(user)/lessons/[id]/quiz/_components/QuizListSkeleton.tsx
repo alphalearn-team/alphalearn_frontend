@@ -17,7 +17,6 @@ export default function QuizListSkeleton({ quizzesCount = 3 }: { quizzesCount?: 
                <Skeleton height={24} width="30%" mb={8} />
                <Skeleton height={16} width="60%" />
             </div>
-            
             <Group justify="flex-end" mt="md">
               <Skeleton height={36} width={100} radius="xl" />
             </Group>

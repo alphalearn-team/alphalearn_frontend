@@ -5,11 +5,19 @@ import GlowButton from "@/components/GlowButton";
 
 interface LessonQuizSectionProps {
   lessonId: string;
+  isEnrolled: boolean;
+  isOwner: boolean;
 }
 
 export default function LessonQuizSection({
   lessonId,
+  isEnrolled,
+  isOwner,
 }: LessonQuizSectionProps) {
+  if (!isEnrolled && !isOwner) {
+    return null;
+  }
+
   const quizSectionTitle = "Lesson Quizzes";
   const quizCountText = "Testing your knowledge? Check out the quizzes for this lesson!";
 
@@ -27,19 +35,19 @@ export default function LessonQuizSection({
         className="border border-[var(--color-border)] bg-[var(--color-surface)]"
         style={{ borderRadius: "0.75rem" }}
       >
-          <Group justify="space-between" align="center" className="flex-col sm:flex-row gap-4">
-            <div>
-              <Text size="sm" className="text-[var(--color-text)]">
-                {quizCountText}
-              </Text>
-            </div>
+        <Group justify="space-between" align="center" className="flex-col sm:flex-row gap-4">
+          <div>
+            <Text size="sm" className="text-[var(--color-text)]">
+              {quizCountText}
+            </Text>
+          </div>
             <GlowButton
-              href={`/quiz/${lessonId}`}
+              href={`/lessons/${lessonId}/quiz`}
               className="w-full sm:w-auto"
             >
               View Quizzes
             </GlowButton>
-          </Group>
+        </Group>
       </Card>
     </div>
   );

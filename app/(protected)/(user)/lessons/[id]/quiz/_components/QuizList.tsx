@@ -17,7 +17,7 @@ export default function QuizList({
   quizLoadError,
   bestAttempts,
 }: QuizListProps) {
-  
+
   if (quizLoadError) {
     return (
       <Alert color="red" radius="md" title="Error loading quizzes">
@@ -53,7 +53,7 @@ export default function QuizList({
                 <Badge color="green" radius="sm">Attempted</Badge>
               </div>
             )}
-            
+
             {!quiz.canAttempt && (
               <div className="absolute top-4 right-4 z-10">
                 <Badge color="blue" radius="sm">Owner</Badge>
@@ -62,17 +62,16 @@ export default function QuizList({
 
             <Stack gap="lg">
               <div>
-                 <Text size="lg" fw={700} style={{ color: "var(--color-text)" }}>
-                   Quiz {idx + 1}
-                 </Text>
-                 <Text size="sm" className="text-[var(--color-text-muted)] mt-1">
-                   {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
-                 </Text>
+                <Text size="lg" fw={700} style={{ color: "var(--color-text)" }}>
+                  Quiz {idx + 1}
+                </Text>
+                <Text size="sm" className="text-[var(--color-text-muted)] mt-1">
+                  {totalQuestions} {totalQuestions === 1 ? "Question" : "Questions"}
+                </Text>
               </div>
 
-              {/* Error displaying attempts if any */}
               {best?.error && !best?.summary && quiz.canAttempt && (
-                  <Alert color="yellow" title="Could not load attempt data">{best.error}</Alert>
+                <Alert color="yellow" title="Could not load attempt data">{best.error}</Alert>
               )}
 
               <Group justify="flex-end" mt="md">
@@ -81,9 +80,7 @@ export default function QuizList({
                     Owners cannot attempt their own quizzes
                   </Text>
                 ) : (
-                  <GlowButton
-                    href={`/quiz/${lessonId}/${quiz.quizPublicId}`}
-                  >
+                  <GlowButton href={`/lessons/${lessonId}/quiz/${quiz.quizPublicId}`}>
                     View Quiz
                   </GlowButton>
                 )}

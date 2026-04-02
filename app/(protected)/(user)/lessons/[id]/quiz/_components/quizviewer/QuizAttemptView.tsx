@@ -72,17 +72,7 @@ export default function QuizAttemptView({
 
   const hasAtLeastOneAnswer = Object.keys(answers).length > 0;
 
-  // Handle browser close tab
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isStarted && !submittedResult && hasAtLeastOneAnswer) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isStarted, submittedResult, hasAtLeastOneAnswer]);
+
 
   // Handle browser back button
   useEffect(() => {
@@ -160,7 +150,7 @@ export default function QuizAttemptView({
         quiz={quiz} 
         answers={answers} 
         submittedResult={submittedResult} 
-        onBack={() => router.push(`/quiz/${lessonId}`)} 
+        onBack={() => router.push(`/lessons/${lessonId}/quiz`)} 
       />
     );
   }
@@ -177,7 +167,7 @@ export default function QuizAttemptView({
           <Text size="md" className="text-[var(--color-text-muted)] max-w-sm mx-auto">
             As the creator of the quiz, you cannot attempt it
           </Text>
-          <CommonButton mt="lg" onClick={() => router.push(`/quiz/${lessonId}`)}>
+          <CommonButton mt="lg" onClick={() => router.push(`/lessons/${lessonId}/quiz`)}>
             Back to Quizzes
           </CommonButton>
         </Stack>
