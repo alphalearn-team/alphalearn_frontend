@@ -15,6 +15,7 @@ export const MIN_TIMER_SECONDS = 10;
 export const MAX_TIMER_SECONDS = 120;
 
 export type GameMode = "offline";
+export type ImposterConceptPoolMode = "CURRENT_MONTH_PACK" | "FULL_CONCEPT_POOL";
 
 export interface GameSetupPlayerDraft {
   id: string;
@@ -26,6 +27,7 @@ export interface GameSetupSettings {
   roundsPerConcept: number;
   discussionTimerSeconds: number;
   imposterGuessTimerSeconds: number;
+  conceptPoolMode: ImposterConceptPoolMode;
 }
 
 export interface GameSetupFormValues {
@@ -105,6 +107,8 @@ export interface ConceptResult {
 
 export interface OfflineInitializedMatch {
   mode: GameMode;
+  lobbyPublicId: string;
+  conceptPoolMode: ImposterConceptPoolMode;
   phase: MatchPhase;
   revealState: RevealSubstate;
   drawingState: DrawingSubstate;
@@ -184,7 +188,10 @@ export function createDefaultPlayers(count = DEFAULT_PLAYER_COUNT): GameSetupPla
 export function createDefaultGameSetupForm(): GameSetupFormValues {
   return {
     players: createDefaultPlayers(),
-    settings: { ...DEFAULT_GAME_SETTINGS },
+    settings: {
+      ...DEFAULT_GAME_SETTINGS,
+      conceptPoolMode: "FULL_CONCEPT_POOL",
+    },
   };
 }
 
@@ -229,6 +236,7 @@ export function toOfflineMatchConfig(values: GameSetupFormValues): OfflineMatchC
       roundsPerConcept: normalizeRoundsPerConcept(values.settings.roundsPerConcept),
       discussionTimerSeconds: normalizeTimerSeconds(values.settings.discussionTimerSeconds),
       imposterGuessTimerSeconds: normalizeTimerSeconds(values.settings.imposterGuessTimerSeconds),
+      conceptPoolMode: values.settings.conceptPoolMode,
     },
   };
 }
@@ -237,9 +245,13 @@ export function initializeOfflineMatch(
   config: OfflineMatchConfig,
   concept: AssignedGameConcept,
   imposterPlayerId: string,
+  lobbyPublicId: string,
+  conceptPoolMode: ImposterConceptPoolMode,
 ): OfflineInitializedMatch {
   return {
     mode: config.mode,
+    lobbyPublicId,
+    conceptPoolMode,
     phase: "reveal",
     revealState: "handoff",
     drawingState: "handoff",
