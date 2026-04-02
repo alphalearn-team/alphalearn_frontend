@@ -360,6 +360,24 @@ export interface SaveWeeklyQuestOfficialAssignmentRequest {
   questTemplatePublicId: string;
 }
 
+export interface AdminImposterMonthlyPackConcept {
+  slotIndex: number;
+  conceptPublicId: string;
+  title: string;
+}
+
+export interface AdminImposterMonthlyPack {
+  yearMonth: string;
+  exists: boolean;
+  concepts: AdminImposterMonthlyPackConcept[];
+  weeklyFeaturedConceptPublicIds: string[];
+}
+
+export interface SaveAdminImposterMonthlyPackRequest {
+  conceptPublicIds: string[];
+  weeklyFeaturedConceptPublicIds: string[];
+}
+
 export interface LearnerWeeklyQuestConcept {
   publicId: string;
   title: string;
