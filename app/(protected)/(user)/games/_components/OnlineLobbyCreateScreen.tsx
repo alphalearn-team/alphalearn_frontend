@@ -18,6 +18,7 @@ const sectionCardClassName =
 
 interface CreatedLobbySummary {
   publicId: string;
+  isPrivate: boolean;
   conceptPoolMode: ImposterConceptPoolMode;
   pinnedYearMonth: string | null;
   createdAt: string;
@@ -47,17 +48,13 @@ export default function OnlineLobbyCreateScreen() {
 
     try {
       const lobby = await createPrivateImposterLobby(accessToken, conceptPoolMode);
-      const normalizedLobby = lobby as typeof lobby & {
-        conceptPoolMode?: ImposterConceptPoolMode;
-        pinnedYearMonth?: string | null;
-        createdAt?: string;
-      };
 
       setCreatedLobby({
         publicId: lobby.publicId,
-        conceptPoolMode: normalizedLobby.conceptPoolMode ?? conceptPoolMode,
-        pinnedYearMonth: normalizedLobby.pinnedYearMonth ?? null,
-        createdAt: normalizedLobby.createdAt ?? new Date().toISOString(),
+        isPrivate: lobby.isPrivate,
+        conceptPoolMode: lobby.conceptPoolMode,
+        pinnedYearMonth: lobby.pinnedYearMonth,
+        createdAt: lobby.createdAt,
       });
     } catch (error) {
       setCreatedLobby(null);
@@ -150,6 +147,8 @@ export default function OnlineLobbyCreateScreen() {
             </div>
 
             <div className="rounded-[20px] border border-white/10 bg-black/20 p-4 text-sm text-[var(--color-text-secondary)]">
+              Visibility: {createdLobby.isPrivate ? "Private" : "Public"}
+              <br />
               Source: {getConceptPoolModeLabel(createdLobby.conceptPoolMode)}
               <br />
               Pinned month: {createdLobby.pinnedYearMonth ?? "Not pinned"}

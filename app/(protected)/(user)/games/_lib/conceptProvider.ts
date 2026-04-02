@@ -13,6 +13,10 @@ export interface CreatePrivateImposterLobbyRequest {
 
 export interface PrivateImposterLobby {
   publicId: string;
+  isPrivate: boolean;
+  conceptPoolMode: ImposterConceptPoolMode;
+  pinnedYearMonth: string | null;
+  createdAt: string;
 }
 
 interface NextGameConceptRequest {
@@ -73,11 +77,15 @@ export function toFriendlyCreateLobbyError(error: unknown): string | null {
     }
 
     if (error.status === 403) {
-      return error.message || "You are not allowed to create this lobby.";
+      return error.message || "You are not allowed to create a private lobby.";
     }
 
     if (error.status === 404) {
-      return "The lobby could not be found. Please start a new match.";
+      return "Lobby creation is currently unavailable. Please try again in a moment.";
+    }
+
+    if (error.status >= 500) {
+      return "The server could not create a lobby right now. Please try again.";
     }
   }
 
