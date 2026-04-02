@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, Container, SegmentedControl, Stack } from "@mantine/core";
 import OfflineGameSetupScreen from "./OfflineGameSetupScreen";
 import OnlineLobbyCreateScreen from "./OnlineLobbyCreateScreen";
+import CurrentMonthlyPackSection from "./CurrentMonthlyPackSection";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
@@ -36,6 +37,10 @@ export default function GameSetupScreen() {
           </Card>
         </Container>
 
+        <Container size="lg" className="pt-2">
+          <CurrentMonthlyPackSection />
+        </Container>
+
         <OfflineGameSetupScreen />
       </>
     );
@@ -61,6 +66,8 @@ export default function GameSetupScreen() {
             />
           </Stack>
         </Card>
+
+        <CurrentMonthlyPackSection />
 
         <OnlineLobbyCreateScreen />
       </Stack>
