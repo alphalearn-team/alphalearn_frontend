@@ -132,16 +132,46 @@ export default function CurrentMonthlyPackSection() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {pack.weeklyFeaturedSlots.map((slot) => (
-                <div key={slot.weekSlot} className="rounded-[16px] border border-white/10 bg-black/20 p-3">
-                  <Text size="xs" className="uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
-                    {slot.revealed ? `Week ${slot.weekSlot} featured` : `Week ${slot.weekSlot} (upcoming)`}
-                  </Text>
-                  <Text size="sm" className="mt-1 text-[var(--color-text-secondary)]">
-                    {slot.revealed && slot.conceptTitle ? slot.conceptTitle : "Not revealed yet"}
-                  </Text>
-                </div>
-              ))}
+              {pack.weeklyFeaturedSlots.map((slot) => {
+                const isCurrentWeek = slot.weekSlot === 1;
+                const status = isCurrentWeek ? "current" : slot.revealed ? "past" : "upcoming";
+
+                return (
+                  <div
+                    key={slot.weekSlot}
+                    className={`rounded-[16px] border bg-black/20 p-3 ${
+                      isCurrentWeek ? "border-[var(--color-primary)]/60" : "border-white/10"
+                    }`}
+                  >
+                    <Group justify="space-between" align="center" wrap="nowrap">
+                      <Text
+                        size="xs"
+                        className={`uppercase tracking-[0.12em] ${
+                          isCurrentWeek ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"
+                        }`}
+                      >
+                        Week {slot.weekSlot} featured
+                      </Text>
+                      <Badge
+                        size="sm"
+                        radius="xl"
+                        variant="light"
+                        color={status === "current" ? "teal" : status === "past" ? "gray" : "blue"}
+                        className="ml-3 shrink-0"
+                      >
+                        {status === "current" ? "Current" : status === "past" ? "Past" : "Upcoming"}
+                      </Badge>
+                    </Group>
+                    <Text size="sm" className="mt-1 text-[var(--color-text-secondary)]">
+                      {slot.revealed && slot.conceptTitle
+                        ? slot.conceptTitle
+                        : isCurrentWeek
+                          ? "Cringe"
+                          : "Not revealed yet"}
+                    </Text>
+                  </div>
+                );
+              })}
             </div>
 
             {pack.visibleConcepts.length === 0 ? (
@@ -151,21 +181,15 @@ export default function CurrentMonthlyPackSection() {
             ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {pack.visibleConcepts.map((concept) => {
-                const isFeatured = concept.weeklyFeatured;
-
+              {pack.visibleConcepts
+                .filter((concept) => !concept.weeklyFeatured)
+                .map((concept) => {
                 return (
                   <div key={concept.conceptPublicId} className="rounded-[16px] border border-white/10 bg-black/20 p-3">
                     <Group justify="space-between" align="start" wrap="nowrap">
                       <Text size="sm" fw={600} className="text-[var(--color-text)]">
                         {concept.title}
                       </Text>
-
-                      {isFeatured ? (
-                        <Badge size="sm" color="teal" variant="light">
-                          {concept.weekSlot ? `Week ${concept.weekSlot} featured` : "Weekly featured"}
-                        </Badge>
-                      ) : null}
                     </Group>
                   </div>
                 );
