@@ -14,6 +14,7 @@ const sections: SidebarNavSection[] = [
         icon: "assignment_turned_in",
       },
       { label: "Weekly Quests", href: "/admin/weekly-quests", icon: "event_repeat" },
+      { label: "Imposter Packs", href: "/admin/imposter-monthly-pack", icon: "calendar_month" },
       { label: "Concepts", href: "/admin/concepts", icon: "library_books" },
       { label: "Users", href: "/admin/contributors", icon: "group" },
     ],
