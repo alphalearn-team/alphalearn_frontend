@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
   Alert,
+  Badge,
   Button,
   Card,
   Code,
+  Group,
   SegmentedControl,
   Stack,
   Text,
@@ -15,9 +17,16 @@ import {
 } from "@mantine/core";
 import {
   createPrivateImposterLobby,
+  getPrivateImposterLobbyState,
   joinPrivateImposterLobby,
+  leavePrivateImposterLobby,
+  startPrivateImposterLobby,
   toFriendlyCreateLobbyError,
   toFriendlyJoinLobbyError,
+  toFriendlyLeaveLobbyError,
+  toFriendlyLobbyStateError,
+  toFriendlyStartLobbyError,
+  type PrivateImposterLobbyState,
 } from "../_lib/conceptProvider";
 import {
   getConceptPoolModeLabel,
@@ -28,17 +37,9 @@ import type { ImposterConceptPoolMode } from "../_lib/gameSetup";
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
 
-type OnlineLobbyEntryMode = "create" | "join";
+const LOBBY_STATE_POLL_INTERVAL_MS = 2500;
 
-interface LobbySummary {
-  lobbyCode: string;
-  isPrivate: boolean;
-  conceptPoolMode: ImposterConceptPoolMode;
-  pinnedYearMonth: string | null;
-  createdAt: string;
-  joinedAt?: string;
-  alreadyMember?: boolean;
-}
+type OnlineLobbyEntryMode = "create" | "join";
 
 function toPinnedMonthLabel(pinnedYearMonth: string | null): string {
   const fallback = new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" });
@@ -59,15 +60,96 @@ function toPinnedMonthLabel(pinnedYearMonth: string | null): string {
   return `Current month (${date.toLocaleDateString(undefined, { month: "long", year: "numeric" })})`;
 }
 
+function toLobbyStateCardTitle(lobbyState: PrivateImposterLobbyState): string {
+  if (lobbyState.startedAt) {
+    return "Game started";
+  }
+
+  return "Lobby ready";
+}
+
 export default function OnlineLobbyCreateScreen() {
   const { session } = useAuth();
   const [mode, setMode] = useState<OnlineLobbyEntryMode>("create");
   const [conceptPoolMode, setConceptPoolMode] = useState<ImposterConceptPoolMode>("FULL_CONCEPT_POOL");
   const [lobbyCodeInput, setLobbyCodeInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [currentLobbyPublicId, setCurrentLobbyPublicId] = useState<string | null>(null);
+  const [lobbyState, setLobbyState] = useState<PrivateImposterLobbyState | null>(null);
+
+  const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
+  const [isSubmittingJoin, setIsSubmittingJoin] = useState(false);
+  const [isRefreshingLobbyState, setIsRefreshingLobbyState] = useState(false);
+  const [isStartingLobby, setIsStartingLobby] = useState(false);
+  const [isLeavingLobby, setIsLeavingLobby] = useState(false);
+
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
-  const [lobbySummary, setLobbySummary] = useState<LobbySummary | null>(null);
+
+  const [createErrorMessage, setCreateErrorMessage] = useState<string | null>(null);
+  const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
+  const [lobbyStateErrorMessage, setLobbyStateErrorMessage] = useState<string | null>(null);
+  const [startErrorMessage, setStartErrorMessage] = useState<string | null>(null);
+  const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
+
+  const hasActiveLobby = Boolean(currentLobbyPublicId && lobbyState);
+
+  const isAnyLobbyActionLoading = useMemo(
+    () => isRefreshingLobbyState || isStartingLobby || isLeavingLobby,
+    [isRefreshingLobbyState, isStartingLobby, isLeavingLobby],
+  );
+
+  const clearLobbyActionMessages = () => {
+    setLobbyStateErrorMessage(null);
+    setStartErrorMessage(null);
+    setLeaveErrorMessage(null);
+  };
+
+  const fetchLobbyState = useCallback(
+    async (lobbyPublicId: string, silent = false): Promise<PrivateImposterLobbyState | null> => {
+      const accessToken = session?.access_token;
+
+      if (!accessToken) {
+        setLobbyStateErrorMessage("You need to be signed in before viewing this lobby.");
+        return null;
+      }
+
+      if (!silent) {
+        setIsRefreshingLobbyState(true);
+      }
+
+      try {
+        const nextLobbyState = await getPrivateImposterLobbyState(accessToken, lobbyPublicId);
+        setLobbyState(nextLobbyState);
+        setCurrentLobbyPublicId(nextLobbyState.publicId);
+        setLobbyStateErrorMessage(null);
+        return nextLobbyState;
+      } catch (error) {
+        setLobbyStateErrorMessage(
+          toFriendlyLobbyStateError(error) ?? "We could not load this lobby right now. Please try again.",
+        );
+        return null;
+      } finally {
+        if (!silent) {
+          setIsRefreshingLobbyState(false);
+        }
+      }
+    },
+    [session?.access_token],
+  );
+
+  useEffect(() => {
+    if (!currentLobbyPublicId) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void fetchLobbyState(currentLobbyPublicId, true);
+    }, LOBBY_STATE_POLL_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [currentLobbyPublicId, fetchLobbyState]);
 
   const handleCreateLobby = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -75,29 +157,28 @@ export default function OnlineLobbyCreateScreen() {
     const accessToken = session?.access_token;
 
     if (!accessToken) {
-      setErrorMessage("You need to be signed in before creating an online lobby.");
+      setCreateErrorMessage("You need to be signed in before creating an online lobby.");
       return;
     }
 
-    setIsSubmitting(true);
-    setErrorMessage(null);
+    setIsSubmittingCreate(true);
+    setCreateErrorMessage(null);
+    setJoinErrorMessage(null);
+    clearLobbyActionMessages();
     setCopyStatus(null);
 
     try {
       const lobby = await createPrivateImposterLobby(accessToken, conceptPoolMode);
-
-      setLobbySummary({
-        lobbyCode: lobby.lobbyCode,
-        isPrivate: lobby.isPrivate,
-        conceptPoolMode: lobby.conceptPoolMode,
-        pinnedYearMonth: lobby.pinnedYearMonth,
-        createdAt: lobby.createdAt,
-      });
+      setCurrentLobbyPublicId(lobby.publicId);
+      await fetchLobbyState(lobby.publicId);
     } catch (error) {
-      setLobbySummary(null);
-      setErrorMessage(toFriendlyCreateLobbyError(error) ?? "We could not create the private lobby right now. Please try again.");
+      setLobbyState(null);
+      setCurrentLobbyPublicId(null);
+      setCreateErrorMessage(
+        toFriendlyCreateLobbyError(error) ?? "We could not create the private lobby right now. Please try again.",
+      );
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingCreate(false);
     }
   };
 
@@ -107,49 +188,104 @@ export default function OnlineLobbyCreateScreen() {
     const accessToken = session?.access_token;
 
     if (!accessToken) {
-      setErrorMessage("You need to be signed in before joining an online lobby.");
+      setJoinErrorMessage("You need to be signed in before joining an online lobby.");
       return;
     }
 
     const normalizedLobbyCode = lobbyCodeInput.trim().toUpperCase();
 
     if (!normalizedLobbyCode) {
-      setErrorMessage("Enter a lobby code to join.");
+      setJoinErrorMessage("Enter a lobby code to join.");
       return;
     }
 
-    setIsSubmitting(true);
-    setErrorMessage(null);
+    setIsSubmittingJoin(true);
+    setCreateErrorMessage(null);
+    setJoinErrorMessage(null);
+    clearLobbyActionMessages();
     setCopyStatus(null);
 
     try {
       const lobby = await joinPrivateImposterLobby(accessToken, normalizedLobbyCode);
-
-      setLobbySummary({
-        lobbyCode: lobby.lobbyCode,
-        isPrivate: lobby.isPrivate,
-        conceptPoolMode: lobby.conceptPoolMode,
-        pinnedYearMonth: lobby.pinnedYearMonth,
-        createdAt: lobby.createdAt,
-        joinedAt: lobby.joinedAt,
-        alreadyMember: lobby.alreadyMember,
-      });
       setLobbyCodeInput(lobby.lobbyCode);
+      setCurrentLobbyPublicId(lobby.publicId);
+      await fetchLobbyState(lobby.publicId);
     } catch (error) {
-      setLobbySummary(null);
-      setErrorMessage(toFriendlyJoinLobbyError(error) ?? "We could not join that lobby right now. Please try again.");
+      setLobbyState(null);
+      setCurrentLobbyPublicId(null);
+      setJoinErrorMessage(toFriendlyJoinLobbyError(error) ?? "We could not join that lobby right now. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingJoin(false);
+    }
+  };
+
+  const handleStartLobby = async () => {
+    const accessToken = session?.access_token;
+
+    if (!accessToken) {
+      setStartErrorMessage("You need to be signed in before starting this lobby.");
+      return;
+    }
+
+    if (!currentLobbyPublicId) {
+      return;
+    }
+
+    setIsStartingLobby(true);
+    setStartErrorMessage(null);
+    setLeaveErrorMessage(null);
+    setLobbyStateErrorMessage(null);
+
+    try {
+      await startPrivateImposterLobby(accessToken, currentLobbyPublicId);
+      await fetchLobbyState(currentLobbyPublicId);
+    } catch (error) {
+      setStartErrorMessage(toFriendlyStartLobbyError(error) ?? "We could not start this lobby right now. Please try again.");
+    } finally {
+      setIsStartingLobby(false);
+    }
+  };
+
+  const handleLeaveLobby = async () => {
+    const accessToken = session?.access_token;
+
+    if (!accessToken) {
+      setLeaveErrorMessage("You need to be signed in before leaving this lobby.");
+      return;
+    }
+
+    if (!currentLobbyPublicId) {
+      return;
+    }
+
+    setIsLeavingLobby(true);
+    setStartErrorMessage(null);
+    setLeaveErrorMessage(null);
+    setLobbyStateErrorMessage(null);
+
+    try {
+      await leavePrivateImposterLobby(accessToken, currentLobbyPublicId);
+      await fetchLobbyState(currentLobbyPublicId, true);
+
+      setLobbyState(null);
+      setCurrentLobbyPublicId(null);
+      setCopyStatus(null);
+      setLobbyCodeInput("");
+    } catch (error) {
+      setLeaveErrorMessage(toFriendlyLeaveLobbyError(error) ?? "We could not leave this lobby right now. Please try again.");
+      await fetchLobbyState(currentLobbyPublicId);
+    } finally {
+      setIsLeavingLobby(false);
     }
   };
 
   const handleCopyLobbyCode = async () => {
-    if (!lobbySummary?.lobbyCode) {
+    if (!lobbyState?.lobbyCode) {
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(lobbySummary.lobbyCode);
+      await navigator.clipboard.writeText(lobbyState.lobbyCode);
       setCopyStatus("Lobby code copied.");
     } catch {
       setCopyStatus("Could not copy automatically. Please copy the code manually.");
@@ -159,9 +295,11 @@ export default function OnlineLobbyCreateScreen() {
   const handleModeChange = (value: string) => {
     const nextMode = value as OnlineLobbyEntryMode;
     setMode(nextMode);
-    setErrorMessage(null);
+    setCreateErrorMessage(null);
+    setJoinErrorMessage(null);
+    clearLobbyActionMessages();
     setCopyStatus(null);
-    setLobbySummary(null);
+    setLobbyCodeInput("");
   };
 
   return (
@@ -213,9 +351,9 @@ export default function OnlineLobbyCreateScreen() {
                 />
               </div>
 
-              {errorMessage ? (
+              {createErrorMessage ? (
                 <Alert color="red" radius="lg" variant="light" title="Lobby could not be created">
-                  {errorMessage}
+                  {createErrorMessage}
                 </Alert>
               ) : null}
 
@@ -224,8 +362,8 @@ export default function OnlineLobbyCreateScreen() {
                 radius="xl"
                 size="lg"
                 className="min-h-12"
-                loading={isSubmitting}
-                disabled={!session?.access_token}
+                loading={isSubmittingCreate}
+                disabled={!session?.access_token || isAnyLobbyActionLoading}
                 styles={{
                   root: {
                     backgroundColor: "var(--color-primary)",
@@ -266,9 +404,9 @@ export default function OnlineLobbyCreateScreen() {
                 }}
               />
 
-              {errorMessage ? (
+              {joinErrorMessage ? (
                 <Alert color="red" radius="lg" variant="light" title="Lobby could not be joined">
-                  {errorMessage}
+                  {joinErrorMessage}
                 </Alert>
               ) : null}
 
@@ -277,8 +415,8 @@ export default function OnlineLobbyCreateScreen() {
                 radius="xl"
                 size="lg"
                 className="min-h-12"
-                loading={isSubmitting}
-                disabled={!session?.access_token}
+                loading={isSubmittingJoin}
+                disabled={!session?.access_token || isAnyLobbyActionLoading}
                 styles={{
                   root: {
                     backgroundColor: "var(--color-primary)",
@@ -293,45 +431,125 @@ export default function OnlineLobbyCreateScreen() {
         </form>
       )}
 
-      {lobbySummary ? (
+      {hasActiveLobby && lobbyState ? (
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="sm">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-              Lobby ready
+              {toLobbyStateCardTitle(lobbyState)}
             </p>
 
             <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Lobby code</p>
-              <Code className="mt-2 text-base">{lobbySummary.lobbyCode}</Code>
+              <Group justify="space-between" align="center">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Lobby code</p>
+                  <Code className="mt-2 text-base">{lobbyState.lobbyCode}</Code>
+                </div>
+                <Badge radius="sm" variant="light" color={lobbyState.startedAt ? "teal" : "blue"}>
+                  {lobbyState.startedAt ? "Started" : "Pre-game"}
+                </Badge>
+              </Group>
             </div>
 
             <div className="rounded-[20px] border border-white/10 bg-black/20 p-4 text-sm text-[var(--color-text-secondary)]">
-              Visibility: {lobbySummary.isPrivate ? "Private" : "Public"}
+              Source: {getConceptPoolModeLabel(lobbyState.conceptPoolMode)}
               <br />
-              Source: {getConceptPoolModeLabel(lobbySummary.conceptPoolMode)}
+              Pinned month: {toPinnedMonthLabel(lobbyState.pinnedYearMonth)}
               <br />
-              Pinned month: {toPinnedMonthLabel(lobbySummary.pinnedYearMonth)}
+              Created: {new Date(lobbyState.createdAt).toLocaleString()}
               <br />
-              Created: {new Date(lobbySummary.createdAt).toLocaleString()}
-              {lobbySummary.joinedAt ? (
-                <>
-                  <br />
-                  Joined: {new Date(lobbySummary.joinedAt).toLocaleString()}
-                </>
-              ) : null}
+              Active players: {lobbyState.activeMemberCount}
+              <br />
+              Status: {lobbyState.startedAt ? `Started at ${new Date(lobbyState.startedAt).toLocaleString()}` : "Waiting to start"}
             </div>
 
-            {typeof lobbySummary.alreadyMember === "boolean" ? (
+            {lobbyState.viewerIsHost && !lobbyState.canStart && !lobbyState.startedAt ? (
               <Text size="sm" className="text-[var(--color-text-secondary)]">
-                {lobbySummary.alreadyMember
-                  ? "You are already a member of this lobby."
-                  : "You joined this lobby successfully."}
+                Need at least 3 active players before starting.
               </Text>
             ) : null}
 
-            <Button type="button" radius="xl" variant="default" onClick={handleCopyLobbyCode}>
-              Copy lobby code
-            </Button>
+            <div className="rounded-[20px] border border-white/10 bg-black/20 p-4 text-sm text-[var(--color-text-secondary)]">
+              <Text fw={600} size="sm" className="mb-2 text-[var(--color-text)]">
+                Active members
+              </Text>
+              {lobbyState.activeMembers.length === 0 ? (
+                <Text size="sm" className="text-[var(--color-text-secondary)]">
+                  No active members yet.
+                </Text>
+              ) : (
+                <Stack gap={6}>
+                  {lobbyState.activeMembers.map((member) => (
+                    <Text key={member.learnerPublicId} size="sm" className="text-[var(--color-text-secondary)]">
+                      {member.username}
+                      {member.host ? " (Host)" : ""}
+                      {" • Joined "}
+                      {new Date(member.joinedAt).toLocaleString()}
+                    </Text>
+                  ))}
+                </Stack>
+              )}
+            </div>
+
+            {lobbyStateErrorMessage ? (
+              <Alert color="red" radius="lg" variant="light" title="Lobby could not be refreshed">
+                {lobbyStateErrorMessage}
+              </Alert>
+            ) : null}
+
+            {startErrorMessage ? (
+              <Alert color="red" radius="lg" variant="light" title="Lobby could not be started">
+                {startErrorMessage}
+              </Alert>
+            ) : null}
+
+            {leaveErrorMessage ? (
+              <Alert color="red" radius="lg" variant="light" title="Lobby could not be left">
+                {leaveErrorMessage}
+              </Alert>
+            ) : null}
+
+            <Group>
+              {!lobbyState.startedAt && lobbyState.canStart ? (
+                <Button
+                  type="button"
+                  radius="xl"
+                  onClick={handleStartLobby}
+                  loading={isStartingLobby}
+                  disabled={isRefreshingLobbyState || isLeavingLobby}
+                  styles={{
+                    root: {
+                      backgroundColor: "var(--color-primary)",
+                      color: "var(--color-background)",
+                    },
+                  }}
+                >
+                  Start game
+                </Button>
+              ) : null}
+
+              {lobbyState.canLeave && !lobbyState.startedAt ? (
+                <Button
+                  type="button"
+                  radius="xl"
+                  variant="default"
+                  onClick={handleLeaveLobby}
+                  loading={isLeavingLobby}
+                  disabled={isRefreshingLobbyState || isStartingLobby}
+                >
+                  Leave
+                </Button>
+              ) : null}
+
+              <Button
+                type="button"
+                radius="xl"
+                variant="default"
+                onClick={handleCopyLobbyCode}
+                disabled={isAnyLobbyActionLoading}
+              >
+                Copy lobby code
+              </Button>
+            </Group>
 
             {copyStatus ? (
               <Text size="sm" className="text-[var(--color-text-secondary)]">
