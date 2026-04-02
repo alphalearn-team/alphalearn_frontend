@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Badge, Card, Group, Loader, Stack, Text } from "@mantine/core";
 import { useAuth } from "@/lib/auth/client/AuthContext";
-import type {
-  LearnerCurrentImposterMonthlyPack,
-  LearnerImposterMonthlyPackVisibleConcept,
-} from "@/interfaces/interfaces";
+import type { LearnerCurrentImposterMonthlyPack } from "@/interfaces/interfaces";
 import {
   fetchLearnerCurrentImposterMonthlyPack,
   toFriendlyLearnerCurrentMonthlyPackError,
@@ -17,10 +14,21 @@ const sectionCardClassName =
 
 type PackLoadState = "idle" | "loading" | "loaded" | "error";
 
-function isFeaturedInVisibleConcepts(
-  concept: LearnerImposterMonthlyPackVisibleConcept,
-): boolean {
-  return concept.weeklyFeatured || concept.weekSlot !== null;
+function toReadableYearMonth(yearMonth: string | null): string {
+  if (!yearMonth || !/^\d{4}-\d{2}$/.test(yearMonth)) {
+    return "Current month";
+  }
+
+  const [yearRaw, monthRaw] = yearMonth.split("-");
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    return "Current month";
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, 1));
+  return date.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
 export default function CurrentMonthlyPackSection() {
@@ -72,16 +80,6 @@ export default function CurrentMonthlyPackSection() {
     };
   }, [session?.access_token]);
 
-  const visibleFeaturedConceptIds = useMemo(
-    () =>
-      new Set(
-        (pack?.visibleConcepts ?? [])
-          .filter((concept) => isFeaturedInVisibleConcepts(concept))
-          .map((concept) => concept.conceptPublicId),
-      ),
-    [pack?.visibleConcepts],
-  );
-
   return (
     <Card radius="32px" padding="xl" className={sectionCardClassName}>
       <Stack gap="md">
@@ -123,7 +121,7 @@ export default function CurrentMonthlyPackSection() {
           <Stack gap="md">
             <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
               <Text size="sm" className="text-[var(--color-text-secondary)]">
-                Month: {pack.yearMonth ?? "Current month"}
+                Month: {toReadableYearMonth(pack.yearMonth)}
               </Text>
               <Text size="sm" className="text-[var(--color-text-secondary)]">
                 Visible concepts: {pack.visibleConcepts.length}
@@ -134,18 +132,24 @@ export default function CurrentMonthlyPackSection() {
               {pack.weeklyFeaturedSlots.map((slot) => (
                 <div key={slot.weekSlot} className="rounded-[16px] border border-white/10 bg-black/20 p-3">
                   <Text size="xs" className="uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
-                    Week {slot.weekSlot}
+                    {slot.revealed ? `Week ${slot.weekSlot} featured` : `Week ${slot.weekSlot} (upcoming)`}
                   </Text>
                   <Text size="sm" className="mt-1 text-[var(--color-text-secondary)]">
-                    {slot.revealed && slot.conceptTitle ? slot.conceptTitle : "Upcoming"}
+                    {slot.revealed && slot.conceptTitle ? slot.conceptTitle : "Not revealed yet"}
                   </Text>
                 </div>
               ))}
             </div>
 
+            {pack.visibleConcepts.length === 0 ? (
+              <Alert color="blue" radius="lg" variant="light" title="No visible concepts yet">
+                No concepts are visible in the current monthly pack right now.
+              </Alert>
+            ) : null}
+
             <div className="grid gap-3 sm:grid-cols-2">
               {pack.visibleConcepts.map((concept) => {
-                const isFeatured = visibleFeaturedConceptIds.has(concept.conceptPublicId);
+                const isFeatured = concept.weeklyFeatured;
 
                 return (
                   <div key={concept.conceptPublicId} className="rounded-[16px] border border-white/10 bg-black/20 p-3">
@@ -156,7 +160,7 @@ export default function CurrentMonthlyPackSection() {
 
                       {isFeatured ? (
                         <Badge size="sm" color="teal" variant="light">
-                          Weekly featured{concept.weekSlot ? ` (Week ${concept.weekSlot})` : ""}
+                          {concept.weekSlot ? `Week ${concept.weekSlot} featured` : "Weekly featured"}
                         </Badge>
                       ) : null}
                     </Group>
