@@ -96,6 +96,9 @@ export default function OnlineLobbyCreateScreen() {
   const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
 
   const hasActiveLobby = Boolean(currentLobbyPublicId && lobbyState);
+  const canAttemptLeave = Boolean(
+    lobbyState?.canLeave || (lobbyState?.viewerIsActiveMember && (lobbyState?.activeMemberCount ?? 0) <= 1),
+  );
 
   const isAnyLobbyActionLoading = useMemo(
     () => isRefreshingLobbyState || isStartingLobby || isLeavingLobby,
@@ -328,31 +331,30 @@ export default function OnlineLobbyCreateScreen() {
 
     try {
       const response = await leavePrivateImposterLobby(accessToken, currentLobbyPublicId);
+      if (!response || typeof response !== "object" || !("result" in response)) {
+        await fetchLobbyState(currentLobbyPublicId);
+        notifications.show({
+          color: "blue",
+          title: "Leave processed",
+          message: "Your leave request was processed. Refreshing lobby state.",
+        });
+        return;
+      }
 
       if (response.result === "LEFT") {
-        if (response.lobbyState) {
-          setLobbyState(response.lobbyState);
-          setCurrentLobbyPublicId(response.lobbyState.publicId);
-          notifications.show({
-            color: "blue",
-            title: "Left lobby",
-            message: "You left the lobby.",
-          });
-        } else {
-          await fetchLobbyState(currentLobbyPublicId);
-        }
+        notifications.show({
+          color: "blue",
+          title: "Left lobby",
+          message: "You left the lobby.",
+        });
+        exitLobbyScreen();
       } else if (response.result === "LEFT_AND_PROMOTED_HOST") {
-        if (response.lobbyState) {
-          setLobbyState(response.lobbyState);
-          setCurrentLobbyPublicId(response.lobbyState.publicId);
-        } else {
-          await fetchLobbyState(currentLobbyPublicId);
-        }
         notifications.show({
           color: "blue",
           title: "New host assigned",
           message: "You left. Host role moved to another player.",
         });
+        exitLobbyScreen();
       } else if (response.result === "LEFT_AND_LOBBY_DELETED") {
         notifications.show({
           color: "orange",
@@ -673,7 +675,7 @@ export default function OnlineLobbyCreateScreen() {
                 </Button>
               ) : null}
 
-              {lobbyState.canLeave ? (
+              {canAttemptLeave ? (
                 <Button
                   type="button"
                   radius="xl"

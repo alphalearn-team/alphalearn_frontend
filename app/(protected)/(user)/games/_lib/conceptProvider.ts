@@ -259,6 +259,10 @@ export function toFriendlyStartLobbyError(error: unknown): string | null {
 
 export function toFriendlyLeaveLobbyError(error: unknown): string | null {
   if (error instanceof ApiError) {
+    if (error.status === 400) {
+      return error.message || "This leave request is invalid.";
+    }
+
     if (error.status === 404) {
       return "This lobby no longer exists.";
     }
@@ -274,6 +278,12 @@ export function toFriendlyLeaveLobbyError(error: unknown): string | null {
     if (error.status >= 500) {
       return "The server could not leave this lobby right now. Please try again.";
     }
+
+    return error.message || "We could not process your leave request.";
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
   }
 
   return null;
