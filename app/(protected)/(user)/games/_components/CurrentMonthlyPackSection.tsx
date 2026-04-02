@@ -41,9 +41,6 @@ export default function CurrentMonthlyPackSection() {
     const accessToken = session?.access_token;
 
     if (!accessToken) {
-      setState("idle");
-      setPack(null);
-      setErrorMessage(null);
       return;
     }
 
@@ -95,6 +92,12 @@ export default function CurrentMonthlyPackSection() {
             marked.
           </Text>
         </div>
+
+        {!session?.access_token ? (
+          <Alert color="blue" radius="lg" variant="light" title="Sign in to view this pack">
+            You need to be signed in to view the current monthly game pack.
+          </Alert>
+        ) : null}
 
         {state === "loading" ? (
           <Group gap="xs">
