@@ -180,7 +180,10 @@ export function isEmptyConceptBankError(error: unknown): boolean {
 export function toFriendlyCreateLobbyError(error: unknown): string | null {
   if (error instanceof ApiError) {
     if (error.status === 409) {
-      return "The current month pack is not available yet. Choose Full concept pool to start now.";
+      return (
+        error.message ||
+        "This lobby cannot be created right now. Try changing the concept source or leaving your active lobby first."
+      );
     }
 
     if (error.status === 403) {

@@ -36,10 +36,8 @@ import {
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
 import {
-  createPrivateImposterLobby,
   fetchNextGameConcept,
   isEmptyConceptBankError,
-  toFriendlyCreateLobbyError,
   toFriendlyLobbyAccessError,
 } from "../_lib/conceptProvider";
 import {
@@ -57,6 +55,7 @@ import VotePhasePlaceholderScreen from "./VotePhasePlaceholderScreen";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
+const OFFLINE_MATCH_LOBBY_CODE = "OFFLINE_LOCAL";
 
 const textInputStyles = {
   label: {
@@ -124,7 +123,6 @@ export default function OfflineGameSetupScreen() {
               const concept = await fetchNextGameConcept(
                 accessToken,
                 matchConfig.usedConceptPublicIds,
-                matchConfig.lobbyCode,
               );
               const assignment = assignImposter(matchConfig.players);
 
@@ -287,8 +285,7 @@ export default function OfflineGameSetupScreen() {
     setConceptTransitionError(null);
 
     try {
-      const lobby = await createPrivateImposterLobby(accessToken, offlineMatchConfig.settings.conceptPoolMode);
-      const concept = await fetchNextGameConcept(accessToken, [], lobby.lobbyCode);
+      const concept = await fetchNextGameConcept(accessToken, []);
       const assignment = assignImposter(offlineMatchConfig.players);
 
       setMatchConfig(
@@ -299,18 +296,15 @@ export default function OfflineGameSetupScreen() {
             word: concept.word,
           },
           assignment.imposterPlayerId,
-          lobby.lobbyCode,
+          OFFLINE_MATCH_LOBBY_CODE,
           offlineMatchConfig.settings.conceptPoolMode,
         ),
       );
     } catch (error) {
-      const createLobbyError = toFriendlyCreateLobbyError(error);
       const lobbyAccessError = toFriendlyLobbyAccessError(error);
 
       setMatchConfig(null);
-      if (createLobbyError) {
-        setStartError(createLobbyError);
-      } else if (isEmptyConceptBankError(error)) {
+      if (isEmptyConceptBankError(error)) {
         setStartError("No concepts are available right now. Add concepts before starting a match.");
       } else if (lobbyAccessError) {
         setStartError(lobbyAccessError);
