@@ -304,61 +304,12 @@ export interface QuizAttemptSummary {
   isFirstAttempt: boolean;
 }
 
-export type WeeklyQuestWeekStatus = "UNSET" | "SCHEDULED" | "ACTIVE" | "COMPLETED";
-
-export type WeeklyQuestActivationSource = "ADMIN" | "FALLBACK";
-
-export type WeeklyQuestAssignmentStatus = "DRAFT" | "SCHEDULED" | "ACTIVE" | "COMPLETED";
-
 export type WeeklyQuestSubmissionMode =
   | "VIDEO"
   | "CAPTION"
   | "VIDEO_WITH_CAPTION"
   | "TEXT"
   | string;
-
-export interface QuestTemplate {
-  publicId: string;
-  code: string;
-  title: string;
-  instructionText: string;
-  submissionMode: WeeklyQuestSubmissionMode;
-  active: boolean;
-  createdAt: string | null;
-}
-
-export interface WeeklyQuestAssignment {  
-  publicId: string;
-  slotIndex: number;
-  official: boolean;
-  sourceType: WeeklyQuestActivationSource;
-  status: WeeklyQuestAssignmentStatus;
-  createdByAdminId: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-  concept: Concept;
-  questTemplate: QuestTemplate;
-}
-
-export interface WeeklyQuestWeek {
-  publicId: string | null;
-  weekStartAt: string;
-  setupDeadlineAt: string;
-  status: WeeklyQuestWeekStatus;
-  activationSource: WeeklyQuestActivationSource | null;
-  activatedAt: string | null;
-  createdAt: string | null;
-  editable: boolean;
-  unset: boolean;
-  daysUntilDeadline: number;
-  shouldShowReminder: boolean;
-  officialAssignment: WeeklyQuestAssignment | null;
-}
-
-export interface SaveWeeklyQuestOfficialAssignmentRequest {
-  conceptPublicId: string;
-  questTemplatePublicId: string;
-}
 
 export interface AdminImposterMonthlyPackConcept {
   slotIndex: number;
