@@ -13,31 +13,43 @@ type GamesEntryMode = "offline" | "online";
 
 export default function GameSetupScreen() {
   const [mode, setMode] = useState<GamesEntryMode>("offline");
+  const [isOfflineMatchActive, setIsOfflineMatchActive] = useState(false);
+
+  const handleModeChange = (value: string) => {
+    const nextMode = value as GamesEntryMode;
+    setMode(nextMode);
+
+    if (nextMode !== "offline") {
+      setIsOfflineMatchActive(false);
+    }
+  };
 
   if (mode === "offline") {
     return (
       <>
-        <Container size="lg" className="pt-6 lg:pt-8">
-          <Card radius="32px" padding="xl" className={sectionCardClassName}>
-            <Stack gap="sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                Game mode
-              </p>
-              <SegmentedControl
-                fullWidth
-                radius="xl"
-                value={mode}
-                onChange={(value) => setMode(value as GamesEntryMode)}
-                data={[
-                  { label: "Offline", value: "offline" },
-                  { label: "Online", value: "online" },
-                ]}
-              />
-            </Stack>
-          </Card>
-        </Container>
+        {!isOfflineMatchActive ? (
+          <Container size="lg" className="pt-6 lg:pt-8">
+            <Card radius="32px" padding="xl" className={sectionCardClassName}>
+              <Stack gap="sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                  Game mode
+                </p>
+                <SegmentedControl
+                  fullWidth
+                  radius="xl"
+                  value={mode}
+                  onChange={handleModeChange}
+                  data={[
+                    { label: "Offline", value: "offline" },
+                    { label: "Online", value: "online" },
+                  ]}
+                />
+              </Stack>
+            </Card>
+          </Container>
+        ) : null}
 
-        <OfflineGameSetupScreen />
+        <OfflineGameSetupScreen onMatchActiveChange={setIsOfflineMatchActive} />
       </>
     );
   }
@@ -54,7 +66,7 @@ export default function GameSetupScreen() {
               fullWidth
               radius="xl"
               value={mode}
-              onChange={(value) => setMode(value as GamesEntryMode)}
+              onChange={handleModeChange}
               data={[
                 { label: "Offline", value: "offline" },
                 { label: "Online", value: "online" },

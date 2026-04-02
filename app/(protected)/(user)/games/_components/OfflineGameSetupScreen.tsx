@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
   Alert,
@@ -72,7 +72,11 @@ const textInputStyles = {
   },
 };
 
-export default function OfflineGameSetupScreen() {
+interface OfflineGameSetupScreenProps {
+  onMatchActiveChange?: (isActive: boolean) => void;
+}
+
+export default function OfflineGameSetupScreen({ onMatchActiveChange }: OfflineGameSetupScreenProps) {
   const { session } = useAuth();
   const [formValues, setFormValues] = useState<GameSetupFormValues>(() => createDefaultGameSetupForm());
   const [playerErrors, setPlayerErrors] = useState<Record<string, string>>({});
@@ -81,6 +85,10 @@ export default function OfflineGameSetupScreen() {
   const [matchConfig, setMatchConfig] = useState<OfflineInitializedMatch | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
   const [conceptTransitionError, setConceptTransitionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onMatchActiveChange?.(Boolean(matchConfig));
+  }, [matchConfig, onMatchActiveChange]);
 
   if (matchConfig) {
     if (matchConfig.phase === "draw") {
