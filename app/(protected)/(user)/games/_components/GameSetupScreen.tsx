@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Container, SegmentedControl, Stack, Text, Title } from "@mantine/core";
+import { Card, Container, SegmentedControl, Stack } from "@mantine/core";
 import OfflineGameSetupScreen from "./OfflineGameSetupScreen";
+import OnlineLobbyCreateScreen from "./OnlineLobbyCreateScreen";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
@@ -61,17 +62,7 @@ export default function GameSetupScreen() {
           </Stack>
         </Card>
 
-        <Card radius="32px" padding="xl" className={sectionCardClassName}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-            Online lobby
-          </p>
-          <Title order={1} className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]">
-            Online private lobby
-          </Title>
-          <Text size="sm" className="mt-3 max-w-2xl leading-relaxed text-[var(--color-text-secondary)]">
-            Online private lobby setup will be available in the next update.
-          </Text>
-        </Card>
+        <OnlineLobbyCreateScreen />
       </Stack>
     </Container>
   );
