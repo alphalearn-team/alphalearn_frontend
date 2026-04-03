@@ -16,6 +16,7 @@ import {
 } from "@mantine/core";
 import {
   MAX_CONCEPT_COUNT,
+  MIN_PLAYER_COUNT,
   MAX_PLAYER_COUNT,
   MAX_ROUNDS_PER_CONCEPT,
   MAX_TIMER_SECONDS,
@@ -187,7 +188,7 @@ export default function GameSetupScreen() {
 
   const removePlayer = (playerId: string) => {
     setFormValues((currentValues) => {
-      if (currentValues.players.length <= 2) {
+      if (currentValues.players.length <= MIN_PLAYER_COUNT) {
         return currentValues;
       }
 
@@ -212,11 +213,17 @@ export default function GameSetupScreen() {
     key: keyof GameSetupFormValues["settings"],
     value: string | number,
   ) => {
+    const nextValue = toFiniteNumber(value);
+
+    if (nextValue === null) {
+      return;
+    }
+
     setFormValues((currentValues) => ({
       ...currentValues,
       settings: {
         ...currentValues.settings,
-        [key]: typeof value === "number" ? value : Number(value || 1),
+        [key]: nextValue,
       },
     }));
     setStartError(null);
@@ -374,7 +381,7 @@ export default function GameSetupScreen() {
                           radius="xl"
                           size="md"
                           className="min-h-11"
-                          disabled={formValues.players.length <= 2}
+                          disabled={formValues.players.length <= MIN_PLAYER_COUNT}
                           onClick={() => removePlayer(player.id)}
                           styles={{
                             root: {
@@ -502,4 +509,17 @@ export default function GameSetupScreen() {
       </Stack>
     </Container>
   );
+}
+
+function toFiniteNumber(value: string | number): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
 }
