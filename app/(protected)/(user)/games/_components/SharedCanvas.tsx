@@ -11,6 +11,9 @@ interface SharedCanvasProps {
   selectedColor?: string;
   onSelectedColorChange?: (color: string) => void;
   availableColors?: string[];
+  selectedWidth?: number;
+  onSelectedWidthChange?: (width: number) => void;
+  availableWidths?: number[];
   className?: string;
 }
 
@@ -27,6 +30,7 @@ const DEFAULT_PALETTE_COLORS = [
   "#3b82f6",
   "#8b5cf6",
 ];
+const DEFAULT_PEN_WIDTHS = [2, 4, 6, 8];
 
 export default function SharedCanvas({
   strokes,
@@ -36,6 +40,9 @@ export default function SharedCanvas({
   selectedColor,
   onSelectedColorChange,
   availableColors = DEFAULT_PALETTE_COLORS,
+  selectedWidth,
+  onSelectedWidthChange,
+  availableWidths = DEFAULT_PEN_WIDTHS,
   className,
 }: SharedCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -44,8 +51,10 @@ export default function SharedCanvas({
   const draftPointsRef = useRef<CanvasPoint[]>([]);
   const [draftPoints, setDraftPoints] = useState<CanvasPoint[]>([]);
   const [internalSelectedColor, setInternalSelectedColor] = useState(DEFAULT_STROKE_COLOR);
+  const [internalSelectedWidth, setInternalSelectedWidth] = useState(DEFAULT_STROKE_WIDTH);
   const [canvasSize, setCanvasSize] = useState({ width: 320, height: CANVAS_HEIGHT });
   const activeStrokeColor = selectedColor ?? internalSelectedColor;
+  const activeStrokeWidth = selectedWidth ?? internalSelectedWidth;
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -97,9 +106,9 @@ export default function SharedCanvas({
     }
 
     if (draftPoints.length > 0) {
-      drawStroke(context, draftPoints, activeStrokeColor, DEFAULT_STROKE_WIDTH);
+      drawStroke(context, draftPoints, activeStrokeColor, activeStrokeWidth);
     }
-  }, [activeStrokeColor, canvasSize.height, canvasSize.width, draftPoints, strokes]);
+  }, [activeStrokeColor, activeStrokeWidth, canvasSize.height, canvasSize.width, draftPoints, strokes]);
 
   const isInteractive = !readOnly && Boolean(activePlayerId) && Boolean(onStrokeCommit);
 
@@ -140,7 +149,7 @@ export default function SharedCanvas({
         id: `stroke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         playerId: activePlayerId,
         color: activeStrokeColor,
-        width: DEFAULT_STROKE_WIDTH,
+        width: activeStrokeWidth,
         points: completedPoints,
       });
     }
@@ -171,40 +180,85 @@ export default function SharedCanvas({
     onSelectedColorChange?.(color);
   };
 
+  const handleWidthSelect = (width: number) => {
+    if (!isInteractive) {
+      return;
+    }
+
+    if (selectedWidth === undefined) {
+      setInternalSelectedWidth(width);
+    }
+
+    onSelectedWidthChange?.(width);
+  };
+
   return (
     <div ref={containerRef} className={className}>
       {isInteractive ? (
-        <div
-          role="toolbar"
-          aria-label="Brush colors"
-          className="flex flex-wrap items-center gap-2 p-3"
-        >
-          {availableColors.map((paletteColor) => {
-            const isSelected = paletteColor.toLowerCase() === activeStrokeColor.toLowerCase();
+        <div className="flex flex-wrap items-start gap-3 p-3">
+          <div role="toolbar" aria-label="Brush colors" className="flex flex-wrap items-center gap-2">
+            {availableColors.map((paletteColor) => {
+              const isSelected = paletteColor.toLowerCase() === activeStrokeColor.toLowerCase();
 
-            return (
-              <button
-                key={paletteColor}
-                type="button"
-                aria-label={`Select ${paletteColor} brush color`}
-                aria-pressed={isSelected}
-                onClick={() => handleColorSelect(paletteColor)}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/20 bg-white p-1 outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
-              >
-                <span
-                  aria-hidden
-                  className="block h-full w-full rounded-full border border-black/10"
-                  style={{ backgroundColor: paletteColor }}
-                />
-                {isSelected ? (
+              return (
+                <button
+                  key={paletteColor}
+                  type="button"
+                  aria-label={`Select ${paletteColor} brush color`}
+                  aria-pressed={isSelected}
+                  onClick={() => handleColorSelect(paletteColor)}
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/20 bg-white p-1 outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                >
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute h-10 w-10 rounded-full ring-2 ring-offset-2 ring-[var(--color-primary)]"
+                    className="block h-full w-full rounded-full border border-black/10"
+                    style={{ backgroundColor: paletteColor }}
                   />
-                ) : null}
-              </button>
-            );
-          })}
+                  {isSelected ? (
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute h-10 w-10 rounded-full ring-2 ring-offset-2 ring-[var(--color-primary)]"
+                    />
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              Pen size
+            </p>
+            <div role="toolbar" aria-label="Pen sizes" className="flex flex-wrap items-center gap-2">
+              {availableWidths.map((width) => {
+                const isSelected = width === activeStrokeWidth;
+                const previewDotSize = Math.max(6, Math.min(20, width * 2));
+
+                return (
+                  <button
+                    key={width}
+                    type="button"
+                    aria-label={`Select pen size ${width} pixels`}
+                    aria-pressed={isSelected}
+                    onClick={() => handleWidthSelect(width)}
+                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/20 bg-white p-1 outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                  >
+                    <span
+                      aria-hidden
+                      className="block rounded-full bg-black"
+                      style={{ width: `${previewDotSize}px`, height: `${previewDotSize}px` }}
+                    />
+                    {isSelected ? (
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-offset-2 ring-[var(--color-primary)]"
+                      />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       ) : null}
       <canvas
