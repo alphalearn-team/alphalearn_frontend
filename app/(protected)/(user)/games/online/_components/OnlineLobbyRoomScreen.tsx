@@ -62,6 +62,7 @@ const DEFAULT_SETTINGS_DRAFT: SettingsDraft = {
   imposterGuessTimerSeconds: 30,
   turnDurationSeconds: 60,
 };
+const DEFAULT_DRAW_COLOR = "#111111";
 
 export default function OnlineLobbyRoomScreen({
   lobbyPublicId,
@@ -88,6 +89,7 @@ export default function OnlineLobbyRoomScreen({
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
     null,
   );
+  const [selectedColor, setSelectedColor] = useState(DEFAULT_DRAW_COLOR);
   const now = useNow(1000);
 
   const realtimeRef =
@@ -656,6 +658,8 @@ export default function OnlineLobbyRoomScreen({
                       ? sharedState.currentDrawerPublicId
                       : undefined
                   }
+                  selectedColor={selectedColor}
+                  onSelectedColorChange={setSelectedColor}
                   onStrokeCommit={handleStrokeCommit}
                   className="block w-full"
                 />
