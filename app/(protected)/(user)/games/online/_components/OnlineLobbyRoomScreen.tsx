@@ -591,7 +591,7 @@ export default function OnlineLobbyRoomScreen({
                   {activeDrawer ? `${toMemberLabel(activeDrawer)} is drawing` : "Drawing in progress"}
                 </Title>
                 <Text size="sm" c="dimmed" mt={4}>
-                  Turn {sharedState.currentTurnIndex ?? "-"} / {sharedState.totalTurns ?? "-"} ·
+                  Turn {toDisplayTurnNumber(sharedState.currentTurnIndex)} / {sharedState.totalTurns ?? "-"} ·
                   {" "}
                   {formatDeadline(sharedState.turnEndsAt, now)}
                 </Text>
@@ -868,4 +868,12 @@ function formatDeadline(deadlineAt: string | null, now: number): string {
   const minutes = Math.floor(secondsRemaining / 60);
   const seconds = secondsRemaining % 60;
   return `Time left ${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function toDisplayTurnNumber(currentTurnIndex: number | null): number | "-" {
+  if (typeof currentTurnIndex !== "number" || !Number.isFinite(currentTurnIndex)) {
+    return "-";
+  }
+
+  return currentTurnIndex + 1;
 }
