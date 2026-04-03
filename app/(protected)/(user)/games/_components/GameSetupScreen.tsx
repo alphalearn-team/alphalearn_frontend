@@ -47,6 +47,7 @@ import VotePhasePlaceholderScreen from "./VotePhasePlaceholderScreen";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
+const OFFLINE_MATCH_LOBBY_CODE = "OFFLINE";
 
 const textInputStyles = {
   label: {
@@ -264,7 +265,13 @@ export default function GameSetupScreen() {
     setConceptTransitionError(null);
 
     try {
-      const concept = await fetchNextGameConcept(accessToken);
+      const concept = await fetchNextGameConcept(
+        accessToken,
+        [],
+        undefined,
+        undefined,
+        offlineMatchConfig.settings.conceptPoolMode,
+      );
       const assignment = assignImposter(offlineMatchConfig.players);
 
       setMatchConfig(
@@ -275,6 +282,8 @@ export default function GameSetupScreen() {
             word: concept.word,
           },
           assignment.imposterPlayerId,
+          OFFLINE_MATCH_LOBBY_CODE,
+          offlineMatchConfig.settings.conceptPoolMode,
         ),
       );
     } catch (error) {
