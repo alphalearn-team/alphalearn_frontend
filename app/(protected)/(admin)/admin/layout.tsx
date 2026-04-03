@@ -4,8 +4,6 @@ import NotFound from "@/components/NotFound";
 import AdminSidebar from "./_components/AdminSidebar";
 import AppBreadcrumb from "@/components/AppBreadcrumb";
 
-export const dynamic = "force-dynamic";
-
 export default async function AdminLayout({
   children,
 }: {

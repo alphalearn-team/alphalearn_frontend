@@ -27,7 +27,6 @@ const defaultLabelOverrides: Record<string, string> = {
   contributors: "Users",
   "contributor-applications": "Contributor Applications",
   "weekly-quests": "Weekly Quests",
-  "imposter-monthly-pack": "Imposter Packs",
   add: "Add New",
 };
 
