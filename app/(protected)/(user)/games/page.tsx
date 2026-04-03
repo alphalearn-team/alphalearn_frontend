@@ -4,7 +4,7 @@ const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
 
 const modeCardClassName =
-  "group block rounded-[28px] border border-white/10 bg-black/20 p-6 transition-all hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-black/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]";
+  "group block rounded-[28px] border border-white/10 bg-black/20 p-6 transition-all hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-black/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)] active:translate-y-0";
 
 export default function GamesPage() {
   return (
@@ -22,7 +22,11 @@ export default function GamesPage() {
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Link href="/games/online" className={modeCardClassName}>
+          <Link
+            href="/games/online"
+            className={modeCardClassName}
+            aria-label="Open online multiplayer lobby mode"
+          >
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
               Online
             </p>
@@ -38,7 +42,11 @@ export default function GamesPage() {
             </p>
           </Link>
 
-          <Link href="/games/offline" className={modeCardClassName}>
+          <Link
+            href="/games/offline"
+            className={modeCardClassName}
+            aria-label="Open offline pass-and-play mode"
+          >
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
               Offline
             </p>
