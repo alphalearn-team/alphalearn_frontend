@@ -8,18 +8,34 @@ interface SharedCanvasProps {
   activePlayerId?: string | null;
   readOnly?: boolean;
   onStrokeCommit?: (stroke: CanvasStroke) => void;
+  selectedColor?: string;
+  onSelectedColorChange?: (color: string) => void;
+  availableColors?: string[];
   className?: string;
 }
 
 const CANVAS_HEIGHT = 360;
 const DEFAULT_STROKE_COLOR = "#111111";
 const DEFAULT_STROKE_WIDTH = 4;
+const DEFAULT_PALETTE_COLORS = [
+  "#111111",
+  "#ef4444",
+  "#f97316",
+  "#eab308",
+  "#22c55e",
+  "#06b6d4",
+  "#3b82f6",
+  "#8b5cf6",
+];
 
 export default function SharedCanvas({
   strokes,
   activePlayerId,
   readOnly = false,
   onStrokeCommit,
+  selectedColor,
+  onSelectedColorChange,
+  availableColors = DEFAULT_PALETTE_COLORS,
   className,
 }: SharedCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -27,7 +43,9 @@ export default function SharedCanvas({
   const pointerIdRef = useRef<number | null>(null);
   const draftPointsRef = useRef<CanvasPoint[]>([]);
   const [draftPoints, setDraftPoints] = useState<CanvasPoint[]>([]);
+  const [internalSelectedColor, setInternalSelectedColor] = useState(DEFAULT_STROKE_COLOR);
   const [canvasSize, setCanvasSize] = useState({ width: 320, height: CANVAS_HEIGHT });
+  const activeStrokeColor = selectedColor ?? internalSelectedColor;
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -79,9 +97,9 @@ export default function SharedCanvas({
     }
 
     if (draftPoints.length > 0) {
-      drawStroke(context, draftPoints, DEFAULT_STROKE_COLOR, DEFAULT_STROKE_WIDTH);
+      drawStroke(context, draftPoints, activeStrokeColor, DEFAULT_STROKE_WIDTH);
     }
-  }, [canvasSize.height, canvasSize.width, draftPoints, strokes]);
+  }, [activeStrokeColor, canvasSize.height, canvasSize.width, draftPoints, strokes]);
 
   const isInteractive = !readOnly && Boolean(activePlayerId) && Boolean(onStrokeCommit);
 
@@ -121,7 +139,7 @@ export default function SharedCanvas({
       onStrokeCommit({
         id: `stroke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         playerId: activePlayerId,
-        color: DEFAULT_STROKE_COLOR,
+        color: activeStrokeColor,
         width: DEFAULT_STROKE_WIDTH,
         points: completedPoints,
       });
@@ -141,8 +159,54 @@ export default function SharedCanvas({
     setDraftPoints([]);
   };
 
+  const handleColorSelect = (color: string) => {
+    if (!isInteractive) {
+      return;
+    }
+
+    if (selectedColor === undefined) {
+      setInternalSelectedColor(color);
+    }
+
+    onSelectedColorChange?.(color);
+  };
+
   return (
     <div ref={containerRef} className={className}>
+      {isInteractive ? (
+        <div
+          role="toolbar"
+          aria-label="Brush colors"
+          className="flex flex-wrap items-center gap-2 p-3"
+        >
+          {availableColors.map((paletteColor) => {
+            const isSelected = paletteColor.toLowerCase() === activeStrokeColor.toLowerCase();
+
+            return (
+              <button
+                key={paletteColor}
+                type="button"
+                aria-label={`Select ${paletteColor} brush color`}
+                aria-pressed={isSelected}
+                onClick={() => handleColorSelect(paletteColor)}
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/20 bg-white p-1 outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              >
+                <span
+                  aria-hidden
+                  className="block h-full w-full rounded-full border border-black/10"
+                  style={{ backgroundColor: paletteColor }}
+                />
+                {isSelected ? (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute h-10 w-10 rounded-full ring-2 ring-offset-2 ring-[var(--color-primary)]"
+                  />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
       <canvas
         ref={canvasRef}
         onPointerDown={handlePointerDown}
