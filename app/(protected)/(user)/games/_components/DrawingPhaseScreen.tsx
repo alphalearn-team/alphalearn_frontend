@@ -18,6 +18,7 @@ import SharedCanvas from "./SharedCanvas";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
+const DEFAULT_DRAW_COLOR = "#111111";
 
 interface DrawingPhaseScreenProps {
   match: OfflineInitializedMatch;
@@ -33,6 +34,7 @@ export default function DrawingPhaseScreen({
   const currentRound = getCurrentDrawingRound(match);
   const activePlayerIsImposter = activePlayer?.id === match.imposterPlayerId;
   const [isConceptVisible, setIsConceptVisible] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(DEFAULT_DRAW_COLOR);
 
   if (!activePlayer) {
     return null;
@@ -229,6 +231,8 @@ export default function DrawingPhaseScreen({
             <SharedCanvas
               strokes={match.strokes}
               activePlayerId={activePlayer.id}
+              selectedColor={selectedColor}
+              onSelectedColorChange={setSelectedColor}
               onStrokeCommit={(stroke: CanvasStroke) => onMatchChange(addCanvasStroke(match, stroke))}
               className="block w-full"
             />
