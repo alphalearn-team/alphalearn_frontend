@@ -241,6 +241,12 @@ export default function OnlineLobbyRoomScreen({
     }
   }, [viewerState?.viewerVoteTargetPublicId]);
 
+  useEffect(() => {
+    if (selectedVoteTargetPublicId && selectedVoteTargetPublicId === viewerMemberPublicId) {
+      setSelectedVoteTargetPublicId(null);
+    }
+  }, [selectedVoteTargetPublicId, viewerMemberPublicId]);
+
   const activeDrawer = useMemo(
     () =>
       findMemberByPublicId(
@@ -258,11 +264,40 @@ export default function OnlineLobbyRoomScreen({
       ),
     [sharedState?.activeMembers, sharedState?.votedOutPublicId],
   );
+  const viewerMemberPublicId = useMemo(() => {
+    if (!sharedState?.activeMembers?.length) {
+      return null;
+    }
+
+    const identityCandidates = getViewerIdentityCandidates(session);
+    if (!identityCandidates.length) {
+      return null;
+    }
+
+    const normalizedCandidateSet = new Set(
+      identityCandidates.map((value) => normalizeIdentityToken(value)),
+    );
+    const matchedMembers = sharedState.activeMembers.filter((member) => {
+      const username = member.username;
+      if (!username || !member.learnerPublicId) {
+        return false;
+      }
+
+      return normalizedCandidateSet.has(normalizeIdentityToken(username));
+    });
+
+    if (matchedMembers.length !== 1) {
+      return null;
+    }
+
+    return matchedMembers[0].learnerPublicId;
+  }, [session, sharedState?.activeMembers]);
 
   const canSubmitVote =
     sharedState?.currentPhase === "VOTING" &&
     !viewerState?.viewerVoteTargetPublicId &&
     Boolean(selectedVoteTargetPublicId) &&
+    selectedVoteTargetPublicId !== viewerMemberPublicId &&
     sharedState.eligibleVoteTargetPublicIds.includes(
       selectedVoteTargetPublicId ?? "",
     );
@@ -654,6 +689,9 @@ export default function OnlineLobbyRoomScreen({
                       sharedState.activeMembers,
                       targetPublicId,
                     );
+                    const isSelfVoteTarget =
+                      viewerMemberPublicId !== null &&
+                      targetPublicId === viewerMemberPublicId;
                     return (
                       <Button
                         key={targetPublicId}
@@ -663,10 +701,27 @@ export default function OnlineLobbyRoomScreen({
                             : "default"
                         }
                         color="lime"
-                        onClick={() => setSelectedVoteTargetPublicId(targetPublicId)}
-                        disabled={Boolean(viewerState?.viewerVoteTargetPublicId)}
+                        onClick={() => {
+                          if (isSelfVoteTarget) {
+                            return;
+                          }
+                          setSelectedVoteTargetPublicId(targetPublicId);
+                        }}
+                        disabled={Boolean(viewerState?.viewerVoteTargetPublicId) || isSelfVoteTarget}
+                        styles={
+                          isSelfVoteTarget
+                            ? {
+                                root: {
+                                  opacity: 0.45,
+                                  cursor: "not-allowed",
+                                },
+                              }
+                            : undefined
+                        }
                       >
-                        {targetMember ? toMemberLabel(targetMember) : targetPublicId}
+                        {targetMember
+                          ? `${toMemberLabel(targetMember)}${isSelfVoteTarget ? " (You)" : ""}`
+                          : targetPublicId}
                       </Button>
                     );
                   })}
@@ -856,6 +911,27 @@ function toMemberLabel(member: MemberState | null): string {
   }
 
   return member.username ?? member.learnerPublicId ?? "Unknown";
+}
+
+function getViewerIdentityCandidates(session: {
+  user?: {
+    user_metadata?: Record<string, unknown>;
+    email?: string | null;
+  } | null;
+} | null): string[] {
+  const userMetadata = session?.user?.user_metadata ?? {};
+  const candidates = [
+    userMetadata.username,
+    userMetadata.user_name,
+    userMetadata.name,
+    session?.user?.email ? session.user.email.split("@")[0] : null,
+  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  return Array.from(new Set(candidates));
+}
+
+function normalizeIdentityToken(value: string): string {
+  return value.trim().toLowerCase();
 }
 
 function formatDeadline(deadlineAt: string | null, now: number): string {
