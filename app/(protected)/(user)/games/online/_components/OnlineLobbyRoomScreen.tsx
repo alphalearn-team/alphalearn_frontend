@@ -241,12 +241,6 @@ export default function OnlineLobbyRoomScreen({
     }
   }, [viewerState?.viewerVoteTargetPublicId]);
 
-  useEffect(() => {
-    if (selectedVoteTargetPublicId && selectedVoteTargetPublicId === viewerMemberPublicId) {
-      setSelectedVoteTargetPublicId(null);
-    }
-  }, [selectedVoteTargetPublicId, viewerMemberPublicId]);
-
   const activeDrawer = useMemo(
     () =>
       findMemberByPublicId(
@@ -292,6 +286,16 @@ export default function OnlineLobbyRoomScreen({
 
     return matchedMembers[0].learnerPublicId;
   }, [session, sharedState?.activeMembers]);
+
+  useEffect(() => {
+    if (!viewerMemberPublicId) {
+      return;
+    }
+
+    if (selectedVoteTargetPublicId && selectedVoteTargetPublicId === viewerMemberPublicId) {
+      setSelectedVoteTargetPublicId(null);
+    }
+  }, [selectedVoteTargetPublicId, viewerMemberPublicId]);
 
   const canSubmitVote =
     sharedState?.currentPhase === "VOTING" &&
