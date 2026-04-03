@@ -1,4 +1,5 @@
-export const DEFAULT_PLAYER_COUNT = 2;
+export const MIN_PLAYER_COUNT = 3;
+export const DEFAULT_PLAYER_COUNT = MIN_PLAYER_COUNT;
 
 export const DEFAULT_GAME_SETTINGS = {
   conceptCount: 3,
@@ -178,7 +179,8 @@ export function createPlayerDraft(sequence: number, name = ""): GameSetupPlayerD
 }
 
 export function createDefaultPlayers(count = DEFAULT_PLAYER_COUNT): GameSetupPlayerDraft[] {
-  return Array.from({ length: Math.min(count, MAX_PLAYER_COUNT) }, (_, index) => createPlayerDraft(index + 1, ""));
+  const normalizedCount = Math.max(MIN_PLAYER_COUNT, Math.min(count, MAX_PLAYER_COUNT));
+  return Array.from({ length: normalizedCount }, (_, index) => createPlayerDraft(index + 1, ""));
 }
 
 export function createDefaultGameSetupForm(): GameSetupFormValues {
@@ -203,6 +205,10 @@ export function trimPlayerName(name: string): string {
 
 export function validateGameSetupForm(values: GameSetupFormValues): GameSetupValidationResult {
   const playerErrors: Record<string, string> = {};
+
+  if (values.players.length < MIN_PLAYER_COUNT) {
+    playerErrors.__minPlayers = `Add at least ${MIN_PLAYER_COUNT} players`;
+  }
 
   for (const player of values.players) {
     if (!trimPlayerName(player.name)) {
