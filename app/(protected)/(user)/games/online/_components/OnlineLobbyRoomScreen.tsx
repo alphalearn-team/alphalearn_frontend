@@ -72,6 +72,7 @@ const DEFAULT_SETTINGS_DRAFT: SettingsDraft = {
   turnDurationSeconds: 60,
 };
 const DEFAULT_DRAW_COLOR = "#111111";
+const AUTO_DONE_LEAD_MS = 1500;
 
 export default function OnlineLobbyRoomScreen({
   lobbyPublicId,
@@ -108,6 +109,7 @@ export default function OnlineLobbyRoomScreen({
     useRef<ReturnType<typeof createImposterLobbyRealtimeClient> | null>(null);
   const refreshTimeoutRef = useRef<number | null>(null);
   const isSubmittingDrawingDoneRef = useRef(isSubmittingDrawingDone);
+  const autoDoneTurnKeyRef = useRef<string | null>(null);
 
   const sharedState = state.sharedState;
   const viewerState = state.viewerState;
@@ -196,6 +198,10 @@ export default function OnlineLobbyRoomScreen({
   useEffect(() => {
     setOptimisticStrokes(null);
   }, [sharedState?.drawingVersion, sharedState?.currentDrawingSnapshot]);
+
+  useEffect(() => {
+    setOptimisticStrokes(null);
+  }, [sharedState?.currentConceptIndex]);
 
   useEffect(() => {
     isSubmittingDrawingDoneRef.current = isSubmittingDrawingDone;
@@ -358,9 +364,6 @@ export default function OnlineLobbyRoomScreen({
     sharedState?.currentPhase === "DRAWING" &&
     Boolean(viewerCapabilities?.viewerIsCurrentDrawer) &&
     Boolean(viewerCapabilities?.canSubmitSnapshot) &&
-    Boolean(viewerCapabilities?.canPressDone) &&
-    state.connected &&
-    !state.reconnecting &&
     !isSubmittingDrawingDone;
 
   const handleSaveSettings = async () => {
@@ -447,8 +450,10 @@ export default function OnlineLobbyRoomScreen({
       return;
     }
 
-    const nextSnapshotStrokes = [...authoritativeStrokes, stroke];
-    setOptimisticStrokes(nextSnapshotStrokes);
+    setOptimisticStrokes((currentOptimisticStrokes) => {
+      const baseStrokes = currentOptimisticStrokes ?? authoritativeStrokes;
+      return [...baseStrokes, stroke];
+    });
   };
 
   const handleSubmitVote = () => {
@@ -472,9 +477,15 @@ export default function OnlineLobbyRoomScreen({
     setGuessInput("");
   };
 
-  const handleSubmitDrawingDone = () => {
+  const handleSubmitDrawingDone = useCallback((): boolean => {
     if (!sharedState || !canSubmitDrawingDone) {
-      return;
+      return false;
+    }
+
+    if (!realtimeRef.current?.isConnected()) {
+      setErrorMessage("Connection is reconnecting. Retrying sync...");
+      void refreshLobbyState(true);
+      return false;
     }
 
     setErrorMessage(null);
@@ -487,7 +498,15 @@ export default function OnlineLobbyRoomScreen({
       baseVersion: sharedState.drawingVersion,
     });
     scheduleBootstrapRefresh(1200);
-  };
+    return true;
+  }, [
+    canSubmitDrawingDone,
+    refreshLobbyState,
+    renderedStrokes,
+    scheduleBootstrapRefresh,
+    sharedState,
+    state.lastSharedVersion,
+  ]);
 
   useEffect(() => {
     if (
@@ -511,7 +530,40 @@ export default function OnlineLobbyRoomScreen({
 
     setIsSubmittingDrawingDone(false);
     setDrawingDoneBaseSharedVersion(null);
+    autoDoneTurnKeyRef.current = null;
   }, [sharedState?.currentPhase]);
+
+  useEffect(() => {
+    if (
+      sharedState?.currentPhase !== "DRAWING" ||
+      !sharedState.turnEndsAt ||
+      !canSubmitDrawingDone
+    ) {
+      return;
+    }
+
+    const deadlineMs = Date.parse(sharedState.turnEndsAt);
+    if (!Number.isFinite(deadlineMs) || now + AUTO_DONE_LEAD_MS < deadlineMs) {
+      return;
+    }
+
+    const turnKey = `${sharedState.currentConceptIndex ?? "x"}:${sharedState.currentTurnIndex ?? "x"}:${sharedState.turnEndsAt}`;
+    if (autoDoneTurnKeyRef.current === turnKey) {
+      return;
+    }
+
+    if (handleSubmitDrawingDone()) {
+      autoDoneTurnKeyRef.current = turnKey;
+    }
+  }, [
+    canSubmitDrawingDone,
+    handleSubmitDrawingDone,
+    now,
+    sharedState?.currentConceptIndex,
+    sharedState?.currentPhase,
+    sharedState?.currentTurnIndex,
+    sharedState?.turnEndsAt,
+  ]);
 
   if (!accessToken) {
     return (
