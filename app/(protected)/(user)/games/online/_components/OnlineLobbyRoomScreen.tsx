@@ -272,7 +272,7 @@ export default function OnlineLobbyRoomScreen({
   }, [viewerState?.viewerVoteTargetPublicId]);
 
   useEffect(() => {
-    if (!accessToken || !sharedState || sharedState.currentPhase === null) {
+    if (!accessToken || sharedState?.currentPhase === null) {
       return;
     }
 
