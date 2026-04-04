@@ -449,13 +449,6 @@ export default function OnlineLobbyRoomScreen({
 
     const nextSnapshotStrokes = [...authoritativeStrokes, stroke];
     setOptimisticStrokes(nextSnapshotStrokes);
-
-    realtimeRef.current?.sendDrawingLive({
-      snapshot: stringifyDrawingSnapshot(nextSnapshotStrokes),
-      baseVersion: sharedState.drawingVersion,
-    });
-
-    scheduleBootstrapRefresh(1200);
   };
 
   const handleSubmitVote = () => {
@@ -759,7 +752,7 @@ export default function OnlineLobbyRoomScreen({
               <Text size="sm" c="dimmed">
                 {viewerCapabilities?.canSubmitSnapshot
                   ? "You are the current drawer. Draw locally, then press Done to submit."
-                  : "You are viewing the shared live canvas."}
+                  : "You can only see canvas updates after the drawer presses Done."}
               </Text>
 
               <Group>
