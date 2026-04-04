@@ -89,12 +89,14 @@ export default function OnlineLobbyRoomScreen({
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
     null,
   );
+  const [isSubmittingDrawingDone, setIsSubmittingDrawingDone] = useState(false);
   const [selectedColor, setSelectedColor] = useState(DEFAULT_DRAW_COLOR);
   const now = useNow(1000);
 
   const realtimeRef =
     useRef<ReturnType<typeof createImposterLobbyRealtimeClient> | null>(null);
   const refreshTimeoutRef = useRef<number | null>(null);
+  const isSubmittingDrawingDoneRef = useRef(isSubmittingDrawingDone);
 
   const sharedState = state.sharedState;
   const viewerState = state.viewerState;
@@ -185,6 +187,10 @@ export default function OnlineLobbyRoomScreen({
   }, [sharedState?.drawingVersion, sharedState?.currentDrawingSnapshot]);
 
   useEffect(() => {
+    isSubmittingDrawingDoneRef.current = isSubmittingDrawingDone;
+  }, [isSubmittingDrawingDone]);
+
+  useEffect(() => {
     if (!accessToken) {
       return;
     }
@@ -214,6 +220,14 @@ export default function OnlineLobbyRoomScreen({
           }
         },
         onError: (message) => {
+          if (
+            isSubmittingDrawingDoneRef.current &&
+            isDoneSubmitConflictOrPhaseError(message)
+          ) {
+            setIsSubmittingDrawingDone(false);
+            void refreshLobbyState(true);
+            return;
+          }
           setErrorMessage(message);
           scheduleBootstrapRefresh();
         },
@@ -960,4 +974,20 @@ function toDisplayTurnNumber(currentTurnIndex: number | null): number | "-" {
   }
 
   return currentTurnIndex + 1;
+}
+
+function isDoneSubmitConflictOrPhaseError(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("stale") ||
+    normalized.includes("version") ||
+    normalized.includes("conflict") ||
+    normalized.includes("phase") ||
+    normalized.includes("drawer") ||
+    normalized.includes("turn")
+  );
 }
