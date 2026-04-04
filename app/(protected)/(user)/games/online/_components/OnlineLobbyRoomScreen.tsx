@@ -271,6 +271,20 @@ export default function OnlineLobbyRoomScreen({
     }
   }, [viewerState?.viewerVoteTargetPublicId]);
 
+  useEffect(() => {
+    if (!accessToken || !sharedState || sharedState.currentPhase === null) {
+      return;
+    }
+
+    const reconcileIntervalId = window.setInterval(() => {
+      void refreshLobbyState(true);
+    }, 3000);
+
+    return () => {
+      window.clearInterval(reconcileIntervalId);
+    };
+  }, [accessToken, refreshLobbyState, sharedState?.currentPhase]);
+
   const activeDrawer = useMemo(
     () =>
       findMemberByPublicId(
@@ -345,6 +359,8 @@ export default function OnlineLobbyRoomScreen({
     Boolean(viewerCapabilities?.viewerIsCurrentDrawer) &&
     Boolean(viewerCapabilities?.canSubmitSnapshot) &&
     Boolean(viewerCapabilities?.canPressDone) &&
+    state.connected &&
+    !state.reconnecting &&
     !isSubmittingDrawingDone;
 
   const handleSaveSettings = async () => {
