@@ -99,6 +99,7 @@ export default function OnlineLobbyRoomScreen({
     null,
   );
   const [isSubmittingDrawingDone, setIsSubmittingDrawingDone] = useState(false);
+  const [drawingDoneBaseSharedVersion, setDrawingDoneBaseSharedVersion] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState(DEFAULT_DRAW_COLOR);
   const [serverClockOffsetMs, setServerClockOffsetMs] = useState(0);
   const now = useNow(1000, serverClockOffsetMs);
@@ -237,6 +238,7 @@ export default function OnlineLobbyRoomScreen({
             isDoneSubmitConflictOrPhaseError(message)
           ) {
             setIsSubmittingDrawingDone(false);
+            setDrawingDoneBaseSharedVersion(null);
             void refreshLobbyState(true);
             return;
           }
@@ -338,6 +340,12 @@ export default function OnlineLobbyRoomScreen({
     sharedState?.currentPhase === "IMPOSTER_GUESS" &&
     Boolean(viewerState?.viewerIsImposter) &&
     guessInput.trim().length > 0;
+  const canSubmitDrawingDone =
+    sharedState?.currentPhase === "DRAWING" &&
+    Boolean(viewerCapabilities?.viewerIsCurrentDrawer) &&
+    Boolean(viewerCapabilities?.canSubmitSnapshot) &&
+    Boolean(viewerCapabilities?.canPressDone) &&
+    !isSubmittingDrawingDone;
 
   const handleSaveSettings = async () => {
     if (!accessToken || !sharedState || !viewerCapabilities?.viewerIsHost) {
@@ -454,6 +462,47 @@ export default function OnlineLobbyRoomScreen({
     });
     setGuessInput("");
   };
+
+  const handleSubmitDrawingDone = () => {
+    if (!sharedState || !canSubmitDrawingDone) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsSubmittingDrawingDone(true);
+    setDrawingDoneBaseSharedVersion(state.lastSharedVersion);
+
+    const snapshot = stringifyDrawingSnapshot(renderedStrokes);
+    realtimeRef.current?.sendDrawingDone({
+      snapshot,
+      baseVersion: sharedState.drawingVersion,
+    });
+    scheduleBootstrapRefresh(1200);
+  };
+
+  useEffect(() => {
+    if (
+      !isSubmittingDrawingDone ||
+      typeof drawingDoneBaseSharedVersion !== "number" ||
+      typeof state.lastSharedVersion !== "number"
+    ) {
+      return;
+    }
+
+    if (state.lastSharedVersion > drawingDoneBaseSharedVersion) {
+      setIsSubmittingDrawingDone(false);
+      setDrawingDoneBaseSharedVersion(null);
+    }
+  }, [drawingDoneBaseSharedVersion, isSubmittingDrawingDone, state.lastSharedVersion]);
+
+  useEffect(() => {
+    if (sharedState?.currentPhase === "DRAWING") {
+      return;
+    }
+
+    setIsSubmittingDrawingDone(false);
+    setDrawingDoneBaseSharedVersion(null);
+  }, [sharedState?.currentPhase]);
 
   if (!accessToken) {
     return (
@@ -693,9 +742,21 @@ export default function OnlineLobbyRoomScreen({
 
               <Text size="sm" c="dimmed">
                 {viewerCapabilities?.canSubmitSnapshot
-                  ? "You are the current drawer. Your canvas updates stream live."
+                  ? "You are the current drawer. Draw locally, then press Done to submit."
                   : "You are viewing the shared live canvas."}
               </Text>
+
+              <Group>
+                <Button
+                  radius="xl"
+                  color="lime"
+                  onClick={handleSubmitDrawingDone}
+                  disabled={!canSubmitDrawingDone}
+                  loading={isSubmittingDrawingDone}
+                >
+                  Done
+                </Button>
+              </Group>
             </Stack>
           </Card>
         ) : null}
