@@ -88,6 +88,7 @@ export function createImposterLobbyRealtimeClient(
     },
     onWebSocketClose: (evt) => {
       console.log("WS CLOSE", {
+        lobbyPublicId,
         code: evt.code,
         reason: evt.reason,
         wasClean: evt.wasClean,
