@@ -1,6 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
@@ -63,6 +72,7 @@ const DEFAULT_SETTINGS_DRAFT: SettingsDraft = {
   turnDurationSeconds: 60,
 };
 const DEFAULT_DRAW_COLOR = "#111111";
+const AUTO_DONE_LEAD_MS = 1500;
 
 export default function OnlineLobbyRoomScreen({
   lobbyPublicId,
@@ -89,12 +99,17 @@ export default function OnlineLobbyRoomScreen({
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
     null,
   );
+  const [isSubmittingDrawingDone, setIsSubmittingDrawingDone] = useState(false);
+  const [drawingDoneBaseSharedVersion, setDrawingDoneBaseSharedVersion] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState(DEFAULT_DRAW_COLOR);
-  const now = useNow(1000);
+  const [serverClockOffsetMs, setServerClockOffsetMs] = useState(0);
+  const now = useNow(1000, serverClockOffsetMs);
 
   const realtimeRef =
     useRef<ReturnType<typeof createImposterLobbyRealtimeClient> | null>(null);
   const refreshTimeoutRef = useRef<number | null>(null);
+  const isSubmittingDrawingDoneRef = useRef(isSubmittingDrawingDone);
+  const autoDoneTurnKeyRef = useRef<string | null>(null);
 
   const sharedState = state.sharedState;
   const viewerState = state.viewerState;
@@ -185,6 +200,14 @@ export default function OnlineLobbyRoomScreen({
   }, [sharedState?.drawingVersion, sharedState?.currentDrawingSnapshot]);
 
   useEffect(() => {
+    setOptimisticStrokes(null);
+  }, [sharedState?.currentConceptIndex]);
+
+  useEffect(() => {
+    isSubmittingDrawingDoneRef.current = isSubmittingDrawingDone;
+  }, [isSubmittingDrawingDone]);
+
+  useEffect(() => {
     if (!accessToken) {
       return;
     }
@@ -202,18 +225,29 @@ export default function OnlineLobbyRoomScreen({
           scheduleBootstrapRefresh(500);
         },
         onSharedEnvelope: (envelope) => {
+          syncServerClockOffset(setServerClockOffsetMs, envelope.emittedAt);
           dispatch({ type: "APPLY_SHARED_ENVELOPE", payload: envelope });
           if (STRUCTURAL_REFRESH_REASONS.has(envelope.reason)) {
             scheduleBootstrapRefresh();
           }
         },
         onViewerEnvelope: (envelope) => {
+          syncServerClockOffset(setServerClockOffsetMs, envelope.emittedAt);
           dispatch({ type: "APPLY_VIEWER_ENVELOPE", payload: envelope });
           if (STRUCTURAL_REFRESH_REASONS.has(envelope.reason)) {
             scheduleBootstrapRefresh();
           }
         },
         onError: (message) => {
+          if (
+            isSubmittingDrawingDoneRef.current &&
+            isDoneSubmitConflictOrPhaseError(message)
+          ) {
+            setIsSubmittingDrawingDone(false);
+            setDrawingDoneBaseSharedVersion(null);
+            void refreshLobbyState(true);
+            return;
+          }
           setErrorMessage(message);
           scheduleBootstrapRefresh();
         },
@@ -242,6 +276,20 @@ export default function OnlineLobbyRoomScreen({
       setSelectedVoteTargetPublicId(viewerState.viewerVoteTargetPublicId);
     }
   }, [viewerState?.viewerVoteTargetPublicId]);
+
+  useEffect(() => {
+    if (!accessToken || sharedState?.currentPhase === null) {
+      return;
+    }
+
+    const reconcileIntervalId = window.setInterval(() => {
+      void refreshLobbyState(true);
+    }, 3000);
+
+    return () => {
+      window.clearInterval(reconcileIntervalId);
+    };
+  }, [accessToken, refreshLobbyState, sharedState?.currentPhase]);
 
   const activeDrawer = useMemo(
     () =>
@@ -312,6 +360,11 @@ export default function OnlineLobbyRoomScreen({
     sharedState?.currentPhase === "IMPOSTER_GUESS" &&
     Boolean(viewerState?.viewerIsImposter) &&
     guessInput.trim().length > 0;
+  const canSubmitDrawingDone =
+    sharedState?.currentPhase === "DRAWING" &&
+    Boolean(viewerCapabilities?.viewerIsCurrentDrawer) &&
+    Boolean(viewerCapabilities?.canSubmitSnapshot) &&
+    !isSubmittingDrawingDone;
 
   const handleSaveSettings = async () => {
     if (!accessToken || !sharedState || !viewerCapabilities?.viewerIsHost) {
@@ -397,15 +450,10 @@ export default function OnlineLobbyRoomScreen({
       return;
     }
 
-    const nextSnapshotStrokes = [...authoritativeStrokes, stroke];
-    setOptimisticStrokes(nextSnapshotStrokes);
-
-    realtimeRef.current?.sendDrawingLive({
-      snapshot: stringifyDrawingSnapshot(nextSnapshotStrokes),
-      baseVersion: sharedState.drawingVersion,
+    setOptimisticStrokes((currentOptimisticStrokes) => {
+      const baseStrokes = currentOptimisticStrokes ?? authoritativeStrokes;
+      return [...baseStrokes, stroke];
     });
-
-    scheduleBootstrapRefresh(1200);
   };
 
   const handleSubmitVote = () => {
@@ -428,6 +476,94 @@ export default function OnlineLobbyRoomScreen({
     });
     setGuessInput("");
   };
+
+  const handleSubmitDrawingDone = useCallback((): boolean => {
+    if (!sharedState || !canSubmitDrawingDone) {
+      return false;
+    }
+
+    if (!realtimeRef.current?.isConnected()) {
+      setErrorMessage("Connection is reconnecting. Retrying sync...");
+      void refreshLobbyState(true);
+      return false;
+    }
+
+    setErrorMessage(null);
+    setIsSubmittingDrawingDone(true);
+    setDrawingDoneBaseSharedVersion(state.lastSharedVersion);
+
+    const snapshot = stringifyDrawingSnapshot(renderedStrokes);
+    realtimeRef.current?.sendDrawingDone({
+      snapshot,
+      baseVersion: sharedState.drawingVersion,
+    });
+    scheduleBootstrapRefresh(1200);
+    return true;
+  }, [
+    canSubmitDrawingDone,
+    refreshLobbyState,
+    renderedStrokes,
+    scheduleBootstrapRefresh,
+    sharedState,
+    state.lastSharedVersion,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isSubmittingDrawingDone ||
+      typeof drawingDoneBaseSharedVersion !== "number" ||
+      typeof state.lastSharedVersion !== "number"
+    ) {
+      return;
+    }
+
+    if (state.lastSharedVersion > drawingDoneBaseSharedVersion) {
+      setIsSubmittingDrawingDone(false);
+      setDrawingDoneBaseSharedVersion(null);
+    }
+  }, [drawingDoneBaseSharedVersion, isSubmittingDrawingDone, state.lastSharedVersion]);
+
+  useEffect(() => {
+    if (sharedState?.currentPhase === "DRAWING") {
+      return;
+    }
+
+    setIsSubmittingDrawingDone(false);
+    setDrawingDoneBaseSharedVersion(null);
+    autoDoneTurnKeyRef.current = null;
+  }, [sharedState?.currentPhase]);
+
+  useEffect(() => {
+    if (
+      sharedState?.currentPhase !== "DRAWING" ||
+      !sharedState.turnEndsAt ||
+      !canSubmitDrawingDone
+    ) {
+      return;
+    }
+
+    const deadlineMs = Date.parse(sharedState.turnEndsAt);
+    if (!Number.isFinite(deadlineMs) || now + AUTO_DONE_LEAD_MS < deadlineMs) {
+      return;
+    }
+
+    const turnKey = `${sharedState.currentConceptIndex ?? "x"}:${sharedState.currentTurnIndex ?? "x"}:${sharedState.turnEndsAt}`;
+    if (autoDoneTurnKeyRef.current === turnKey) {
+      return;
+    }
+
+    if (handleSubmitDrawingDone()) {
+      autoDoneTurnKeyRef.current = turnKey;
+    }
+  }, [
+    canSubmitDrawingDone,
+    handleSubmitDrawingDone,
+    now,
+    sharedState?.currentConceptIndex,
+    sharedState?.currentPhase,
+    sharedState?.currentTurnIndex,
+    sharedState?.turnEndsAt,
+  ]);
 
   if (!accessToken) {
     return (
@@ -667,9 +803,21 @@ export default function OnlineLobbyRoomScreen({
 
               <Text size="sm" c="dimmed">
                 {viewerCapabilities?.canSubmitSnapshot
-                  ? "You are the current drawer. Your canvas updates stream live."
-                  : "You are viewing the shared live canvas."}
+                  ? "You are the current drawer. Draw locally, then press Done to submit."
+                  : "You can only see canvas updates after the drawer presses Done."}
               </Text>
+
+              <Group>
+                <Button
+                  radius="xl"
+                  color="lime"
+                  onClick={handleSubmitDrawingDone}
+                  disabled={!canSubmitDrawingDone}
+                  loading={isSubmittingDrawingDone}
+                >
+                  Done
+                </Button>
+              </Group>
             </Stack>
           </Card>
         ) : null}
@@ -870,17 +1018,39 @@ export default function OnlineLobbyRoomScreen({
   );
 }
 
-function useNow(intervalMs: number): number {
-  const [now, setNow] = useState(() => Date.now());
+function useNow(intervalMs: number, serverClockOffsetMs: number): number {
+  const [now, setNow] = useState(() => Date.now() + serverClockOffsetMs);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => setNow(Date.now()), intervalMs);
+    const intervalId = window.setInterval(
+      () => setNow(Date.now() + serverClockOffsetMs),
+      intervalMs,
+    );
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [intervalMs]);
+  }, [intervalMs, serverClockOffsetMs]);
 
   return now;
+}
+
+function syncServerClockOffset(
+  setServerClockOffsetMs: Dispatch<SetStateAction<number>>,
+  emittedAt: string,
+): void {
+  const emittedAtMs = Date.parse(emittedAt);
+  if (!Number.isFinite(emittedAtMs)) {
+    return;
+  }
+
+  const measuredOffsetMs = emittedAtMs - Date.now();
+  setServerClockOffsetMs((currentOffset) => {
+    if (!Number.isFinite(currentOffset) || currentOffset === 0) {
+      return Math.round(measuredOffsetMs);
+    }
+
+    return Math.round(currentOffset * 0.85 + measuredOffsetMs * 0.15);
+  });
 }
 
 function toNullableNumber(value: number | ""): number | null {
@@ -960,4 +1130,20 @@ function toDisplayTurnNumber(currentTurnIndex: number | null): number | "-" {
   }
 
   return currentTurnIndex + 1;
+}
+
+function isDoneSubmitConflictOrPhaseError(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("stale") ||
+    normalized.includes("version") ||
+    normalized.includes("conflict") ||
+    normalized.includes("phase") ||
+    normalized.includes("drawer") ||
+    normalized.includes("turn")
+  );
 }

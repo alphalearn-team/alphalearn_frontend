@@ -127,11 +127,11 @@ function shouldApplyVersion(
   lastVersion: number | null,
   nextVersion: number | null,
 ): boolean {
-  if (nextVersion === null) {
-    return true;
+  if (typeof nextVersion !== "number" || !Number.isFinite(nextVersion)) {
+    return false;
   }
 
-  if (lastVersion === null) {
+  if (typeof lastVersion !== "number" || !Number.isFinite(lastVersion)) {
     return true;
   }
 
