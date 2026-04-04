@@ -1,6 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
@@ -91,7 +100,8 @@ export default function OnlineLobbyRoomScreen({
   );
   const [isSubmittingDrawingDone, setIsSubmittingDrawingDone] = useState(false);
   const [selectedColor, setSelectedColor] = useState(DEFAULT_DRAW_COLOR);
-  const now = useNow(1000);
+  const [serverClockOffsetMs, setServerClockOffsetMs] = useState(0);
+  const now = useNow(1000, serverClockOffsetMs);
 
   const realtimeRef =
     useRef<ReturnType<typeof createImposterLobbyRealtimeClient> | null>(null);
@@ -208,12 +218,14 @@ export default function OnlineLobbyRoomScreen({
           scheduleBootstrapRefresh(500);
         },
         onSharedEnvelope: (envelope) => {
+          syncServerClockOffset(setServerClockOffsetMs, envelope.emittedAt);
           dispatch({ type: "APPLY_SHARED_ENVELOPE", payload: envelope });
           if (STRUCTURAL_REFRESH_REASONS.has(envelope.reason)) {
             scheduleBootstrapRefresh();
           }
         },
         onViewerEnvelope: (envelope) => {
+          syncServerClockOffset(setServerClockOffsetMs, envelope.emittedAt);
           dispatch({ type: "APPLY_VIEWER_ENVELOPE", payload: envelope });
           if (STRUCTURAL_REFRESH_REASONS.has(envelope.reason)) {
             scheduleBootstrapRefresh();
@@ -884,17 +896,39 @@ export default function OnlineLobbyRoomScreen({
   );
 }
 
-function useNow(intervalMs: number): number {
-  const [now, setNow] = useState(() => Date.now());
+function useNow(intervalMs: number, serverClockOffsetMs: number): number {
+  const [now, setNow] = useState(() => Date.now() + serverClockOffsetMs);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => setNow(Date.now()), intervalMs);
+    const intervalId = window.setInterval(
+      () => setNow(Date.now() + serverClockOffsetMs),
+      intervalMs,
+    );
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [intervalMs]);
+  }, [intervalMs, serverClockOffsetMs]);
 
   return now;
+}
+
+function syncServerClockOffset(
+  setServerClockOffsetMs: Dispatch<SetStateAction<number>>,
+  emittedAt: string,
+): void {
+  const emittedAtMs = Date.parse(emittedAt);
+  if (!Number.isFinite(emittedAtMs)) {
+    return;
+  }
+
+  const measuredOffsetMs = emittedAtMs - Date.now();
+  setServerClockOffsetMs((currentOffset) => {
+    if (!Number.isFinite(currentOffset) || currentOffset === 0) {
+      return Math.round(measuredOffsetMs);
+    }
+
+    return Math.round(currentOffset * 0.85 + measuredOffsetMs * 0.15);
+  });
 }
 
 function toNullableNumber(value: number | ""): number | null {
