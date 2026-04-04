@@ -19,6 +19,8 @@ interface RealtimeClientCallbacks {
 
 const DRAW_LIVE_SEND_INTERVAL_MS = 350;
 const MAX_DRAW_LIVE_PAYLOAD_BYTES = 64 * 1024;
+const STOMP_HEARTBEAT_INCOMING_MS = 10_000;
+const STOMP_HEARTBEAT_OUTGOING_MS = 10_000;
 
 export interface ImposterLobbyRealtimeClient {
   connect: () => void;
@@ -50,8 +52,8 @@ export function createImposterLobbyRealtimeClient(
       Authorization: `Bearer ${accessToken}`,
     },
     reconnectDelay: 2000,
-    heartbeatIncoming: 10000,
-    heartbeatOutgoing: 10000,
+    heartbeatIncoming: STOMP_HEARTBEAT_INCOMING_MS,
+    heartbeatOutgoing: STOMP_HEARTBEAT_OUTGOING_MS,
     ...(supportsLargeFrameSplit()
       ? {
           splitLargeFrames: true,
@@ -86,6 +88,7 @@ export function createImposterLobbyRealtimeClient(
     },
     onWebSocketClose: (evt) => {
       console.log("WS CLOSE", {
+        lobbyPublicId,
         code: evt.code,
         reason: evt.reason,
         wasClean: evt.wasClean,
