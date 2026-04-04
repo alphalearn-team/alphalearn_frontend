@@ -1,6 +1,7 @@
 import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import type {
+  DrawingDoneRequest,
   DrawingLiveRequest,
   GuessRequest,
   RealtimeEnvelope,
@@ -27,6 +28,7 @@ export interface ImposterLobbyRealtimeClient {
   disconnect: () => void;
   isConnected: () => boolean;
   sendDrawingLive: (request: DrawingLiveRequest) => void;
+  sendDrawingDone: (request: DrawingDoneRequest) => void;
   sendVote: (request: VoteRequest) => void;
   sendGuess: (request: GuessRequest) => void;
 }
@@ -40,6 +42,7 @@ export function createImposterLobbyRealtimeClient(
   const topicDestination = `/topic/imposter/lobbies/${lobbyPublicId}`;
   const viewerDestination = `/user/queue/imposter/lobbies/${lobbyPublicId}`;
   const drawDestination = `/app/imposter/lobbies/${lobbyPublicId}/drawing/live`;
+  const drawDoneDestination = `/app/imposter/lobbies/${lobbyPublicId}/drawing/done`;
   const voteDestination = `/app/imposter/lobbies/${lobbyPublicId}/vote`;
   const guessDestination = `/app/imposter/lobbies/${lobbyPublicId}/guess`;
   let latestPendingDrawing: DrawingLiveRequest | null = null;
@@ -142,6 +145,9 @@ export function createImposterLobbyRealtimeClient(
     },
     sendVote(request) {
       publishJson(client, voteDestination, request);
+    },
+    sendDrawingDone(request) {
+      publishJson(client, drawDoneDestination, request);
     },
     sendGuess(request) {
       publishJson(client, guessDestination, request);

@@ -226,6 +226,11 @@ export interface DrawingLiveRequest {
   baseVersion: number | null;
 }
 
+export interface DrawingDoneRequest {
+  snapshot: string;
+  baseVersion: number | null;
+}
+
 export interface VoteRequest {
   suspectedLearnerPublicId: string;
 }
