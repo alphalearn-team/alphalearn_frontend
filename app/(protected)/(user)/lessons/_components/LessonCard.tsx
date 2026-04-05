@@ -11,6 +11,7 @@ type LessonCardProps = LessonSummary;
 interface LessonCardOptions {
   showModerationBadge?: boolean;
   progress?: LessonProgress;
+  enrollmentCount?: number;
 }
 
 export default function LessonCard({
@@ -22,6 +23,7 @@ export default function LessonCard({
   showModerationBadge = true,
   concepts,
   progress,
+  enrollmentCount,
 }: LessonCardProps & LessonCardOptions) {
   const conceptLabels = (concepts || [])
     .map((concept) => concept?.title)
@@ -89,13 +91,21 @@ export default function LessonCard({
           <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-card-text-muted)] opacity-70">
             {createdAt ? formatShortDate(createdAt) : "Recent"}
           </span>
-          {!progress && (
+          {enrollmentCount !== undefined ? (
+            <span
+              className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: "13px" }}>group</span>
+              {enrollmentCount}
+            </span>
+          ) : !progress ? (
             <div className="flex gap-1">
               <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-30" />
               <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-50" />
               <div className="w-1 h-1 rounded-full bg-[var(--color-primary)]" />
             </div>
-          )}
+          ) : null}
         </div>
 
         {progress && (

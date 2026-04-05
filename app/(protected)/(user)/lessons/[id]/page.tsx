@@ -1,4 +1,3 @@
-import "@mantine/tiptap/styles.css";
 import { Container } from "@mantine/core";
 import { notFound } from "next/navigation";
 import LessonModerationFeedbackPanel from "@/app/(protected)/(user)/lessons/_components/LessonModerationFeedbackPanel";

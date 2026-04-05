@@ -102,6 +102,8 @@ export type LessonSummary = Pick<Lesson, "lessonPublicId" | "title" | "author" |
   lessonModerationStatus?: LessonModerationStatus;
   conceptPublicIds?: string[];
   concepts?: LessonConceptSummary[];
+  enrollmentCount?: number;
+  completionCount?: number;
 }
 
 export interface CreateLessonRequest {
