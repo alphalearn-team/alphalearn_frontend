@@ -291,7 +291,11 @@ export default function OnlineLobbyRoomScreen({
   }, [viewerState?.viewerVoteTargetPublicId]);
 
   useEffect(() => {
-    if (!accessToken || sharedState?.currentPhase === null) {
+    if (
+      !accessToken ||
+      sharedState?.currentPhase === null ||
+      isTerminalLobbyPhase(sharedState.currentPhase)
+    ) {
       return;
     }
 
@@ -492,7 +496,11 @@ export default function OnlineLobbyRoomScreen({
   };
 
   const handleStrokeCommit = (stroke: CanvasStroke) => {
-    if (!sharedState || !viewerCapabilities?.canSubmitSnapshot) {
+    if (
+      !sharedState ||
+      isTerminalLobbyPhase(sharedState.currentPhase) ||
+      !viewerCapabilities?.canSubmitSnapshot
+    ) {
       return;
     }
 
