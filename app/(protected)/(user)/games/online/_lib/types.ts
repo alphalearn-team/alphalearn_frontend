@@ -5,6 +5,7 @@ export type LobbyRealtimeReason =
   | "JOIN"
   | "LEAVE_HOST_TRANSFER"
   | "LEAVE"
+  | "ABANDONED_BY_QUIT"
   | "SETTINGS"
   | "START"
   | "STATE_RECONCILE"
@@ -32,6 +33,7 @@ export type LobbyPhase =
   | "IMPOSTER_GUESS"
   | "CONCEPT_RESULT"
   | "MATCH_COMPLETE"
+  | "ABANDONED"
   | null;
 
 export type ConceptWinnerSide = "IMPOSTER" | "NON_IMPOSTERS";
@@ -111,6 +113,9 @@ export interface SharedState {
   imposterGuessDeadlineAt: string | null;
   lastImposterGuess: string | null;
   lastImposterGuessCorrect: boolean | null;
+  endReason: string | null;
+  endedAt: string | null;
+  endedByPublicId: string | null;
 }
 
 export interface ViewerState {
@@ -179,6 +184,9 @@ export interface PrivateImposterLobbyStateDto {
   viewerConceptTitle: string | null;
   lastImposterGuess: string | null;
   lastImposterGuessCorrect: boolean | null;
+  endReason: string | null;
+  endedAt: string | null;
+  endedByPublicId: string | null;
 }
 
 export interface PrivateImposterLobbyDto {
@@ -198,7 +206,8 @@ export interface JoinedPrivateImposterLobbyDto extends PrivateImposterLobbyDto {
 export type PrivateImposterLobbyLeaveResult =
   | "LEFT"
   | "LEFT_AND_PROMOTED_HOST"
-  | "LEFT_AND_LOBBY_DELETED";
+  | "LEFT_AND_LOBBY_DELETED"
+  | "LEFT_AND_SESSION_ABANDONED";
 
 export interface LeavePrivateImposterLobbyResponse {
   result: PrivateImposterLobbyLeaveResult;
@@ -244,6 +253,7 @@ export const STRUCTURAL_REFRESH_REASONS = new Set<LobbyRealtimeReason>([
   "JOIN",
   "LEAVE_HOST_TRANSFER",
   "LEAVE",
+  "ABANDONED_BY_QUIT",
   "SETTINGS",
   "START",
   "STATE_RECONCILE",
