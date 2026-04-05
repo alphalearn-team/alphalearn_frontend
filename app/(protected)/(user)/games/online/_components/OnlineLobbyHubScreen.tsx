@@ -22,6 +22,7 @@ import {
   joinPrivateLobby,
   normalizeLobbyCode,
 } from "../_lib/api";
+import { createRankedMatchmakingRealtimeClient } from "../_lib/matchmakingRealtime";
 import { useRankedMatchmakingQueue } from "../_lib/useRankedMatchmakingQueue";
 import type { LobbyConceptPoolMode } from "../_lib/types";
 
@@ -44,18 +45,34 @@ export default function OnlineLobbyHubScreen() {
   const [isRoutingMatchedLobby, setIsRoutingMatchedLobby] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastRoutedLobbyRef = useRef<string | null>(null);
+  const matchmakingRealtimeRef = useRef<ReturnType<
+    typeof createRankedMatchmakingRealtimeClient
+  > | null>(null);
 
   const rankedQueue = useRankedMatchmakingQueue(accessToken);
+  const {
+    state: rankedQueueState,
+    isSearching,
+    isMatched,
+    isBusy,
+    matchedLobbyPublicId,
+    queuePosition,
+    queueSize,
+    hydrateStatus,
+    enqueue,
+    cancel,
+    applyMatchmakingEvent,
+  } = rankedQueue;
 
   useEffect(() => {
     if (!accessToken) {
       return;
     }
 
-    void rankedQueue.hydrateStatus();
+    void hydrateStatus();
     const handleFocus = () => {
       if (document.visibilityState !== "hidden") {
-        void rankedQueue.hydrateStatus();
+        void hydrateStatus();
       }
     };
 
@@ -65,35 +82,67 @@ export default function OnlineLobbyHubScreen() {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleFocus);
     };
-  }, [accessToken, rankedQueue]);
+  }, [accessToken, hydrateStatus]);
 
   useEffect(() => {
-    if (!accessToken || !rankedQueue.matchedLobbyPublicId) {
-      return;
-    }
-    if (lastRoutedLobbyRef.current === rankedQueue.matchedLobbyPublicId) {
+    if (!accessToken) {
       return;
     }
 
-    lastRoutedLobbyRef.current = rankedQueue.matchedLobbyPublicId;
+    const matchmakingClient = createRankedMatchmakingRealtimeClient(accessToken, {
+      onConnect: () => {
+        void hydrateStatus();
+      },
+      onDisconnect: () => {
+        void hydrateStatus();
+      },
+      onEvent: (envelope) => {
+        applyMatchmakingEvent(envelope.state);
+        if (envelope.reason === "MATCHED" || envelope.reason === "STARTING") {
+          void hydrateStatus();
+        }
+      },
+      onError: (message) => {
+        setErrorMessage(message);
+      },
+    });
+
+    matchmakingRealtimeRef.current = matchmakingClient;
+    matchmakingClient.connect();
+
+    return () => {
+      matchmakingClient.disconnect();
+      matchmakingRealtimeRef.current = null;
+    };
+  }, [accessToken, applyMatchmakingEvent, hydrateStatus]);
+
+  useEffect(() => {
+    if (!accessToken || !matchedLobbyPublicId) {
+      return;
+    }
+    if (lastRoutedLobbyRef.current === matchedLobbyPublicId) {
+      return;
+    }
+
+    lastRoutedLobbyRef.current = matchedLobbyPublicId;
     void routeToLobby(
       accessToken,
-      rankedQueue.matchedLobbyPublicId,
+      matchedLobbyPublicId,
       router,
       setIsRoutingMatchedLobby,
       setErrorMessage,
     );
-  }, [accessToken, rankedQueue.matchedLobbyPublicId, router]);
+  }, [accessToken, matchedLobbyPublicId, router]);
 
   const combinedError = useMemo(() => {
     if (errorMessage) {
       return errorMessage;
     }
-    if (rankedQueue.state.error) {
-      return toFriendlyRankedQueueError(rankedQueue.state.error);
+    if (rankedQueueState.error) {
+      return toFriendlyRankedQueueError(rankedQueueState.error);
     }
     return null;
-  }, [errorMessage, rankedQueue.state.error]);
+  }, [errorMessage, rankedQueueState.error]);
 
   const handleCreate = async () => {
     if (!accessToken || isCreating) {
@@ -179,9 +228,9 @@ export default function OnlineLobbyHubScreen() {
             <Stack gap="sm" mt="xs">
               <Button
                 className={actionButtonClassName}
-                onClick={() => void rankedQueue.enqueue()}
-                loading={rankedQueue.isBusy && rankedQueue.isSearching}
-                disabled={!accessToken || rankedQueue.isSearching || isRoutingMatchedLobby}
+                onClick={() => void enqueue()}
+                loading={isBusy && isSearching}
+                disabled={!accessToken || isSearching || isRoutingMatchedLobby}
                 leftSection={<span className="text-xl">🌍</span>}
               >
                 Find Ranked Match
@@ -199,7 +248,7 @@ export default function OnlineLobbyHubScreen() {
           </Stack>
         </Card>
 
-        {rankedQueue.isSearching || rankedQueue.isMatched ? (
+        {isSearching || isMatched ? (
           <Card radius="24px" padding="lg" className={sectionCardClassName}>
             <Stack gap="md">
               <Group justify="space-between">
@@ -207,28 +256,28 @@ export default function OnlineLobbyHubScreen() {
                   Waiting for people to join...
                 </Text>
                 <Badge color="blue" variant="light">
-                  {rankedQueue.state.status?.state}
+                  {rankedQueueState.status?.state}
                 </Badge>
               </Group>
 
               <QueueSlotList
-                queueSize={rankedQueue.queueSize}
-                queuePosition={rankedQueue.queuePosition}
+                queueSize={queueSize}
+                queuePosition={queuePosition}
               />
 
               <Group>
                 <Button
                   radius="xl"
                   variant="default"
-                  onClick={() => void rankedQueue.cancel()}
-                  loading={rankedQueue.isBusy && !rankedQueue.isSearching}
-                  disabled={!rankedQueue.isSearching || isRoutingMatchedLobby}
+                  onClick={() => void cancel()}
+                  loading={isBusy && !isSearching}
+                  disabled={!isSearching || isRoutingMatchedLobby}
                 >
                   Cancel
                 </Button>
-                {rankedQueue.matchedLobbyPublicId ? (
+                {matchedLobbyPublicId ? (
                   <Text size="sm" c="dimmed">
-                    Matched lobby: {rankedQueue.matchedLobbyPublicId}
+                    Matched lobby: {matchedLobbyPublicId}
                   </Text>
                 ) : null}
               </Group>
