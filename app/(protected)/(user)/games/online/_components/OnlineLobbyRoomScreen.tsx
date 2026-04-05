@@ -46,6 +46,7 @@ import {
 } from "../_lib/snapshot";
 import {
   STRUCTURAL_REFRESH_REASONS,
+  type LobbyEndReason,
   type LobbyPhase,
   type MemberState,
   type UpdatePrivateImposterLobbySettingsRequest,
@@ -327,6 +328,10 @@ export default function OnlineLobbyRoomScreen({
         sharedState?.endedByPublicId ?? null,
       ),
     [sharedState?.activeMembers, sharedState?.endedByPublicId],
+  );
+  const abandonedCopy = useMemo(
+    () => getAbandonedCopy(sharedState?.endReason ?? null),
+    [sharedState?.endReason],
   );
   const viewerMemberPublicId = useMemo(() => {
     if (!sharedState?.activeMembers?.length) {
@@ -734,13 +739,11 @@ export default function OnlineLobbyRoomScreen({
         ) : null}
 
         {sharedState.currentPhase === "ABANDONED" ? (
-          <Alert color="orange" radius="lg" variant="light" title="Game ended early">
+          <Alert color="orange" radius="lg" variant="light" title={abandonedCopy.title}>
             <Stack gap={4}>
-              <Text size="sm">
-                A player left, so this session has ended for everyone.
-              </Text>
+              <Text size="sm">{abandonedCopy.body}</Text>
               {abandonedByMember ? (
-                <Text size="sm">Player who left: {toMemberLabel(abandonedByMember)}.</Text>
+                <Text size="sm">Player involved: {toMemberLabel(abandonedByMember)}.</Text>
               ) : null}
               {sharedState.endedAt ? (
                 <Text size="xs" c="dimmed">
@@ -1287,4 +1290,28 @@ function isSessionAbandonedError(message: string): boolean {
 
 function isTerminalLobbyPhase(phase: LobbyPhase): boolean {
   return phase === "MATCH_COMPLETE" || phase === "ABANDONED";
+}
+
+function getAbandonedCopy(endReason: LobbyEndReason | null): {
+  title: string;
+  body: string;
+} {
+  if (endReason === "PLAYER_DISCONNECTED_TIMEOUT") {
+    return {
+      title: "Game ended due to disconnect",
+      body: "A player disconnected for too long, so this session has ended for everyone.",
+    };
+  }
+
+  if (endReason === "PLAYER_QUIT") {
+    return {
+      title: "Game ended early",
+      body: "A player left, so this session has ended for everyone.",
+    };
+  }
+
+  return {
+    title: "Game ended",
+    body: "This session has ended for everyone.",
+  };
 }
