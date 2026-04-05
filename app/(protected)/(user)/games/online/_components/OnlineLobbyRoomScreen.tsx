@@ -247,7 +247,9 @@ export default function OnlineLobbyRoomScreen({
           if (isSessionAbandonedError(message)) {
             setIsSubmittingDrawingDone(false);
             setDrawingDoneBaseSharedVersion(null);
-            setErrorMessage("This game already ended because a player left.");
+            setErrorMessage(
+              getAbandonedConflictMessage(message, sharedState?.endReason ?? null),
+            );
             void refreshLobbyState(true);
             return;
           }
@@ -282,6 +284,7 @@ export default function OnlineLobbyRoomScreen({
     lobbyPublicId,
     refreshLobbyState,
     scheduleBootstrapRefresh,
+    sharedState?.endReason,
   ]);
 
   useEffect(() => {
@@ -1292,6 +1295,9 @@ function isSessionAbandonedError(message: string): boolean {
   return (
     normalized.includes("abandoned") ||
     normalized.includes("ended because a player left") ||
+    normalized.includes("disconnect timeout") ||
+    normalized.includes("disconnected timeout") ||
+    normalized.includes("disconnected for too long") ||
     (normalized.includes("session") && normalized.includes("ended"))
   );
 }
@@ -1322,4 +1328,21 @@ function getAbandonedCopy(endReason: LobbyEndReason | null): {
     title: "Game ended",
     body: "This session has ended for everyone.",
   };
+}
+
+function getAbandonedConflictMessage(
+  rawMessage: string,
+  endReason: LobbyEndReason | null,
+): string {
+  const normalized = rawMessage.trim().toLowerCase();
+  if (
+    endReason === "PLAYER_DISCONNECTED_TIMEOUT" ||
+    normalized.includes("disconnect timeout") ||
+    normalized.includes("disconnected timeout") ||
+    normalized.includes("disconnected for too long")
+  ) {
+    return "This game already ended because a player disconnected for too long.";
+  }
+
+  return "This game already ended because a player left.";
 }
