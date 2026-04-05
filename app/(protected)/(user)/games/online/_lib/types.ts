@@ -5,6 +5,10 @@ export type LobbyRealtimeReason =
   | "JOIN"
   | "LEAVE_HOST_TRANSFER"
   | "LEAVE"
+  | "ABANDONED_BY_QUIT"
+  | "ABANDONED_BY_DISCONNECT_TIMEOUT"
+  | "RECONNECTING"
+  | "RECONNECTED"
   | "SETTINGS"
   | "START"
   | "STATE_RECONCILE"
@@ -32,6 +36,7 @@ export type LobbyPhase =
   | "IMPOSTER_GUESS"
   | "CONCEPT_RESULT"
   | "MATCH_COMPLETE"
+  | "ABANDONED"
   | null;
 
 export type ConceptWinnerSide = "IMPOSTER" | "NON_IMPOSTERS";
@@ -70,6 +75,16 @@ export interface ConceptResult {
   imposterGuess: string | null;
   finalVoteTallies: VoteTally[];
 }
+
+export interface ReconnectingLearnerState {
+  learnerPublicId: string;
+  disconnectDeadlineAt: string;
+}
+
+export type KnownLobbyEndReason =
+  | "PLAYER_QUIT"
+  | "PLAYER_DISCONNECTED_TIMEOUT";
+export type LobbyEndReason = KnownLobbyEndReason | (string & {});
 
 export interface SharedState {
   publicId: string;
@@ -111,6 +126,10 @@ export interface SharedState {
   imposterGuessDeadlineAt: string | null;
   lastImposterGuess: string | null;
   lastImposterGuessCorrect: boolean | null;
+  endReason: LobbyEndReason | null;
+  endedAt: string | null;
+  endedByPublicId: string | null;
+  reconnectingLearners: ReconnectingLearnerState[];
 }
 
 export interface ViewerState {
@@ -179,6 +198,10 @@ export interface PrivateImposterLobbyStateDto {
   viewerConceptTitle: string | null;
   lastImposterGuess: string | null;
   lastImposterGuessCorrect: boolean | null;
+  endReason: LobbyEndReason | null;
+  endedAt: string | null;
+  endedByPublicId: string | null;
+  reconnectingLearners: ReconnectingLearnerState[];
 }
 
 export interface PrivateImposterLobbyDto {
@@ -198,7 +221,8 @@ export interface JoinedPrivateImposterLobbyDto extends PrivateImposterLobbyDto {
 export type PrivateImposterLobbyLeaveResult =
   | "LEFT"
   | "LEFT_AND_PROMOTED_HOST"
-  | "LEFT_AND_LOBBY_DELETED";
+  | "LEFT_AND_LOBBY_DELETED"
+  | "LEFT_AND_SESSION_ABANDONED";
 
 export interface LeavePrivateImposterLobbyResponse {
   result: PrivateImposterLobbyLeaveResult;
@@ -244,6 +268,10 @@ export const STRUCTURAL_REFRESH_REASONS = new Set<LobbyRealtimeReason>([
   "JOIN",
   "LEAVE_HOST_TRANSFER",
   "LEAVE",
+  "ABANDONED_BY_QUIT",
+  "ABANDONED_BY_DISCONNECT_TIMEOUT",
+  "RECONNECTING",
+  "RECONNECTED",
   "SETTINGS",
   "START",
   "STATE_RECONCILE",

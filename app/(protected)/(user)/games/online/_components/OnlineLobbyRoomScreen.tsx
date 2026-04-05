@@ -20,6 +20,7 @@ import {
   Container,
   Divider,
   Group,
+  Modal,
   NumberInput,
   Stack,
   Text,
@@ -45,6 +46,8 @@ import {
 } from "../_lib/snapshot";
 import {
   STRUCTURAL_REFRESH_REASONS,
+  type LobbyEndReason,
+  type LobbyPhase,
   type MemberState,
   type UpdatePrivateImposterLobbySettingsRequest,
 } from "../_lib/types";
@@ -95,6 +98,7 @@ export default function OnlineLobbyRoomScreen({
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
     null,
@@ -108,10 +112,13 @@ export default function OnlineLobbyRoomScreen({
   const realtimeRef =
     useRef<ReturnType<typeof createImposterLobbyRealtimeClient> | null>(null);
   const refreshTimeoutRef = useRef<number | null>(null);
+  const previousPhaseRef = useRef<LobbyPhase>(null);
   const isSubmittingDrawingDoneRef = useRef(isSubmittingDrawingDone);
   const autoDoneTurnKeyRef = useRef<string | null>(null);
 
   const sharedState = state.sharedState;
+  const currentPhase = sharedState?.currentPhase ?? null;
+  const isTerminalPhase = isTerminalLobbyPhase(currentPhase);
   const viewerState = state.viewerState;
   const viewerCapabilities = state.viewerCapabilities;
   const authoritativeStrokes = useMemo(
@@ -166,6 +173,21 @@ export default function OnlineLobbyRoomScreen({
 
     void refreshLobbyState();
   }, [accessToken, refreshLobbyState]);
+
+  useEffect(() => {
+    const previousPhase = previousPhaseRef.current;
+    previousPhaseRef.current = sharedState?.currentPhase ?? null;
+
+    if (
+      !accessToken ||
+      sharedState?.currentPhase !== "ABANDONED" ||
+      previousPhase === "ABANDONED"
+    ) {
+      return;
+    }
+
+    void refreshLobbyState(true);
+  }, [accessToken, refreshLobbyState, sharedState?.currentPhase]);
 
   useEffect(() => {
     if (!sharedState || sharedState.currentPhase !== null) {
@@ -239,6 +261,16 @@ export default function OnlineLobbyRoomScreen({
           }
         },
         onError: (message) => {
+          if (isSessionAbandonedError(message)) {
+            setIsSubmittingDrawingDone(false);
+            setDrawingDoneBaseSharedVersion(null);
+            setErrorMessage(
+              getAbandonedConflictMessage(message, sharedState?.endReason ?? null),
+            );
+            void refreshLobbyState(true);
+            return;
+          }
+
           if (
             isSubmittingDrawingDoneRef.current &&
             isDoneSubmitConflictOrPhaseError(message)
@@ -269,6 +301,7 @@ export default function OnlineLobbyRoomScreen({
     lobbyPublicId,
     refreshLobbyState,
     scheduleBootstrapRefresh,
+    sharedState?.endReason,
   ]);
 
   useEffect(() => {
@@ -278,7 +311,11 @@ export default function OnlineLobbyRoomScreen({
   }, [viewerState?.viewerVoteTargetPublicId]);
 
   useEffect(() => {
-    if (!accessToken || sharedState?.currentPhase === null) {
+    if (
+      !accessToken ||
+      currentPhase === null ||
+      isTerminalLobbyPhase(currentPhase)
+    ) {
       return;
     }
 
@@ -289,7 +326,7 @@ export default function OnlineLobbyRoomScreen({
     return () => {
       window.clearInterval(reconcileIntervalId);
     };
-  }, [accessToken, refreshLobbyState, sharedState?.currentPhase]);
+  }, [accessToken, currentPhase, refreshLobbyState]);
 
   const activeDrawer = useMemo(
     () =>
@@ -307,6 +344,18 @@ export default function OnlineLobbyRoomScreen({
         sharedState?.votedOutPublicId ?? null,
       ),
     [sharedState?.activeMembers, sharedState?.votedOutPublicId],
+  );
+  const abandonedByMember = useMemo(
+    () =>
+      findMemberByPublicId(
+        sharedState?.activeMembers ?? [],
+        sharedState?.endedByPublicId ?? null,
+      ),
+    [sharedState?.activeMembers, sharedState?.endedByPublicId],
+  );
+  const abandonedCopy = useMemo(
+    () => getAbandonedCopy(sharedState?.endReason ?? null),
+    [sharedState?.endReason],
   );
   const viewerMemberPublicId = useMemo(() => {
     if (!sharedState?.activeMembers?.length) {
@@ -336,6 +385,55 @@ export default function OnlineLobbyRoomScreen({
 
     return matchedMembers[0].learnerPublicId;
   }, [session, sharedState?.activeMembers]);
+  const reconnectingLearners = useMemo(
+    () => sharedState?.reconnectingLearners ?? [],
+    [sharedState?.reconnectingLearners],
+  );
+  const reconnectingLearnerPublicIds = useMemo(
+    () => reconnectingLearners.map((entry) => entry.learnerPublicId),
+    [reconnectingLearners],
+  );
+  const reconnectingMembers = useMemo(
+    () =>
+      reconnectingLearners
+        .map((entry) =>
+          findMemberByPublicId(sharedState?.activeMembers ?? [], entry.learnerPublicId),
+        )
+        .filter((member): member is MemberState => member !== null),
+    [reconnectingLearners, sharedState?.activeMembers],
+  );
+  const viewerIsReconnecting =
+    viewerMemberPublicId !== null &&
+    reconnectingLearnerPublicIds.includes(viewerMemberPublicId);
+  const reconnectingOthers = useMemo(
+    () =>
+      reconnectingMembers.filter(
+        (member) => member.learnerPublicId !== viewerMemberPublicId,
+      ),
+    [reconnectingMembers, viewerMemberPublicId],
+  );
+  const viewerReconnectEntry = useMemo(
+    () =>
+      viewerMemberPublicId
+        ? reconnectingLearners.find(
+            (entry) => entry.learnerPublicId === viewerMemberPublicId,
+          ) ?? null
+        : null,
+    [reconnectingLearners, viewerMemberPublicId],
+  );
+  const viewerReconnectSecondsLeft = useMemo(
+    () => toSecondsLeft(viewerReconnectEntry?.disconnectDeadlineAt ?? null, now),
+    [now, viewerReconnectEntry?.disconnectDeadlineAt],
+  );
+  const nearestReconnectSecondsLeft = useMemo(() => {
+    const seconds = reconnectingLearners
+      .map((entry) => toSecondsLeft(entry.disconnectDeadlineAt, now))
+      .filter((value): value is number => value !== null);
+    if (!seconds.length) {
+      return null;
+    }
+    return Math.min(...seconds);
+  }, [now, reconnectingLearners]);
 
   useEffect(() => {
     if (!viewerMemberPublicId) {
@@ -348,6 +446,7 @@ export default function OnlineLobbyRoomScreen({
   }, [selectedVoteTargetPublicId, viewerMemberPublicId]);
 
   const canSubmitVote =
+    !isTerminalPhase &&
     sharedState?.currentPhase === "VOTING" &&
     !viewerState?.viewerVoteTargetPublicId &&
     Boolean(selectedVoteTargetPublicId) &&
@@ -357,10 +456,12 @@ export default function OnlineLobbyRoomScreen({
     );
 
   const canSubmitGuess =
+    !isTerminalPhase &&
     sharedState?.currentPhase === "IMPOSTER_GUESS" &&
     Boolean(viewerState?.viewerIsImposter) &&
     guessInput.trim().length > 0;
   const canSubmitDrawingDone =
+    !isTerminalPhase &&
     sharedState?.currentPhase === "DRAWING" &&
     Boolean(viewerCapabilities?.viewerIsCurrentDrawer) &&
     Boolean(viewerCapabilities?.canSubmitSnapshot) &&
@@ -424,7 +525,7 @@ export default function OnlineLobbyRoomScreen({
     }
   };
 
-  const handleLeave = async () => {
+  const executeLeave = async () => {
     if (!accessToken || !viewerCapabilities?.canLeave || isLeaving) {
       return;
     }
@@ -433,7 +534,16 @@ export default function OnlineLobbyRoomScreen({
     setIsLeaving(true);
 
     try {
-      await leavePrivateLobby(accessToken, lobbyPublicId);
+      const leaveResponse = await leavePrivateLobby(accessToken, lobbyPublicId);
+      if (
+        leaveResponse.result === "LEFT_AND_SESSION_ABANDONED" &&
+        leaveResponse.lobbyState
+      ) {
+        dispatch({ type: "BOOTSTRAP_SUCCESS", payload: leaveResponse.lobbyState });
+        setIsLeaving(false);
+        return;
+      }
+
       router.push("/games/online");
     } catch (error) {
       setErrorMessage(
@@ -445,8 +555,30 @@ export default function OnlineLobbyRoomScreen({
     }
   };
 
+  const shouldConfirmLeave = useMemo(() => {
+    if (!sharedState) {
+      return false;
+    }
+
+    const hasStartedGame = sharedState.currentPhase !== null;
+    return hasStartedGame && !isTerminalLobbyPhase(sharedState.currentPhase);
+  }, [sharedState]);
+
+  const handleLeave = () => {
+    if (shouldConfirmLeave) {
+      setIsLeaveConfirmOpen(true);
+      return;
+    }
+
+    void executeLeave();
+  };
+
   const handleStrokeCommit = (stroke: CanvasStroke) => {
-    if (!sharedState || !viewerCapabilities?.canSubmitSnapshot) {
+    if (
+      !sharedState ||
+      isTerminalLobbyPhase(sharedState.currentPhase) ||
+      !viewerCapabilities?.canSubmitSnapshot
+    ) {
       return;
     }
 
@@ -605,6 +737,39 @@ export default function OnlineLobbyRoomScreen({
   return (
     <Container size="md" className="py-6 lg:py-8">
       <Stack gap="lg">
+        <Modal
+          opened={isLeaveConfirmOpen}
+          onClose={() => setIsLeaveConfirmOpen(false)}
+          title="Leave and end game for everyone?"
+          centered
+          radius="lg"
+        >
+          <Stack gap="md">
+            <Text size="sm">
+              Leaving now will end this game for all players in this lobby.
+            </Text>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => setIsLeaveConfirmOpen(false)}
+                disabled={isLeaving}
+              >
+                No, stay
+              </Button>
+              <Button
+                color="red"
+                onClick={() => {
+                  setIsLeaveConfirmOpen(false);
+                  void executeLeave();
+                }}
+                loading={isLeaving}
+              >
+                Yes, leave game
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="sm">
             <Group justify="space-between" align="center">
@@ -636,6 +801,69 @@ export default function OnlineLobbyRoomScreen({
         {errorMessage ? (
           <Alert color="red" radius="lg" variant="light" title="Sync issue">
             {errorMessage}
+          </Alert>
+        ) : null}
+
+        {reconnectingLearnerPublicIds.length > 0 && sharedState.currentPhase !== "ABANDONED" ? (
+          <Alert color="blue" radius="lg" variant="light" title="Reconnecting">
+            <Stack gap={4}>
+              {viewerIsReconnecting ? (
+                <Text size="sm">
+                  Reconnecting...{" "}
+                  {viewerReconnectSecondsLeft !== null
+                    ? `${viewerReconnectSecondsLeft}s left`
+                    : "please return soon"}
+                  .
+                </Text>
+              ) : reconnectingOthers.length > 0 ? (
+                <Text size="sm">
+                  {toReconnectingMembersLabel(reconnectingOthers)} disconnected. Reconnecting...
+                </Text>
+              ) : (
+                <Text size="sm">A player disconnected. Reconnecting...</Text>
+              )}
+              {nearestReconnectSecondsLeft !== null ? (
+                <Text size="xs" c="dimmed">
+                  Auto-abandon in {nearestReconnectSecondsLeft}s if they do not return.
+                </Text>
+              ) : null}
+            </Stack>
+          </Alert>
+        ) : null}
+
+        {sharedState.currentPhase !== null && !isTerminalPhase ? (
+          <Card radius="24px" padding="md" className={sectionCardClassName}>
+            <Group justify="space-between" align="center">
+              <Text size="sm" c="dimmed">
+                Need to exit this match?
+              </Text>
+              <Button
+                radius="xl"
+                color="red"
+                variant="light"
+                loading={isLeaving}
+                disabled={!viewerCapabilities?.canLeave}
+                onClick={handleLeave}
+              >
+                Leave game
+              </Button>
+            </Group>
+          </Card>
+        ) : null}
+
+        {sharedState.currentPhase === "ABANDONED" ? (
+          <Alert color="orange" radius="lg" variant="light" title={abandonedCopy.title}>
+            <Stack gap={4}>
+              <Text size="sm">{abandonedCopy.body}</Text>
+              {abandonedByMember ? (
+                <Text size="sm">Player involved: {toMemberLabel(abandonedByMember)}.</Text>
+              ) : null}
+              {sharedState.endedAt ? (
+                <Text size="xs" c="dimmed">
+                  Ended at {formatEndedAt(sharedState.endedAt)}
+                </Text>
+              ) : null}
+            </Stack>
           </Alert>
         ) : null}
 
@@ -1124,6 +1352,47 @@ function formatDeadline(deadlineAt: string | null, now: number): string {
   return `Time left ${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
+function formatEndedAt(endedAt: string): string {
+  const endedAtMs = Date.parse(endedAt);
+  if (!Number.isFinite(endedAtMs)) {
+    return endedAt;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(endedAtMs));
+}
+
+function toSecondsLeft(deadlineAt: string | null, now: number): number | null {
+  if (!deadlineAt) {
+    return null;
+  }
+
+  const deadlineMs = Date.parse(deadlineAt);
+  if (!Number.isFinite(deadlineMs)) {
+    return null;
+  }
+
+  return Math.max(0, Math.ceil((deadlineMs - now) / 1000));
+}
+
+function toReconnectingMembersLabel(members: MemberState[]): string {
+  if (members.length === 0) {
+    return "Players";
+  }
+
+  if (members.length === 1) {
+    return toMemberLabel(members[0]);
+  }
+
+  if (members.length === 2) {
+    return `${toMemberLabel(members[0])} and ${toMemberLabel(members[1])}`;
+  }
+
+  return `${toMemberLabel(members[0])} and ${members.length - 1} others`;
+}
+
 function toDisplayTurnNumber(currentTurnIndex: number | null): number | "-" {
   if (typeof currentTurnIndex !== "number" || !Number.isFinite(currentTurnIndex)) {
     return "-";
@@ -1146,4 +1415,65 @@ function isDoneSubmitConflictOrPhaseError(message: string): boolean {
     normalized.includes("drawer") ||
     normalized.includes("turn")
   );
+}
+
+function isSessionAbandonedError(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("abandoned") ||
+    normalized.includes("ended because a player left") ||
+    normalized.includes("disconnect timeout") ||
+    normalized.includes("disconnected timeout") ||
+    normalized.includes("disconnected for too long") ||
+    (normalized.includes("session") && normalized.includes("ended"))
+  );
+}
+
+function isTerminalLobbyPhase(phase: LobbyPhase): boolean {
+  return phase === "MATCH_COMPLETE" || phase === "ABANDONED";
+}
+
+function getAbandonedCopy(endReason: LobbyEndReason | null): {
+  title: string;
+  body: string;
+} {
+  if (endReason === "PLAYER_DISCONNECTED_TIMEOUT") {
+    return {
+      title: "Game ended due to disconnect",
+      body: "A player disconnected for too long, so this session has ended for everyone.",
+    };
+  }
+
+  if (endReason === "PLAYER_QUIT") {
+    return {
+      title: "Game ended early",
+      body: "A player left, so this session has ended for everyone.",
+    };
+  }
+
+  return {
+    title: "Game ended",
+    body: "This session has ended for everyone.",
+  };
+}
+
+function getAbandonedConflictMessage(
+  rawMessage: string,
+  endReason: LobbyEndReason | null,
+): string {
+  const normalized = rawMessage.trim().toLowerCase();
+  if (
+    endReason === "PLAYER_DISCONNECTED_TIMEOUT" ||
+    normalized.includes("disconnect timeout") ||
+    normalized.includes("disconnected timeout") ||
+    normalized.includes("disconnected for too long")
+  ) {
+    return "This game already ended because a player disconnected for too long.";
+  }
+
+  return "This game already ended because a player left.";
 }

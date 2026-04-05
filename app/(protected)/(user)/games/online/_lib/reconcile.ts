@@ -179,6 +179,10 @@ function mapSharedState(dto: PrivateImposterLobbyStateDto): SharedState {
     imposterGuessDeadlineAt: dto.imposterGuessDeadlineAt,
     lastImposterGuess: dto.lastImposterGuess,
     lastImposterGuessCorrect: dto.lastImposterGuessCorrect,
+    endReason: dto.endReason,
+    endedAt: dto.endedAt,
+    endedByPublicId: dto.endedByPublicId,
+    reconnectingLearners: dto.reconnectingLearners ?? [],
   };
 }
 
