@@ -16,6 +16,7 @@ import {
 } from "@mantine/core";
 import {
   createPrivateLobby,
+  getPrivateLobbyState,
   joinPrivateLobby,
   normalizeLobbyCode,
 } from "../_lib/api";
@@ -82,6 +83,7 @@ export default function OnlineLobbyHubScreen() {
       const joinedLobby = await joinPrivateLobby(accessToken, {
         lobbyCode: normalizedCode,
       });
+      await getPrivateLobbyState(accessToken, joinedLobby.publicId);
 
       router.push(`/games/online/${joinedLobby.publicId}`);
     } catch (error) {
