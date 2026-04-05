@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
   Alert,
-  Badge,
   Button,
   Card,
   Container,
-  Group,
   Radio,
   Stack,
   Text,
@@ -28,68 +26,74 @@ import type { LobbyConceptPoolMode } from "../_lib/types";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
-const actionButtonClassName =
-  "min-h-14 rounded-[18px] border border-cyan-400/20 bg-[linear-gradient(180deg,#28c8f7,#1ca8e8)] text-[color:#0a4e9f] font-semibold text-lg shadow-[0_8px_0_0_rgba(15,90,200,0.25)]";
 const JOIN_STATE_HYDRATE_RETRY_DELAYS_MS = [200, 400, 700];
 
 export default function OnlineLobbyHubScreen() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { session } = useAuth();
-  const accessToken = session?.access_token ?? null;
 
   const [conceptPoolMode, setConceptPoolMode] =
     useState<LobbyConceptPoolMode>("CURRENT_MONTH_PACK");
   const [lobbyCode, setLobbyCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [isRoutingMatchedLobby, setIsRoutingMatchedLobby] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const lastRoutedLobbyRef = useRef<string | null>(null);
-  const matchmakingRealtimeRef = useRef<ReturnType<
-    typeof createRankedMatchmakingRealtimeClient
-  > | null>(null);
 
-  const rankedQueue = useRankedMatchmakingQueue(accessToken);
+  const accessToken = session?.access_token ?? null;
+  const isRankedVisible = resolveRankedVisibility();
+  const shouldAutoRankedSearch =
+    isRankedVisible && searchParams.get("ranked") === "1";
+  const rankedQueue = useRankedMatchmakingQueue(
+    shouldAutoRankedSearch ? accessToken : null,
+  );
   const {
     state: rankedQueueState,
     isSearching,
-    isMatched,
     isBusy,
     matchedLobbyPublicId,
-    queuePosition,
-    queueSize,
     hydrateStatus,
     enqueue,
-    cancel,
     applyMatchmakingEvent,
   } = rankedQueue;
+  const matchmakingRealtimeRef = useRef<ReturnType<
+    typeof createRankedMatchmakingRealtimeClient
+  > | null>(null);
+  const autoRankedQueuedRef = useRef(false);
+  const routedMatchedLobbyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!accessToken) {
+    if (!shouldAutoRankedSearch || !accessToken) {
       return;
     }
-
     void hydrateStatus();
-    const handleFocus = () => {
-      if (document.visibilityState !== "hidden") {
-        void hydrateStatus();
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleFocus);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleFocus);
-    };
-  }, [accessToken, hydrateStatus]);
+  }, [accessToken, hydrateStatus, shouldAutoRankedSearch]);
 
   useEffect(() => {
-    if (!accessToken) {
+    if (!shouldAutoRankedSearch || !accessToken) {
+      autoRankedQueuedRef.current = false;
+      return;
+    }
+    if (autoRankedQueuedRef.current || isBusy) {
       return;
     }
 
-    const matchmakingClient = createRankedMatchmakingRealtimeClient(accessToken, {
+    const currentState = rankedQueueState.status?.state ?? "IDLE";
+    if (currentState === "QUEUED" || currentState === "MATCHED") {
+      autoRankedQueuedRef.current = true;
+      return;
+    }
+
+    autoRankedQueuedRef.current = true;
+    void enqueue();
+  }, [accessToken, enqueue, isBusy, rankedQueueState.status?.state, shouldAutoRankedSearch]);
+
+  useEffect(() => {
+    if (!shouldAutoRankedSearch || !accessToken) {
+      return;
+    }
+
+    const realtimeClient = createRankedMatchmakingRealtimeClient(accessToken, {
       onConnect: () => {
         void hydrateStatus();
       },
@@ -102,47 +106,58 @@ export default function OnlineLobbyHubScreen() {
           void hydrateStatus();
         }
       },
-      onError: (message) => {
-        setErrorMessage(message);
+      onError: () => {
+        void hydrateStatus();
       },
     });
 
-    matchmakingRealtimeRef.current = matchmakingClient;
-    matchmakingClient.connect();
+    matchmakingRealtimeRef.current = realtimeClient;
+    realtimeClient.connect();
 
     return () => {
-      matchmakingClient.disconnect();
+      realtimeClient.disconnect();
       matchmakingRealtimeRef.current = null;
     };
-  }, [accessToken, applyMatchmakingEvent, hydrateStatus]);
+  }, [accessToken, applyMatchmakingEvent, hydrateStatus, shouldAutoRankedSearch]);
 
   useEffect(() => {
     if (!accessToken || !matchedLobbyPublicId) {
       return;
     }
-    if (lastRoutedLobbyRef.current === matchedLobbyPublicId) {
+    if (routedMatchedLobbyRef.current === matchedLobbyPublicId) {
       return;
     }
 
-    lastRoutedLobbyRef.current = matchedLobbyPublicId;
-    void routeToLobby(
-      accessToken,
-      matchedLobbyPublicId,
-      router,
-      setIsRoutingMatchedLobby,
-      setErrorMessage,
-    );
+    routedMatchedLobbyRef.current = matchedLobbyPublicId;
+    void hydrateJoinedLobbyState(accessToken, matchedLobbyPublicId)
+      .then(() => {
+        router.push(`/games/online/${matchedLobbyPublicId}`);
+      })
+      .catch((error: unknown) => {
+        routedMatchedLobbyRef.current = null;
+        setErrorMessage(
+          error instanceof Error && error.message
+            ? error.message
+            : "Matched ranked lobby is not ready yet.",
+        );
+      });
   }, [accessToken, matchedLobbyPublicId, router]);
 
-  const combinedError = useMemo(() => {
-    if (errorMessage) {
-      return errorMessage;
+  const rankedInfoMessage = useMemo(() => {
+    if (!shouldAutoRankedSearch) {
+      return null;
     }
-    if (rankedQueueState.error) {
-      return toFriendlyRankedQueueError(rankedQueueState.error);
+
+    if (matchedLobbyPublicId) {
+      return "Match found. Entering lobby...";
     }
+
+    if (isSearching || isBusy) {
+      return "Searching for ranked match...";
+    }
+
     return null;
-  }, [errorMessage, rankedQueueState.error]);
+  }, [isBusy, isSearching, matchedLobbyPublicId, shouldAutoRankedSearch]);
 
   const handleCreate = async () => {
     if (!accessToken || isCreating) {
@@ -156,6 +171,7 @@ export default function OnlineLobbyHubScreen() {
       const lobby = await createPrivateLobby(accessToken, {
         conceptPoolMode,
       });
+
       router.push(`/games/online/${lobby.publicId}`);
     } catch (error) {
       setErrorMessage(
@@ -189,6 +205,7 @@ export default function OnlineLobbyHubScreen() {
         lobbyCode: normalizedCode,
       });
       await hydrateJoinedLobbyState(accessToken, joinedLobby.publicId);
+
       router.push(`/games/online/${joinedLobby.publicId}`);
     } catch (error) {
       setErrorMessage(
@@ -206,10 +223,13 @@ export default function OnlineLobbyHubScreen() {
       <Stack gap="lg">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="md">
-            <Title order={1} className="text-center text-3xl text-[var(--color-text)]">
+            <Title
+              order={1}
+              className="text-center text-3xl font-semibold tracking-tight text-[var(--color-text)]"
+            >
               Online Imposter
             </Title>
-            <Text size="sm" c="dimmed" ta="center">
+            <Text size="sm" className="text-center text-[var(--color-text-secondary)]">
               Choose how you want to play.
             </Text>
 
@@ -219,71 +239,19 @@ export default function OnlineLobbyHubScreen() {
               </Alert>
             ) : null}
 
-            {combinedError ? (
+            {errorMessage ? (
               <Alert color="red" radius="lg" variant="light" title="Action failed">
-                {combinedError}
+                {errorMessage}
               </Alert>
             ) : null}
 
-            <Stack gap="sm" mt="xs">
-              <Button
-                className={actionButtonClassName}
-                onClick={() => void enqueue()}
-                loading={isBusy && isSearching}
-                disabled={!accessToken || isSearching || isRoutingMatchedLobby}
-                leftSection={<span className="text-xl">🌍</span>}
-              >
-                Find Ranked Match
-              </Button>
-              <Button
-                className={actionButtonClassName}
-                onClick={handleCreate}
-                loading={isCreating}
-                disabled={!accessToken || isCreating}
-                leftSection={<span className="text-xl">🙂</span>}
-              >
-                Create Private Match
-              </Button>
-            </Stack>
+            {shouldAutoRankedSearch ? (
+              <Alert color="blue" radius="lg" variant="light" title="Ranked mode">
+                {rankedInfoMessage ?? "Preparing ranked matchmaking..."}
+              </Alert>
+            ) : null}
           </Stack>
         </Card>
-
-        {isSearching || isMatched ? (
-          <Card radius="24px" padding="lg" className={sectionCardClassName}>
-            <Stack gap="md">
-              <Group justify="space-between">
-                <Text fw={700} className="text-[var(--color-text)]">
-                  Waiting for people to join...
-                </Text>
-                <Badge color="blue" variant="light">
-                  {rankedQueueState.status?.state}
-                </Badge>
-              </Group>
-
-              <QueueSlotList
-                queueSize={queueSize}
-                queuePosition={queuePosition}
-              />
-
-              <Group>
-                <Button
-                  radius="xl"
-                  variant="default"
-                  onClick={() => void cancel()}
-                  loading={isBusy && !isSearching}
-                  disabled={!isSearching || isRoutingMatchedLobby}
-                >
-                  Cancel
-                </Button>
-                {matchedLobbyPublicId ? (
-                  <Text size="sm" c="dimmed">
-                    Matched lobby: {matchedLobbyPublicId}
-                  </Text>
-                ) : null}
-              </Group>
-            </Stack>
-          </Card>
-        ) : null}
 
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="md">
@@ -297,6 +265,14 @@ export default function OnlineLobbyHubScreen() {
               value={conceptPoolMode}
               onChange={(value) => setConceptPoolMode(value as LobbyConceptPoolMode)}
               label="Concept pool"
+              styles={{
+                label: {
+                  color: "var(--color-text)",
+                  marginBottom: "10px",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                },
+              }}
             >
               <Stack gap="xs">
                 <Radio value="CURRENT_MONTH_PACK" label="Current month pack" color="lime" />
@@ -304,7 +280,20 @@ export default function OnlineLobbyHubScreen() {
               </Stack>
             </Radio.Group>
 
-            <Button radius="xl" onClick={handleCreate} loading={isCreating} disabled={!accessToken}>
+            <Button
+              radius="xl"
+              size="lg"
+              className="min-h-12"
+              onClick={handleCreate}
+              loading={isCreating}
+              disabled={!accessToken}
+              styles={{
+                root: {
+                  backgroundColor: "var(--color-primary)",
+                  color: "var(--color-background)",
+                },
+              }}
+            >
               Create lobby
             </Button>
           </Stack>
@@ -318,6 +307,7 @@ export default function OnlineLobbyHubScreen() {
                   Join private lobby
                 </p>
               </div>
+
               <TextInput
                 placeholder="ABC123"
                 value={lobbyCode}
@@ -331,7 +321,21 @@ export default function OnlineLobbyHubScreen() {
                   },
                 }}
               />
-              <Button type="submit" radius="xl" loading={isJoining} disabled={!accessToken}>
+
+              <Button
+                type="submit"
+                radius="xl"
+                size="lg"
+                className="min-h-12"
+                loading={isJoining}
+                disabled={!accessToken}
+                styles={{
+                  root: {
+                    backgroundColor: "var(--color-primary)",
+                    color: "var(--color-background)",
+                  },
+                }}
+              >
                 Join lobby
               </Button>
             </Stack>
@@ -340,70 +344,6 @@ export default function OnlineLobbyHubScreen() {
       </Stack>
     </Container>
   );
-}
-
-function QueueSlotList({
-  queueSize,
-  queuePosition,
-}: {
-  queueSize: number | null;
-  queuePosition: number | null;
-}): JSX.Element {
-  const joinedSlots = Math.max(1, Math.min(4, queueSize ?? 1));
-  return (
-    <Stack gap="sm" className="rounded-[16px] border border-white/15 bg-white/5 p-4">
-      {Array.from({ length: 4 }).map((_, index) => {
-        const joined = index < joinedSlots;
-        return (
-          <Group
-            key={index}
-            className={`rounded-full px-4 py-3 ${
-              joined
-                ? index === 0
-                  ? "bg-[#ff4c78] text-white"
-                  : "bg-[#41c7c2] text-white"
-                : "bg-gray-400/50 text-gray-200"
-            }`}
-          >
-            <span className="text-lg">{joined ? (index === 0 ? "🙂" : "▶") : "◌"}</span>
-            <Text fw={600}>
-              {joined
-                ? index === 0
-                  ? "You"
-                  : `Player ${index + 1}`
-                : "Waiting..."}
-            </Text>
-            {queuePosition !== null && index === 0 ? (
-              <Badge color="dark" variant="filled">
-                Pos {queuePosition}
-              </Badge>
-            ) : null}
-          </Group>
-        );
-      })}
-    </Stack>
-  );
-}
-
-async function routeToLobby(
-  accessToken: string,
-  lobbyPublicId: string,
-  router: ReturnType<typeof useRouter>,
-  setIsRoutingMatchedLobby: (value: boolean) => void,
-  setErrorMessage: (value: string | null) => void,
-): Promise<void> {
-  setIsRoutingMatchedLobby(true);
-  try {
-    await hydrateJoinedLobbyState(accessToken, lobbyPublicId);
-    router.push(`/games/online/${lobbyPublicId}`);
-  } catch (error) {
-    setErrorMessage(
-      error instanceof Error && error.message
-        ? error.message
-        : "Matched lobby is not ready yet.",
-    );
-    setIsRoutingMatchedLobby(false);
-  }
 }
 
 async function hydrateJoinedLobbyState(
@@ -420,21 +360,15 @@ async function hydrateJoinedLobbyState(
   }
 }
 
-function toFriendlyRankedQueueError(message: string): string {
-  const normalized = message.toLowerCase();
-  if (
-    normalized.includes("last day") ||
-    normalized.includes("sgt") ||
-    normalized.includes("not available")
-  ) {
-    return "Ranked queue is only open on the last day of the month (SGT).";
-  }
-
-  return message;
-}
-
 function waitMs(ms: number): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
+}
+
+function resolveRankedVisibility(): boolean {
+  const enabled = process.env.NEXT_PUBLIC_RANKED_ENABLED === "true";
+  const forceDev = process.env.NEXT_PUBLIC_RANKED_FORCE_DEV === "true";
+  const isProduction = process.env.NODE_ENV === "production";
+  return enabled || (!isProduction && forceDev);
 }
