@@ -20,6 +20,7 @@ import {
   Container,
   Divider,
   Group,
+  Modal,
   NumberInput,
   Stack,
   Text,
@@ -95,6 +96,7 @@ export default function OnlineLobbyRoomScreen({
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
     null,
@@ -424,7 +426,7 @@ export default function OnlineLobbyRoomScreen({
     }
   };
 
-  const handleLeave = async () => {
+  const executeLeave = async () => {
     if (!accessToken || !viewerCapabilities?.canLeave || isLeaving) {
       return;
     }
@@ -443,6 +445,27 @@ export default function OnlineLobbyRoomScreen({
       );
       setIsLeaving(false);
     }
+  };
+
+  const shouldConfirmLeave = useMemo(() => {
+    if (!sharedState) {
+      return false;
+    }
+
+    const hasStartedGame = sharedState.currentPhase !== null;
+    const isTerminalPhase =
+      sharedState.currentPhase === "MATCH_COMPLETE" ||
+      sharedState.currentPhase === "ABANDONED";
+    return hasStartedGame && !isTerminalPhase;
+  }, [sharedState]);
+
+  const handleLeave = () => {
+    if (shouldConfirmLeave) {
+      setIsLeaveConfirmOpen(true);
+      return;
+    }
+
+    void executeLeave();
   };
 
   const handleStrokeCommit = (stroke: CanvasStroke) => {
@@ -605,6 +628,39 @@ export default function OnlineLobbyRoomScreen({
   return (
     <Container size="md" className="py-6 lg:py-8">
       <Stack gap="lg">
+        <Modal
+          opened={isLeaveConfirmOpen}
+          onClose={() => setIsLeaveConfirmOpen(false)}
+          title="Leave and end game for everyone?"
+          centered
+          radius="lg"
+        >
+          <Stack gap="md">
+            <Text size="sm">
+              Leaving now will end this game for all players in this lobby.
+            </Text>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => setIsLeaveConfirmOpen(false)}
+                disabled={isLeaving}
+              >
+                No, stay
+              </Button>
+              <Button
+                color="red"
+                onClick={() => {
+                  setIsLeaveConfirmOpen(false);
+                  void executeLeave();
+                }}
+                loading={isLeaving}
+              >
+                Yes, leave game
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="sm">
             <Group justify="space-between" align="center">
