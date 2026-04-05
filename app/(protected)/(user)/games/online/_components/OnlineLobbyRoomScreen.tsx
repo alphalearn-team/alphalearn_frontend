@@ -385,18 +385,22 @@ export default function OnlineLobbyRoomScreen({
 
     return matchedMembers[0].learnerPublicId;
   }, [session, sharedState?.activeMembers]);
+  const reconnectingLearners = useMemo(
+    () => sharedState?.reconnectingLearners ?? [],
+    [sharedState?.reconnectingLearners],
+  );
   const reconnectingLearnerPublicIds = useMemo(
-    () => sharedState?.reconnectingLearnerPublicIds ?? [],
-    [sharedState?.reconnectingLearnerPublicIds],
+    () => reconnectingLearners.map((entry) => entry.learnerPublicId),
+    [reconnectingLearners],
   );
   const reconnectingMembers = useMemo(
     () =>
-      reconnectingLearnerPublicIds
-        .map((learnerPublicId) =>
-          findMemberByPublicId(sharedState?.activeMembers ?? [], learnerPublicId),
+      reconnectingLearners
+        .map((entry) =>
+          findMemberByPublicId(sharedState?.activeMembers ?? [], entry.learnerPublicId),
         )
         .filter((member): member is MemberState => member !== null),
-    [reconnectingLearnerPublicIds, sharedState?.activeMembers],
+    [reconnectingLearners, sharedState?.activeMembers],
   );
   const viewerIsReconnecting =
     viewerMemberPublicId !== null &&
@@ -408,10 +412,28 @@ export default function OnlineLobbyRoomScreen({
       ),
     [reconnectingMembers, viewerMemberPublicId],
   );
-  const reconnectingSecondsLeft = useMemo(
-    () => toSecondsLeft(sharedState?.disconnectDeadlineAt ?? null, now),
-    [sharedState?.disconnectDeadlineAt, now],
+  const viewerReconnectEntry = useMemo(
+    () =>
+      viewerMemberPublicId
+        ? reconnectingLearners.find(
+            (entry) => entry.learnerPublicId === viewerMemberPublicId,
+          ) ?? null
+        : null,
+    [reconnectingLearners, viewerMemberPublicId],
   );
+  const viewerReconnectSecondsLeft = useMemo(
+    () => toSecondsLeft(viewerReconnectEntry?.disconnectDeadlineAt ?? null, now),
+    [now, viewerReconnectEntry?.disconnectDeadlineAt],
+  );
+  const nearestReconnectSecondsLeft = useMemo(() => {
+    const seconds = reconnectingLearners
+      .map((entry) => toSecondsLeft(entry.disconnectDeadlineAt, now))
+      .filter((value): value is number => value !== null);
+    if (!seconds.length) {
+      return null;
+    }
+    return Math.min(...seconds);
+  }, [now, reconnectingLearners]);
 
   useEffect(() => {
     if (!viewerMemberPublicId) {
@@ -788,21 +810,21 @@ export default function OnlineLobbyRoomScreen({
               {viewerIsReconnecting ? (
                 <Text size="sm">
                   Reconnecting...{" "}
-                  {reconnectingSecondsLeft !== null
-                    ? `${reconnectingSecondsLeft}s left`
+                  {viewerReconnectSecondsLeft !== null
+                    ? `${viewerReconnectSecondsLeft}s left`
                     : "please return soon"}
                   .
                 </Text>
               ) : reconnectingOthers.length > 0 ? (
                 <Text size="sm">
-                  {toReconnectingMembersLabel(reconnectingOthers)} reconnecting...
+                  {toReconnectingMembersLabel(reconnectingOthers)} disconnected. Reconnecting...
                 </Text>
               ) : (
-                <Text size="sm">A player is reconnecting...</Text>
+                <Text size="sm">A player disconnected. Reconnecting...</Text>
               )}
-              {reconnectingSecondsLeft !== null ? (
+              {nearestReconnectSecondsLeft !== null ? (
                 <Text size="xs" c="dimmed">
-                  Auto-abandon in {reconnectingSecondsLeft}s if they do not return.
+                  Auto-abandon in {nearestReconnectSecondsLeft}s if they do not return.
                 </Text>
               ) : null}
             </Stack>

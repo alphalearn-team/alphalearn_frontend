@@ -7,6 +7,8 @@ export type LobbyRealtimeReason =
   | "LEAVE"
   | "ABANDONED_BY_QUIT"
   | "ABANDONED_BY_DISCONNECT_TIMEOUT"
+  | "RECONNECTING"
+  | "RECONNECTED"
   | "SETTINGS"
   | "START"
   | "STATE_RECONCILE"
@@ -74,6 +76,11 @@ export interface ConceptResult {
   finalVoteTallies: VoteTally[];
 }
 
+export interface ReconnectingLearnerState {
+  learnerPublicId: string;
+  disconnectDeadlineAt: string;
+}
+
 export type KnownLobbyEndReason =
   | "PLAYER_QUIT"
   | "PLAYER_DISCONNECTED_TIMEOUT";
@@ -122,8 +129,7 @@ export interface SharedState {
   endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
-  reconnectingLearnerPublicIds: string[];
-  disconnectDeadlineAt: string | null;
+  reconnectingLearners: ReconnectingLearnerState[];
 }
 
 export interface ViewerState {
@@ -195,8 +201,7 @@ export interface PrivateImposterLobbyStateDto {
   endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
-  reconnectingLearnerPublicIds: string[];
-  disconnectDeadlineAt: string | null;
+  reconnectingLearners: ReconnectingLearnerState[];
 }
 
 export interface PrivateImposterLobbyDto {
@@ -265,6 +270,8 @@ export const STRUCTURAL_REFRESH_REASONS = new Set<LobbyRealtimeReason>([
   "LEAVE",
   "ABANDONED_BY_QUIT",
   "ABANDONED_BY_DISCONNECT_TIMEOUT",
+  "RECONNECTING",
+  "RECONNECTED",
   "SETTINGS",
   "START",
   "STATE_RECONCILE",
