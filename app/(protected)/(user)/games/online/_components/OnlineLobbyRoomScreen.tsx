@@ -119,6 +119,7 @@ export default function OnlineLobbyRoomScreen({
   const sharedState = state.sharedState;
   const currentPhase = sharedState?.currentPhase ?? null;
   const isTerminalPhase = isTerminalLobbyPhase(currentPhase);
+  const isRankedLobby = sharedState?.isPrivate === false;
   const viewerState = state.viewerState;
   const viewerCapabilities = state.viewerCapabilities;
   const authoritativeStrokes = useMemo(
@@ -468,7 +469,12 @@ export default function OnlineLobbyRoomScreen({
     !isSubmittingDrawingDone;
 
   const handleSaveSettings = async () => {
-    if (!accessToken || !sharedState || !viewerCapabilities?.viewerIsHost) {
+    if (
+      !accessToken ||
+      !sharedState ||
+      isRankedLobby ||
+      !viewerCapabilities?.viewerIsHost
+    ) {
       return;
     }
 
@@ -504,7 +510,12 @@ export default function OnlineLobbyRoomScreen({
   };
 
   const handleStart = async () => {
-    if (!accessToken || !viewerCapabilities?.canStart || isStarting) {
+    if (
+      !accessToken ||
+      isRankedLobby ||
+      !viewerCapabilities?.canStart ||
+      isStarting
+    ) {
       return;
     }
 
@@ -781,9 +792,16 @@ export default function OnlineLobbyRoomScreen({
                   Code {sharedState.lobbyCode}
                 </Title>
               </div>
-              <Badge color={state.connected ? "green" : "orange"} variant="light">
-                {state.connected ? "Connected" : "Reconnecting"}
-              </Badge>
+              <Group gap="xs">
+                {isRankedLobby ? (
+                  <Badge color="yellow" variant="filled">
+                    Ranked
+                  </Badge>
+                ) : null}
+                <Badge color={state.connected ? "green" : "orange"} variant="light">
+                  {state.connected ? "Connected" : "Reconnecting"}
+                </Badge>
+              </Group>
             </Group>
 
             <Text size="sm" c="dimmed">
@@ -875,9 +893,15 @@ export default function OnlineLobbyRoomScreen({
                   Pre-start lobby
                 </p>
                 <Title order={2} className="mt-2 text-2xl text-[var(--color-text)]">
-                  Configure and start
+                  {isRankedLobby ? "Waiting for players" : "Configure and start"}
                 </Title>
               </div>
+
+              {isRankedLobby ? (
+                <Alert color="blue" variant="light" radius="lg">
+                  Waiting for 4 players. Ranked lobbies auto-start when full.
+                </Alert>
+              ) : null}
 
               <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
                 <Text size="sm" c="dimmed" mb={8}>
@@ -893,84 +917,92 @@ export default function OnlineLobbyRoomScreen({
                 </Stack>
               </div>
 
-              <Divider />
+              {!isRankedLobby ? (
+                <>
+                  <Divider />
 
-              <Stack gap="sm">
-                <NumberInput
-                  label="Concept count"
-                  value={settingsDraft.conceptCount}
-                  onChange={(value) =>
-                    setSettingsDraft((draft) => ({
-                      ...draft,
-                      conceptCount: toNumberInputValue(value),
-                    }))
-                  }
-                  disabled={!viewerCapabilities?.viewerIsHost}
-                />
-                <NumberInput
-                  label="Rounds per concept"
-                  value={settingsDraft.roundsPerConcept}
-                  onChange={(value) =>
-                    setSettingsDraft((draft) => ({
-                      ...draft,
-                      roundsPerConcept: toNumberInputValue(value),
-                    }))
-                  }
-                  disabled={!viewerCapabilities?.viewerIsHost}
-                />
-                <NumberInput
-                  label="Discussion timer (seconds)"
-                  value={settingsDraft.discussionTimerSeconds}
-                  onChange={(value) =>
-                    setSettingsDraft((draft) => ({
-                      ...draft,
-                      discussionTimerSeconds: toNumberInputValue(value),
-                    }))
-                  }
-                  disabled={!viewerCapabilities?.viewerIsHost}
-                />
-                <NumberInput
-                  label="Imposter guess timer (seconds)"
-                  value={settingsDraft.imposterGuessTimerSeconds}
-                  onChange={(value) =>
-                    setSettingsDraft((draft) => ({
-                      ...draft,
-                      imposterGuessTimerSeconds: toNumberInputValue(value),
-                    }))
-                  }
-                  disabled={!viewerCapabilities?.viewerIsHost}
-                />
-                <NumberInput
-                  label="Turn duration (seconds)"
-                  value={settingsDraft.turnDurationSeconds}
-                  onChange={(value) =>
-                    setSettingsDraft((draft) => ({
-                      ...draft,
-                      turnDurationSeconds: toNumberInputValue(value),
-                    }))
-                  }
-                  disabled={!viewerCapabilities?.viewerIsHost}
-                />
-              </Stack>
+                  <Stack gap="sm">
+                    <NumberInput
+                      label="Concept count"
+                      value={settingsDraft.conceptCount}
+                      onChange={(value) =>
+                        setSettingsDraft((draft) => ({
+                          ...draft,
+                          conceptCount: toNumberInputValue(value),
+                        }))
+                      }
+                      disabled={!viewerCapabilities?.viewerIsHost}
+                    />
+                    <NumberInput
+                      label="Rounds per concept"
+                      value={settingsDraft.roundsPerConcept}
+                      onChange={(value) =>
+                        setSettingsDraft((draft) => ({
+                          ...draft,
+                          roundsPerConcept: toNumberInputValue(value),
+                        }))
+                      }
+                      disabled={!viewerCapabilities?.viewerIsHost}
+                    />
+                    <NumberInput
+                      label="Discussion timer (seconds)"
+                      value={settingsDraft.discussionTimerSeconds}
+                      onChange={(value) =>
+                        setSettingsDraft((draft) => ({
+                          ...draft,
+                          discussionTimerSeconds: toNumberInputValue(value),
+                        }))
+                      }
+                      disabled={!viewerCapabilities?.viewerIsHost}
+                    />
+                    <NumberInput
+                      label="Imposter guess timer (seconds)"
+                      value={settingsDraft.imposterGuessTimerSeconds}
+                      onChange={(value) =>
+                        setSettingsDraft((draft) => ({
+                          ...draft,
+                          imposterGuessTimerSeconds: toNumberInputValue(value),
+                        }))
+                      }
+                      disabled={!viewerCapabilities?.viewerIsHost}
+                    />
+                    <NumberInput
+                      label="Turn duration (seconds)"
+                      value={settingsDraft.turnDurationSeconds}
+                      onChange={(value) =>
+                        setSettingsDraft((draft) => ({
+                          ...draft,
+                          turnDurationSeconds: toNumberInputValue(value),
+                        }))
+                      }
+                      disabled={!viewerCapabilities?.viewerIsHost}
+                    />
+                  </Stack>
+                </>
+              ) : null}
 
               <Group>
-                <Button
-                  radius="xl"
-                  loading={isSavingSettings}
-                  disabled={!viewerCapabilities?.viewerIsHost}
-                  onClick={handleSaveSettings}
-                >
-                  Save settings
-                </Button>
-                <Button
-                  radius="xl"
-                  loading={isStarting}
-                  disabled={!viewerCapabilities?.canStart}
-                  onClick={handleStart}
-                  color="lime"
-                >
-                  Start game
-                </Button>
+                {!isRankedLobby ? (
+                  <>
+                    <Button
+                      radius="xl"
+                      loading={isSavingSettings}
+                      disabled={!viewerCapabilities?.viewerIsHost}
+                      onClick={handleSaveSettings}
+                    >
+                      Save settings
+                    </Button>
+                    <Button
+                      radius="xl"
+                      loading={isStarting}
+                      disabled={!viewerCapabilities?.canStart}
+                      onClick={handleStart}
+                      color="lime"
+                    >
+                      Start game
+                    </Button>
+                  </>
+                ) : null}
                 <Button
                   radius="xl"
                   variant="default"
