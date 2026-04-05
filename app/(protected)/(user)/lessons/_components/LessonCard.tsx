@@ -1,14 +1,16 @@
 "use client";
 
 import { Group, Stack, Title, Text, Tooltip } from "@mantine/core";
-import type { LessonSummary } from "@/interfaces/interfaces";
+import type { LessonProgress, LessonSummary } from "@/interfaces/interfaces";
 import ContentCardShell from "@/components/CardShell";
+import LessonProgressBar from "@/components/LessonProgressBar";
 import { formatShortDate } from "@/lib/utils/formatDate";
 import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
 
 type LessonCardProps = LessonSummary;
 interface LessonCardOptions {
   showModerationBadge?: boolean;
+  progress?: LessonProgress;
 }
 
 export default function LessonCard({
@@ -19,6 +21,7 @@ export default function LessonCard({
   createdAt,
   showModerationBadge = true,
   concepts,
+  progress,
 }: LessonCardProps & LessonCardOptions) {
   const conceptLabels = (concepts || [])
     .map((concept) => concept?.title)
@@ -86,12 +89,23 @@ export default function LessonCard({
           <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-card-text-muted)] opacity-70">
             {createdAt ? formatShortDate(createdAt) : "Recent"}
           </span>
-          <div className="flex gap-1">
-            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-30" />
-            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-50" />
-            <div className="w-1 h-1 rounded-full bg-[var(--color-primary)]" />
-          </div>
+          {!progress && (
+            <div className="flex gap-1">
+              <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-30" />
+              <div className="w-1 h-1 rounded-full bg-[var(--color-primary)] opacity-50" />
+              <div className="w-1 h-1 rounded-full bg-[var(--color-primary)]" />
+            </div>
+          )}
         </div>
+
+        {progress && (
+          <LessonProgressBar
+            passedQuizzes={progress.passedQuizzes}
+            totalQuizzes={progress.totalQuizzes}
+            completed={progress.completed}
+            compact
+          />
+        )}
       </Stack>
     </ContentCardShell>
   );

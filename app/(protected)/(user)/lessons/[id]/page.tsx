@@ -3,6 +3,7 @@ import { Container } from "@mantine/core";
 import { notFound } from "next/navigation";
 import LessonModerationFeedbackPanel from "@/app/(protected)/(user)/lessons/_components/LessonModerationFeedbackPanel";
 import { getUserRole } from "@/lib/auth/server/rbac";
+import LessonProgressBar from "@/components/LessonProgressBar";
 import EnrollmentGate from "./_components/EnrollmentGate";
 import { LessonContentDisplay } from "./_components/LessonContentDisplay";
 import LessonDetailHeader from "./_components/LessonDetailHeader";
@@ -31,6 +32,7 @@ export default async function LessonPage({
     shouldShowModerationState,
     showBackToMine,
     status,
+    progress,
   } = viewModel;
 
   return (
@@ -64,10 +66,19 @@ export default async function LessonPage({
           <EnrollmentGate lessonId={lessonId} />
         )}
         
-        <LessonQuizSection 
-          lessonId={lessonId} 
-          isEnrolled={viewModel.isEnrolled} 
-          isOwner={viewModel.isOwner} 
+        {progress && (
+          <LessonProgressBar
+            passedQuizzes={progress.passedQuizzes}
+            totalQuizzes={progress.totalQuizzes}
+            completed={progress.completed}
+            firstCompletedAt={progress.firstCompletedAt}
+          />
+        )}
+
+        <LessonQuizSection
+          lessonId={lessonId}
+          isEnrolled={viewModel.isEnrolled}
+          isOwner={viewModel.isOwner}
         />
       </div>
     </Container>

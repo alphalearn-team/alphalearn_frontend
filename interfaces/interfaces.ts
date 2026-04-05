@@ -186,6 +186,15 @@ export interface AdminUser {
   demotedAt?: string | null;
 }
 
+export interface LessonProgress {
+  lessonPublicId: string;
+  title: string;
+  completed: boolean;
+  firstCompletedAt: string | null;
+  totalQuizzes: number;
+  passedQuizzes: number;
+}
+
 export type AdminConcept = Concept;
 
 export interface AdminLessonQueueItem {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import type { LessonSummary } from "@/interfaces/interfaces";
+import type { LessonProgress, LessonSummary } from "@/interfaces/interfaces";
 import LessonCard from "@/app/(protected)/(user)/lessons/_components/LessonCard";
 import SpotlightWrapper, { type SpotlightSearchItem } from "@/components/SpotlightWrapper";
 import Pagination from "@/components/pagination/Pagination";
@@ -13,9 +13,11 @@ const ITEMS_PER_PAGE = 6;
 export default function LessonsGrid({
   lessons,
   role,
+  progressMap = {},
 }: {
   lessons: LessonSummary[];
   role?: string | null;
+  progressMap?: Record<string, LessonProgress>;
 }) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -50,6 +52,7 @@ export default function LessonsGrid({
               key={lesson.lessonPublicId}
               {...lesson}
               showModerationBadge={false}
+              progress={progressMap[lesson.lessonPublicId]}
             />
           ))}
         </SimpleGrid>

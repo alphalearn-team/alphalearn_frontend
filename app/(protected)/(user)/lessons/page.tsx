@@ -6,18 +6,21 @@ import LessonsGrid from "./_components/LessonsGrid";
 import LessonsHeroSection from "./_components/LessonsHeroSection";
 import LessonsSkeleton from "./_components/LessonsSkeleton";
 import { apiFetch } from "@/lib/api/api";
-import type { LessonSummary } from "@/interfaces/interfaces";
+import type { LessonProgress, LessonSummary } from "@/interfaces/interfaces";
 
 async function LessonsListRenderer({ role }: { role: string | null }) {
-  const lessons = await apiFetch<LessonSummary[]>("/lessons").catch(() => null);
+  const [lessons, progressList] = await Promise.all([
+    apiFetch<LessonSummary[]>("/lessons").catch(() => null),
+    apiFetch<LessonProgress[]>("/lessonenrollments/me/progress").catch(() => [] as LessonProgress[]),
+  ]);
 
   if (!lessons) return <NotFound />;
 
-  return (
-    <>
-      <LessonsGrid lessons={lessons} role={role} />
-    </>
+  const progressMap = Object.fromEntries(
+    progressList.map((p) => [p.lessonPublicId, p])
   );
+
+  return <LessonsGrid lessons={lessons} role={role} progressMap={progressMap} />;
 }
 
 export default async function LessonsPage() {
