@@ -385,6 +385,33 @@ export default function OnlineLobbyRoomScreen({
 
     return matchedMembers[0].learnerPublicId;
   }, [session, sharedState?.activeMembers]);
+  const reconnectingLearnerPublicIds = useMemo(
+    () => sharedState?.reconnectingLearnerPublicIds ?? [],
+    [sharedState?.reconnectingLearnerPublicIds],
+  );
+  const reconnectingMembers = useMemo(
+    () =>
+      reconnectingLearnerPublicIds
+        .map((learnerPublicId) =>
+          findMemberByPublicId(sharedState?.activeMembers ?? [], learnerPublicId),
+        )
+        .filter((member): member is MemberState => member !== null),
+    [reconnectingLearnerPublicIds, sharedState?.activeMembers],
+  );
+  const viewerIsReconnecting =
+    viewerMemberPublicId !== null &&
+    reconnectingLearnerPublicIds.includes(viewerMemberPublicId);
+  const reconnectingOthers = useMemo(
+    () =>
+      reconnectingMembers.filter(
+        (member) => member.learnerPublicId !== viewerMemberPublicId,
+      ),
+    [reconnectingMembers, viewerMemberPublicId],
+  );
+  const reconnectingSecondsLeft = useMemo(
+    () => toSecondsLeft(sharedState?.disconnectDeadlineAt ?? null, now),
+    [sharedState?.disconnectDeadlineAt, now],
+  );
 
   useEffect(() => {
     if (!viewerMemberPublicId) {
@@ -752,6 +779,33 @@ export default function OnlineLobbyRoomScreen({
         {errorMessage ? (
           <Alert color="red" radius="lg" variant="light" title="Sync issue">
             {errorMessage}
+          </Alert>
+        ) : null}
+
+        {reconnectingLearnerPublicIds.length > 0 && sharedState.currentPhase !== "ABANDONED" ? (
+          <Alert color="blue" radius="lg" variant="light" title="Reconnecting">
+            <Stack gap={4}>
+              {viewerIsReconnecting ? (
+                <Text size="sm">
+                  Reconnecting...{" "}
+                  {reconnectingSecondsLeft !== null
+                    ? `${reconnectingSecondsLeft}s left`
+                    : "please return soon"}
+                  .
+                </Text>
+              ) : reconnectingOthers.length > 0 ? (
+                <Text size="sm">
+                  {toReconnectingMembersLabel(reconnectingOthers)} reconnecting...
+                </Text>
+              ) : (
+                <Text size="sm">A player is reconnecting...</Text>
+              )}
+              {reconnectingSecondsLeft !== null ? (
+                <Text size="xs" c="dimmed">
+                  Auto-abandon in {reconnectingSecondsLeft}s if they do not return.
+                </Text>
+              ) : null}
+            </Stack>
           </Alert>
         ) : null}
 
@@ -1286,6 +1340,35 @@ function formatEndedAt(endedAt: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(endedAtMs));
+}
+
+function toSecondsLeft(deadlineAt: string | null, now: number): number | null {
+  if (!deadlineAt) {
+    return null;
+  }
+
+  const deadlineMs = Date.parse(deadlineAt);
+  if (!Number.isFinite(deadlineMs)) {
+    return null;
+  }
+
+  return Math.max(0, Math.ceil((deadlineMs - now) / 1000));
+}
+
+function toReconnectingMembersLabel(members: MemberState[]): string {
+  if (members.length === 0) {
+    return "Players";
+  }
+
+  if (members.length === 1) {
+    return toMemberLabel(members[0]);
+  }
+
+  if (members.length === 2) {
+    return `${toMemberLabel(members[0])} and ${toMemberLabel(members[1])}`;
+  }
+
+  return `${toMemberLabel(members[0])} and ${members.length - 1} others`;
 }
 
 function toDisplayTurnNumber(currentTurnIndex: number | null): number | "-" {

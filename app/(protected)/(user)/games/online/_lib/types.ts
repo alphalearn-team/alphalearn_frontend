@@ -122,6 +122,8 @@ export interface SharedState {
   endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
+  reconnectingLearnerPublicIds: string[];
+  disconnectDeadlineAt: string | null;
 }
 
 export interface ViewerState {
@@ -193,6 +195,8 @@ export interface PrivateImposterLobbyStateDto {
   endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
+  reconnectingLearnerPublicIds: string[];
+  disconnectDeadlineAt: string | null;
 }
 
 export interface PrivateImposterLobbyDto {
