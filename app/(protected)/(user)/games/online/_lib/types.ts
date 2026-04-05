@@ -6,6 +6,7 @@ export type LobbyRealtimeReason =
   | "LEAVE_HOST_TRANSFER"
   | "LEAVE"
   | "ABANDONED_BY_QUIT"
+  | "ABANDONED_BY_DISCONNECT_TIMEOUT"
   | "SETTINGS"
   | "START"
   | "STATE_RECONCILE"
@@ -73,6 +74,11 @@ export interface ConceptResult {
   finalVoteTallies: VoteTally[];
 }
 
+export type KnownLobbyEndReason =
+  | "PLAYER_QUIT"
+  | "PLAYER_DISCONNECTED_TIMEOUT";
+export type LobbyEndReason = KnownLobbyEndReason | (string & {});
+
 export interface SharedState {
   publicId: string;
   lobbyCode: string;
@@ -113,7 +119,7 @@ export interface SharedState {
   imposterGuessDeadlineAt: string | null;
   lastImposterGuess: string | null;
   lastImposterGuessCorrect: boolean | null;
-  endReason: string | null;
+  endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
 }
@@ -184,7 +190,7 @@ export interface PrivateImposterLobbyStateDto {
   viewerConceptTitle: string | null;
   lastImposterGuess: string | null;
   lastImposterGuessCorrect: boolean | null;
-  endReason: string | null;
+  endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
 }
@@ -254,6 +260,7 @@ export const STRUCTURAL_REFRESH_REASONS = new Set<LobbyRealtimeReason>([
   "LEAVE_HOST_TRANSFER",
   "LEAVE",
   "ABANDONED_BY_QUIT",
+  "ABANDONED_BY_DISCONNECT_TIMEOUT",
   "SETTINGS",
   "START",
   "STATE_RECONCILE",
