@@ -555,12 +555,24 @@ export default function OnlineLobbyRoomScreen({
         return;
       }
 
-      router.push("/games/online");
+      router.push("/games");
     } catch (error) {
-      setErrorMessage(
+      const message =
         error instanceof Error && error.message
           ? error.message
-          : "Could not leave lobby.",
+          : "Could not leave lobby.";
+      const isCloseConflictMessage = message.includes(
+        "Unable to close lobby because it is still referenced by active game data",
+      );
+
+      if (isRankedLobby && isCloseConflictMessage) {
+        setErrorMessage(null);
+        router.push("/games");
+        return;
+      }
+
+      setErrorMessage(
+        message,
       );
       setIsLeaving(false);
     }
@@ -570,10 +582,13 @@ export default function OnlineLobbyRoomScreen({
     if (!sharedState) {
       return false;
     }
+    if (isRankedLobby) {
+      return false;
+    }
 
     const hasStartedGame = sharedState.currentPhase !== null;
     return hasStartedGame && !isTerminalLobbyPhase(sharedState.currentPhase);
-  }, [sharedState]);
+  }, [isRankedLobby, sharedState]);
 
   const handleLeave = () => {
     if (shouldConfirmLeave) {
@@ -789,7 +804,7 @@ export default function OnlineLobbyRoomScreen({
                   Online lobby
                 </p>
                 <Title order={1} className="mt-2 text-3xl text-[var(--color-text)]">
-                  Code {sharedState.lobbyCode}
+                  {isRankedLobby ? "Ranked Lobby" : `Code ${sharedState.lobbyCode ?? "N/A"}`}
                 </Title>
               </div>
               <Group gap="xs">
@@ -804,9 +819,11 @@ export default function OnlineLobbyRoomScreen({
               </Group>
             </Group>
 
-            <Text size="sm" c="dimmed">
-              Lobby: {sharedState.publicId}
-            </Text>
+            {!isRankedLobby ? (
+              <Text size="sm" c="dimmed">
+                Lobby: {sharedState.publicId}
+              </Text>
+            ) : null}
           </Stack>
         </Card>
 
@@ -822,7 +839,9 @@ export default function OnlineLobbyRoomScreen({
           </Alert>
         ) : null}
 
-        {reconnectingLearnerPublicIds.length > 0 && sharedState.currentPhase !== "ABANDONED" ? (
+        {reconnectingLearnerPublicIds.length > 0 &&
+        sharedState.currentPhase !== null &&
+        sharedState.currentPhase !== "ABANDONED" ? (
           <Alert color="blue" radius="lg" variant="light" title="Reconnecting">
             <Stack gap={4}>
               {viewerIsReconnecting ? (
@@ -899,7 +918,7 @@ export default function OnlineLobbyRoomScreen({
 
               {isRankedLobby ? (
                 <Alert color="blue" variant="light" radius="lg">
-                  Waiting for 4 players. Ranked lobbies auto-start when full.
+                  Waiting for 4 players. Lobbies auto-start when full.
                 </Alert>
               ) : null}
 
@@ -911,7 +930,7 @@ export default function OnlineLobbyRoomScreen({
                   {sharedState.activeMembers.map((member) => (
                     <Group key={member.learnerPublicId ?? member.joinedAt} justify="space-between">
                       <Text>{toMemberLabel(member)}</Text>
-                      {member.host ? <Badge color="lime">Host</Badge> : null}
+                      {member.host && !isRankedLobby ? <Badge color="lime">Host</Badge> : null}
                     </Group>
                   ))}
                 </Stack>
