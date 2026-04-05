@@ -24,6 +24,7 @@ import type { LobbyConceptPoolMode } from "../_lib/types";
 
 const sectionCardClassName =
   "border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]";
+const JOIN_STATE_HYDRATE_RETRY_DELAYS_MS = [200, 400, 700];
 
 export default function OnlineLobbyHubScreen() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function OnlineLobbyHubScreen() {
       const joinedLobby = await joinPrivateLobby(accessToken, {
         lobbyCode: normalizedCode,
       });
-      await getPrivateLobbyState(accessToken, joinedLobby.publicId);
+      await hydrateJoinedLobbyState(accessToken, joinedLobby.publicId);
 
       router.push(`/games/online/${joinedLobby.publicId}`);
     } catch (error) {
@@ -246,4 +247,24 @@ export default function OnlineLobbyHubScreen() {
       </Stack>
     </Container>
   );
+}
+
+async function hydrateJoinedLobbyState(
+  accessToken: string,
+  lobbyPublicId: string,
+): Promise<void> {
+  for (const retryDelayMs of JOIN_STATE_HYDRATE_RETRY_DELAYS_MS) {
+    try {
+      await getPrivateLobbyState(accessToken, lobbyPublicId);
+      return;
+    } catch {
+      await waitMs(retryDelayMs);
+    }
+  }
+}
+
+function waitMs(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
 }
