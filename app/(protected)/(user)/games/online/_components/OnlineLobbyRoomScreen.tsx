@@ -117,7 +117,8 @@ export default function OnlineLobbyRoomScreen({
   const autoDoneTurnKeyRef = useRef<string | null>(null);
 
   const sharedState = state.sharedState;
-  const isTerminalPhase = isTerminalLobbyPhase(sharedState?.currentPhase ?? null);
+  const currentPhase = sharedState?.currentPhase ?? null;
+  const isTerminalPhase = isTerminalLobbyPhase(currentPhase);
   const viewerState = state.viewerState;
   const viewerCapabilities = state.viewerCapabilities;
   const authoritativeStrokes = useMemo(
@@ -312,8 +313,8 @@ export default function OnlineLobbyRoomScreen({
   useEffect(() => {
     if (
       !accessToken ||
-      sharedState?.currentPhase === null ||
-      isTerminalLobbyPhase(sharedState.currentPhase)
+      currentPhase === null ||
+      isTerminalLobbyPhase(currentPhase)
     ) {
       return;
     }
@@ -325,7 +326,7 @@ export default function OnlineLobbyRoomScreen({
     return () => {
       window.clearInterval(reconcileIntervalId);
     };
-  }, [accessToken, refreshLobbyState, sharedState?.currentPhase]);
+  }, [accessToken, currentPhase, refreshLobbyState]);
 
   const activeDrawer = useMemo(
     () =>
