@@ -310,6 +310,14 @@ export default function OnlineLobbyRoomScreen({
       ),
     [sharedState?.activeMembers, sharedState?.votedOutPublicId],
   );
+  const abandonedByMember = useMemo(
+    () =>
+      findMemberByPublicId(
+        sharedState?.activeMembers ?? [],
+        sharedState?.endedByPublicId ?? null,
+      ),
+    [sharedState?.activeMembers, sharedState?.endedByPublicId],
+  );
   const viewerMemberPublicId = useMemo(() => {
     if (!sharedState?.activeMembers?.length) {
       return null;
@@ -692,6 +700,24 @@ export default function OnlineLobbyRoomScreen({
         {errorMessage ? (
           <Alert color="red" radius="lg" variant="light" title="Sync issue">
             {errorMessage}
+          </Alert>
+        ) : null}
+
+        {sharedState.currentPhase === "ABANDONED" ? (
+          <Alert color="orange" radius="lg" variant="light" title="Game ended early">
+            <Stack gap={4}>
+              <Text size="sm">
+                A player left, so this session has ended for everyone.
+              </Text>
+              {abandonedByMember ? (
+                <Text size="sm">Player who left: {toMemberLabel(abandonedByMember)}.</Text>
+              ) : null}
+              {sharedState.endedAt ? (
+                <Text size="xs" c="dimmed">
+                  Ended at {formatEndedAt(sharedState.endedAt)}
+                </Text>
+              ) : null}
+            </Stack>
           </Alert>
         ) : null}
 
@@ -1178,6 +1204,18 @@ function formatDeadline(deadlineAt: string | null, now: number): string {
   const minutes = Math.floor(secondsRemaining / 60);
   const seconds = secondsRemaining % 60;
   return `Time left ${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function formatEndedAt(endedAt: string): string {
+  const endedAtMs = Date.parse(endedAt);
+  if (!Number.isFinite(endedAtMs)) {
+    return endedAt;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(endedAtMs));
 }
 
 function toDisplayTurnNumber(currentTurnIndex: number | null): number | "-" {
