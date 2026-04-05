@@ -79,7 +79,7 @@ export default function MyLessonsStats({
         display: true,
         position: "bottom",
         labels: {
-          color: "#797979",
+          color: "#ffffff",
           font: { size: 11 },
           padding: 16,
           boxWidth: 12,
@@ -90,7 +90,7 @@ export default function MyLessonsStats({
         enabled: totalEnrolled > 0,
         backgroundColor: "#333333",
         titleColor: "#ffffff",
-        bodyColor: "#797979",
+        bodyColor: "#ffffff",
         padding: 10,
         cornerRadius: 8,
       },
@@ -128,7 +128,7 @@ export default function MyLessonsStats({
       tooltip: {
         backgroundColor: "#333333",
         titleColor: "#ffffff",
-        bodyColor: "#797979",
+        bodyColor: "#ffffff",
         padding: 10,
         cornerRadius: 8,
       },
@@ -136,12 +136,12 @@ export default function MyLessonsStats({
     scales: {
       x: {
         beginAtZero: true,
-        ticks: { color: "#797979", precision: 0 },
+        ticks: { color: "#ffffff", precision: 0 },
         grid: { color: "rgba(255,255,255,0.04)" },
         border: { color: "rgba(255,255,255,0.08)" },
       },
       y: {
-        ticks: { color: "#b3b3c6", font: { size: 11 } },
+        ticks: { color: "#ffffff", font: { size: 11 } },
         grid: { display: false },
         border: { color: "rgba(255,255,255,0.08)" },
       },
