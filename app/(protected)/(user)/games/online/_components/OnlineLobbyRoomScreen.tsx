@@ -713,6 +713,26 @@ export default function OnlineLobbyRoomScreen({
           </Alert>
         ) : null}
 
+        {sharedState.currentPhase !== null && !isTerminalPhase ? (
+          <Card radius="24px" padding="md" className={sectionCardClassName}>
+            <Group justify="space-between" align="center">
+              <Text size="sm" c="dimmed">
+                Need to exit this match?
+              </Text>
+              <Button
+                radius="xl"
+                color="red"
+                variant="light"
+                loading={isLeaving}
+                disabled={!viewerCapabilities?.canLeave}
+                onClick={handleLeave}
+              >
+                Leave game
+              </Button>
+            </Group>
+          </Card>
+        ) : null}
+
         {sharedState.currentPhase === "ABANDONED" ? (
           <Alert color="orange" radius="lg" variant="light" title="Game ended early">
             <Stack gap={4}>
