@@ -3,7 +3,7 @@
 import { Group, Stack, Title, Text, Tooltip } from "@mantine/core";
 import type { LessonProgress, LessonSummary } from "@/interfaces/interfaces";
 import ContentCardShell from "@/components/CardShell";
-import LessonProgressBar from "@/components/LessonProgressBar";
+import ProgressBar from "@/components/ProgressBar";
 import { formatShortDate } from "@/lib/utils/formatDate";
 import LessonModerationBadge from "@/app/(protected)/(user)/lessons/_components/LessonModerationBadge";
 
@@ -99,12 +99,37 @@ export default function LessonCard({
         </div>
 
         {progress && (
-          <LessonProgressBar
-            passedQuizzes={progress.passedQuizzes}
-            totalQuizzes={progress.totalQuizzes}
-            completed={progress.completed}
-            compact
-          />
+          <div className="space-y-1.5 pt-3">
+            <div className="flex items-center justify-between">
+              {progress.completed ? (
+                <span
+                  className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: "var(--color-success)" }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: "12px" }}>check_circle</span>
+                  Completed
+                </span>
+              ) : (
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {progress.totalQuizzes === 0 ? "Enrolled" : `${progress.passedQuizzes}/${progress.totalQuizzes} quizzes`}
+                </span>
+              )}
+              {!progress.completed && progress.totalQuizzes > 0 && (
+                <span className="text-[10px] font-bold" style={{ color: "var(--color-text-muted)" }}>
+                  {Math.round((progress.passedQuizzes / progress.totalQuizzes) * 100)}%
+                </span>
+              )}
+            </div>
+            <ProgressBar
+              value={progress.passedQuizzes}
+              max={progress.totalQuizzes}
+              completed={progress.completed}
+              size="sm"
+            />
+          </div>
         )}
       </Stack>
     </ContentCardShell>
