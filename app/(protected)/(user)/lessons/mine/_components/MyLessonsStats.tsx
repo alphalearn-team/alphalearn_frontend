@@ -1,6 +1,6 @@
 "use client";
 
-import { Doughnut, Bar } from "react-chartjs-2";
+import { Pie, Bar } from "react-chartjs-2";
 import type { ChartOptions } from "chart.js";
 import {
   ArcElement,
@@ -49,31 +49,43 @@ export default function MyLessonsStats({
   const incomplete = Math.max(0, totalEnrolled - totalCompleted);
 
   // ── Donut ────────────────────────────────────────────────
+  const donutBg =
+    totalEnrolled === 0
+      ? ["rgba(255,255,255,0.05)"]
+      : ["#10b981", "rgba(46,255,180,0.12)"];
+
   const donutData = {
     labels: ["Completed", "Incomplete"],
     datasets: [
       {
         data: totalEnrolled === 0 ? [0, 1] : [totalCompleted, incomplete],
-        backgroundColor:
-          totalEnrolled === 0
-            ? ["rgba(255,255,255,0.05)"]
-            : ["#10b981", "rgba(46,255,180,0.12)"],
+        backgroundColor: donutBg,
+        hoverBackgroundColor: donutBg,
         borderColor:
           totalEnrolled === 0
             ? ["rgba(255,255,255,0.08)"]
             : ["#10b981", "rgba(46,255,180,0.2)"],
         borderWidth: 1,
-        hoverOffset: 6,
+        hoverOffset: 0,
       },
     ],
   };
 
-  const donutOptions: ChartOptions<"doughnut"> = {
+  const donutOptions: ChartOptions<"pie"> = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: "72%",
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: true,
+        position: "bottom",
+        labels: {
+          color: "#797979",
+          font: { size: 11 },
+          padding: 16,
+          boxWidth: 12,
+          boxHeight: 12,
+        },
+      },
       tooltip: {
         enabled: totalEnrolled > 0,
         backgroundColor: "#333333",
@@ -88,7 +100,7 @@ export default function MyLessonsStats({
   // ── Horizontal Bar ───────────────────────────────────────
   const sorted = [...lessons]
     .sort((a, b) => (b.enrollmentCount ?? 0) - (a.enrollmentCount ?? 0))
-    .slice(0, 8);
+    .slice(0, 6);
 
   const truncate = (s: string, n: number) =>
     s.length > n ? s.slice(0, n) + "…" : s;
@@ -136,7 +148,7 @@ export default function MyLessonsStats({
     },
   };
 
-  const barHeight = Math.max(160, sorted.length * 36);
+  const CHART_HEIGHT = 220;
 
   return (
     <div className="flex flex-col gap-4">
@@ -177,39 +189,26 @@ export default function MyLessonsStats({
       {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-[5fr_7fr] gap-4">
 
-        {/* Donut */}
-        <div style={cardStyle}>
+        {/* Pie */}
+        <div style={cardStyle} className="flex flex-col gap-3">
           <p style={sectionLabel}>Completion Rate</p>
-          <div className="relative mx-auto" style={{ height: 180, maxWidth: 180 }}>
-            <Doughnut data={donutData} options={donutOptions} />
-            <div
-              className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
-            >
-              <span
-                className="text-3xl font-black tracking-tight"
-                style={{ color: "var(--color-text)" }}
-              >
-                {completionRate}%
-              </span>
-              <span
-                className="text-[9px] font-semibold uppercase tracking-[0.15em] mt-0.5"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                {totalEnrolled === 0 ? "No data" : `${totalCompleted} / ${totalEnrolled}`}
-              </span>
-            </div>
+          <div style={{ height: CHART_HEIGHT }}>
+            <Pie data={donutData} options={donutOptions} />
           </div>
+          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.15em]" style={{ color: "var(--color-text-muted)" }}>
+            {totalEnrolled === 0 ? "No data" : `${completionRate}% · ${totalCompleted} / ${totalEnrolled} learners`}
+          </p>
         </div>
 
         {/* Horizontal bar */}
         <div style={cardStyle}>
-          <p style={sectionLabel}>Enrollments per Lesson</p>
+          <p style={sectionLabel}> Top Enrollments</p>
           {sorted.length === 0 ? (
             <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
               No enrollment data yet.
             </p>
           ) : (
-            <div style={{ height: barHeight }}>
+            <div style={{ height: CHART_HEIGHT }}>
               <Bar data={barData} options={barOptions} />
             </div>
           )}
