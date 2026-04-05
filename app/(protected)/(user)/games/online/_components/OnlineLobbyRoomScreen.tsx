@@ -468,7 +468,16 @@ export default function OnlineLobbyRoomScreen({
     setIsLeaving(true);
 
     try {
-      await leavePrivateLobby(accessToken, lobbyPublicId);
+      const leaveResponse = await leavePrivateLobby(accessToken, lobbyPublicId);
+      if (
+        leaveResponse.result === "LEFT_AND_SESSION_ABANDONED" &&
+        leaveResponse.lobbyState
+      ) {
+        dispatch({ type: "BOOTSTRAP_SUCCESS", payload: leaveResponse.lobbyState });
+        setIsLeaving(false);
+        return;
+      }
+
       router.push("/games/online");
     } catch (error) {
       setErrorMessage(
