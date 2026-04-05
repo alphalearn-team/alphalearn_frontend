@@ -46,6 +46,7 @@ import {
 } from "../_lib/snapshot";
 import {
   STRUCTURAL_REFRESH_REASONS,
+  type LobbyPhase,
   type MemberState,
   type UpdatePrivateImposterLobbySettingsRequest,
 } from "../_lib/types";
@@ -114,6 +115,7 @@ export default function OnlineLobbyRoomScreen({
   const autoDoneTurnKeyRef = useRef<string | null>(null);
 
   const sharedState = state.sharedState;
+  const isTerminalPhase = isTerminalLobbyPhase(sharedState?.currentPhase ?? null);
   const viewerState = state.viewerState;
   const viewerCapabilities = state.viewerCapabilities;
   const authoritativeStrokes = useMemo(
@@ -241,6 +243,14 @@ export default function OnlineLobbyRoomScreen({
           }
         },
         onError: (message) => {
+          if (isSessionAbandonedError(message)) {
+            setIsSubmittingDrawingDone(false);
+            setDrawingDoneBaseSharedVersion(null);
+            setErrorMessage("This game already ended because a player left.");
+            void refreshLobbyState(true);
+            return;
+          }
+
           if (
             isSubmittingDrawingDoneRef.current &&
             isDoneSubmitConflictOrPhaseError(message)
@@ -358,6 +368,7 @@ export default function OnlineLobbyRoomScreen({
   }, [selectedVoteTargetPublicId, viewerMemberPublicId]);
 
   const canSubmitVote =
+    !isTerminalPhase &&
     sharedState?.currentPhase === "VOTING" &&
     !viewerState?.viewerVoteTargetPublicId &&
     Boolean(selectedVoteTargetPublicId) &&
@@ -367,10 +378,12 @@ export default function OnlineLobbyRoomScreen({
     );
 
   const canSubmitGuess =
+    !isTerminalPhase &&
     sharedState?.currentPhase === "IMPOSTER_GUESS" &&
     Boolean(viewerState?.viewerIsImposter) &&
     guessInput.trim().length > 0;
   const canSubmitDrawingDone =
+    !isTerminalPhase &&
     sharedState?.currentPhase === "DRAWING" &&
     Boolean(viewerCapabilities?.viewerIsCurrentDrawer) &&
     Boolean(viewerCapabilities?.canSubmitSnapshot) &&
@@ -461,10 +474,7 @@ export default function OnlineLobbyRoomScreen({
     }
 
     const hasStartedGame = sharedState.currentPhase !== null;
-    const isTerminalPhase =
-      sharedState.currentPhase === "MATCH_COMPLETE" ||
-      sharedState.currentPhase === "ABANDONED";
-    return hasStartedGame && !isTerminalPhase;
+    return hasStartedGame && !isTerminalLobbyPhase(sharedState.currentPhase);
   }, [sharedState]);
 
   const handleLeave = () => {
@@ -1240,4 +1250,21 @@ function isDoneSubmitConflictOrPhaseError(message: string): boolean {
     normalized.includes("drawer") ||
     normalized.includes("turn")
   );
+}
+
+function isSessionAbandonedError(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("abandoned") ||
+    normalized.includes("ended because a player left") ||
+    (normalized.includes("session") && normalized.includes("ended"))
+  );
+}
+
+function isTerminalLobbyPhase(phase: LobbyPhase): boolean {
+  return phase === "MATCH_COMPLETE" || phase === "ABANDONED";
 }
