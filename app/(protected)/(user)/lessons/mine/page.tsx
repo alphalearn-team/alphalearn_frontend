@@ -32,6 +32,7 @@ export default async function MyLessonsPage() {
               totalLessons={lessons.length}
               totalEnrolled={totalEnrolled}
               totalCompleted={totalCompleted}
+              lessons={lessons}
             />
 
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
