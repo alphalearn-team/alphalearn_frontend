@@ -112,6 +112,7 @@ export default function OnlineLobbyRoomScreen({
   const realtimeRef =
     useRef<ReturnType<typeof createImposterLobbyRealtimeClient> | null>(null);
   const refreshTimeoutRef = useRef<number | null>(null);
+  const previousPhaseRef = useRef<LobbyPhase>(null);
   const isSubmittingDrawingDoneRef = useRef(isSubmittingDrawingDone);
   const autoDoneTurnKeyRef = useRef<string | null>(null);
 
@@ -171,6 +172,21 @@ export default function OnlineLobbyRoomScreen({
 
     void refreshLobbyState();
   }, [accessToken, refreshLobbyState]);
+
+  useEffect(() => {
+    const previousPhase = previousPhaseRef.current;
+    previousPhaseRef.current = sharedState?.currentPhase ?? null;
+
+    if (
+      !accessToken ||
+      sharedState?.currentPhase !== "ABANDONED" ||
+      previousPhase === "ABANDONED"
+    ) {
+      return;
+    }
+
+    void refreshLobbyState(true);
+  }, [accessToken, refreshLobbyState, sharedState?.currentPhase]);
 
   useEffect(() => {
     if (!sharedState || sharedState.currentPhase !== null) {
