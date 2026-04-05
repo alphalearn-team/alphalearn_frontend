@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
   Alert,
@@ -20,6 +20,8 @@ import {
   joinPrivateLobby,
   normalizeLobbyCode,
 } from "../_lib/api";
+import { createRankedMatchmakingRealtimeClient } from "../_lib/matchmakingRealtime";
+import { useRankedMatchmakingQueue } from "../_lib/useRankedMatchmakingQueue";
 import type { LobbyConceptPoolMode } from "../_lib/types";
 
 const sectionCardClassName =
@@ -28,6 +30,7 @@ const JOIN_STATE_HYDRATE_RETRY_DELAYS_MS = [200, 400, 700];
 
 export default function OnlineLobbyHubScreen() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { session } = useAuth();
 
   const [conceptPoolMode, setConceptPoolMode] =
@@ -38,6 +41,123 @@ export default function OnlineLobbyHubScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const accessToken = session?.access_token ?? null;
+  const isRankedVisible = resolveRankedVisibility();
+  const shouldAutoRankedSearch =
+    isRankedVisible && searchParams.get("ranked") === "1";
+  const rankedQueue = useRankedMatchmakingQueue(
+    shouldAutoRankedSearch ? accessToken : null,
+  );
+  const {
+    state: rankedQueueState,
+    isSearching,
+    isBusy,
+    matchedLobbyPublicId,
+    hydrateStatus,
+    enqueue,
+    applyMatchmakingEvent,
+  } = rankedQueue;
+  const matchmakingRealtimeRef = useRef<ReturnType<
+    typeof createRankedMatchmakingRealtimeClient
+  > | null>(null);
+  const autoRankedQueuedRef = useRef(false);
+  const routedMatchedLobbyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!shouldAutoRankedSearch || !accessToken) {
+      return;
+    }
+    void hydrateStatus();
+  }, [accessToken, hydrateStatus, shouldAutoRankedSearch]);
+
+  useEffect(() => {
+    if (!shouldAutoRankedSearch || !accessToken) {
+      autoRankedQueuedRef.current = false;
+      return;
+    }
+    if (autoRankedQueuedRef.current || isBusy) {
+      return;
+    }
+
+    const currentState = rankedQueueState.status?.state ?? "IDLE";
+    if (currentState === "QUEUED" || currentState === "MATCHED") {
+      autoRankedQueuedRef.current = true;
+      return;
+    }
+
+    autoRankedQueuedRef.current = true;
+    void enqueue();
+  }, [accessToken, enqueue, isBusy, rankedQueueState.status?.state, shouldAutoRankedSearch]);
+
+  useEffect(() => {
+    if (!shouldAutoRankedSearch || !accessToken) {
+      return;
+    }
+
+    const realtimeClient = createRankedMatchmakingRealtimeClient(accessToken, {
+      onConnect: () => {
+        void hydrateStatus();
+      },
+      onDisconnect: () => {
+        void hydrateStatus();
+      },
+      onEvent: (envelope) => {
+        applyMatchmakingEvent(envelope.state);
+        if (envelope.reason === "MATCHED" || envelope.reason === "STARTING") {
+          void hydrateStatus();
+        }
+      },
+      onError: () => {
+        void hydrateStatus();
+      },
+    });
+
+    matchmakingRealtimeRef.current = realtimeClient;
+    realtimeClient.connect();
+
+    return () => {
+      realtimeClient.disconnect();
+      matchmakingRealtimeRef.current = null;
+    };
+  }, [accessToken, applyMatchmakingEvent, hydrateStatus, shouldAutoRankedSearch]);
+
+  useEffect(() => {
+    if (!accessToken || !matchedLobbyPublicId) {
+      return;
+    }
+    if (routedMatchedLobbyRef.current === matchedLobbyPublicId) {
+      return;
+    }
+
+    routedMatchedLobbyRef.current = matchedLobbyPublicId;
+    void hydrateJoinedLobbyState(accessToken, matchedLobbyPublicId)
+      .then(() => {
+        router.push(`/games/online/${matchedLobbyPublicId}`);
+      })
+      .catch((error: unknown) => {
+        routedMatchedLobbyRef.current = null;
+        setErrorMessage(
+          error instanceof Error && error.message
+            ? error.message
+            : "Matched ranked lobby is not ready yet.",
+        );
+      });
+  }, [accessToken, matchedLobbyPublicId, router]);
+
+  const rankedInfoMessage = useMemo(() => {
+    if (!shouldAutoRankedSearch) {
+      return null;
+    }
+
+    if (matchedLobbyPublicId) {
+      return "Match found. Entering lobby...";
+    }
+
+    if (isSearching || isBusy) {
+      return "Searching for ranked match...";
+    }
+
+    return null;
+  }, [isBusy, isSearching, matchedLobbyPublicId, shouldAutoRankedSearch]);
 
   const handleCreate = async () => {
     if (!accessToken || isCreating) {
@@ -103,24 +223,15 @@ export default function OnlineLobbyHubScreen() {
       <Stack gap="lg">
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <Stack gap="md">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                Online imposter
-              </p>
-              <Title
-                order={1}
-                className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-text)]"
-              >
-                Create or join a private lobby
-              </Title>
-              <Text
-                size="sm"
-                className="mt-3 leading-relaxed text-[var(--color-text-secondary)]"
-              >
-                Multiplayer gameplay now runs on an authoritative backend. Use this page to create
-                a lobby or join one using a code.
-              </Text>
-            </div>
+            <Title
+              order={1}
+              className="text-center text-3xl font-semibold tracking-tight text-[var(--color-text)]"
+            >
+              Online Imposter
+            </Title>
+            <Text size="sm" className="text-center text-[var(--color-text-secondary)]">
+              Choose how you want to play.
+            </Text>
 
             {!accessToken ? (
               <Alert color="yellow" radius="lg" variant="light" title="Sign in required">
@@ -133,6 +244,12 @@ export default function OnlineLobbyHubScreen() {
                 {errorMessage}
               </Alert>
             ) : null}
+
+            {shouldAutoRankedSearch ? (
+              <Alert color="blue" radius="lg" variant="light" title="Ranked mode">
+                {rankedInfoMessage ?? "Preparing ranked matchmaking..."}
+              </Alert>
+            ) : null}
           </Stack>
         </Card>
 
@@ -140,14 +257,8 @@ export default function OnlineLobbyHubScreen() {
           <Stack gap="md">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                Create lobby
+                Create private lobby
               </p>
-              <Title
-                order={2}
-                className="mt-2 text-2xl font-semibold tracking-tight text-[var(--color-text)]"
-              >
-                Start a new private lobby
-              </Title>
             </div>
 
             <Radio.Group
@@ -164,16 +275,8 @@ export default function OnlineLobbyHubScreen() {
               }}
             >
               <Stack gap="xs">
-                <Radio
-                  value="CURRENT_MONTH_PACK"
-                  label="Current month pack"
-                  color="lime"
-                />
-                <Radio
-                  value="FULL_CONCEPT_POOL"
-                  label="Full concept pool"
-                  color="lime"
-                />
+                <Radio value="CURRENT_MONTH_PACK" label="Current month pack" color="lime" />
+                <Radio value="FULL_CONCEPT_POOL" label="Full concept pool" color="lime" />
               </Stack>
             </Radio.Group>
 
@@ -201,14 +304,8 @@ export default function OnlineLobbyHubScreen() {
             <Stack gap="md">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                  Join lobby
+                  Join private lobby
                 </p>
-                <Title
-                  order={2}
-                  className="mt-2 text-2xl font-semibold tracking-tight text-[var(--color-text)]"
-                >
-                  Enter a lobby code
-                </Title>
               </div>
 
               <TextInput
@@ -267,4 +364,11 @@ function waitMs(ms: number): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
+}
+
+function resolveRankedVisibility(): boolean {
+  const enabled = process.env.NEXT_PUBLIC_RANKED_ENABLED === "true";
+  const forceDev = process.env.NEXT_PUBLIC_RANKED_FORCE_DEV === "true";
+  const isProduction = process.env.NODE_ENV === "production";
+  return enabled || (!isProduction && forceDev);
 }
