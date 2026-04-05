@@ -1,4 +1,7 @@
-export type LobbyEnvelopeType = "LOBBY_STATE" | "VIEWER_STATE";
+export type LobbyEnvelopeType =
+  | "LOBBY_STATE"
+  | "VIEWER_STATE"
+  | "MATCHMAKING_EVENT";
 
 export type LobbyRealtimeReason =
   | "JOIN_REJOIN"
@@ -18,6 +21,27 @@ export type LobbyRealtimeReason =
   | "GUESS"
   | "DEADLINE_ADVANCE"
   | string;
+
+export type MatchmakingEventReason =
+  | "SEARCHING"
+  | "MATCHED"
+  | "CANCELLED"
+  | "STARTING"
+  | string;
+
+export type RankedQueueState = "IDLE" | "QUEUED" | "MATCHED" | "CANCELLED";
+
+export interface RankedMatchmakingStatusDto {
+  state: RankedQueueState;
+  lobbyPublicId: string | null;
+  queuePosition: number | null;
+  queueSize: number | null;
+}
+
+export interface MatchmakingEventState {
+  state: RankedQueueState;
+  lobbyPublicId: string | null;
+}
 
 export interface RealtimeEnvelope<TState> {
   type: LobbyEnvelopeType;
