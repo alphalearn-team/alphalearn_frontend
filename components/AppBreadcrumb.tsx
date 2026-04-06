@@ -28,14 +28,26 @@ const defaultLabelOverrides: Record<string, string> = {
   "contributor-applications": "Contributor Applications",
   "weekly-quests": "Weekly Quests",
   "imposter-monthly-pack": "Imposter Packs",
+  reported: "Reported",
   add: "Add New",
 };
+
+function isLikelyIdSegment(segment: string): boolean {
+  if (segment.length < 8) {
+    return false;
+  }
+
+  const hasDigit = /\d/.test(segment);
+  const hasDelimiter = /[-_]/.test(segment);
+
+  return hasDigit || hasDelimiter;
+}
 
 function formatSegment(segment: string, overrides: Record<string, string>) {
   if (overrides[segment]) return overrides[segment];
 
-  // Treat long alphanumeric IDs as "Detail"
-  if (/^[a-zA-Z0-9_-]{8,}$/.test(segment)) return "Detail";
+  // Treat ID-like dynamic path segments as "Detail"
+  if (isLikelyIdSegment(segment)) return "Detail";
 
   return segment
     .split("-")
@@ -69,7 +81,7 @@ export default function AppBreadcrumb({
     let label = formatSegment(segment, mergedOverrides);
 
     // UUID after 'quiz' segment → label as "Quiz"
-    if (/^[a-zA-Z0-9_-]{8,}$/.test(segment)) {
+    if (isLikelyIdSegment(segment)) {
       const prevSegment = index > 0 ? relevantSegments[index - 1] : null;
       if (prevSegment === "quiz") {
         label = "Quiz";

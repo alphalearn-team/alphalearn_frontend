@@ -2,6 +2,7 @@
 
 import { apiFetch } from "@/lib/api/api";
 import { revalidatePath } from "next/cache";
+import type { AdminLessonReportResolutionResult } from "@/interfaces/interfaces";
 
 const headers = {
   "Content-Type": "application/json",
@@ -50,4 +51,47 @@ export async function rejectLesson(lessonPublicId: string, reason: string) {
       message: error instanceof Error ? error.message : "Failed to reject lesson",
     };
   }
+}
+
+async function resolveReportedLesson(
+  lessonPublicId: string,
+  action: "dismiss" | "unpublish",
+) {
+  try {
+    const result = await apiFetch<AdminLessonReportResolutionResult>(
+      `/admin/lesson-reports/lessons/${lessonPublicId}/${action}`,
+      {
+        method: "PUT",
+        headers,
+      },
+    );
+
+    revalidatePath("/admin/lessons");
+    revalidatePath(`/admin/lessons/reported/${lessonPublicId}`);
+
+    const resolvedCount =
+      typeof result?.resolvedCount === "number" && Number.isFinite(result.resolvedCount)
+        ? result.resolvedCount
+        : 0;
+
+    return {
+      success: true,
+      resolvedCount,
+    };
+  } catch (error) {
+    console.error(`Error trying to ${action} reports:`, error);
+    return {
+      success: false,
+      resolvedCount: 0,
+      message: error instanceof Error ? error.message : `Failed to ${action} reports`,
+    };
+  }
+}
+
+export async function dismissLessonReports(lessonPublicId: string) {
+  return resolveReportedLesson(lessonPublicId, "dismiss");
+}
+
+export async function unpublishReportedLesson(lessonPublicId: string) {
+  return resolveReportedLesson(lessonPublicId, "unpublish");
 }
