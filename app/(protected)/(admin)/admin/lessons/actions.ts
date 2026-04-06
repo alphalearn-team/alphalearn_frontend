@@ -106,3 +106,30 @@ export async function dismissAllLessonReportsForLesson(lessonPublicId: string) {
     };
   }
 }
+
+export async function unpublishLessonAndResolveReports(lessonPublicId: string) {
+  try {
+    await apiFetch<null>(`/admin/lessons/${lessonPublicId}/moderation-status`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({
+        status: "UNPUBLISHED",
+        resolvePendingReports: true,
+      }),
+    });
+
+    revalidatePath("/admin/lessons");
+    revalidatePath(`/admin/lessons/reported/${lessonPublicId}`);
+    revalidatePath(`/lessons/${lessonPublicId}`);
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error unpublishing lesson and resolving reports:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to unpublish lesson",
+    };
+  }
+}

@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import type { AdminLessonReportEntry } from "@/interfaces/interfaces";
 import { formatDateTime } from "@/lib/utils/formatDate";
+import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import {
   dismissAllLessonReportsForLesson,
   dismissSingleLessonReport,
+  unpublishLessonAndResolveReports,
 } from "@/app/(protected)/(admin)/admin/lessons/actions";
 import { showError, showInfo, showSuccess } from "@/lib/utils/popUpNotifications";
 
@@ -34,6 +36,8 @@ export default function ReportedLessonFloatingReportsWindow({
   const [expandedReportKeys, setExpandedReportKeys] = useState<string[]>([]);
   const [isDismissingSelected, setIsDismissingSelected] = useState(false);
   const [isDismissingAll, setIsDismissingAll] = useState(false);
+  const [isUnpublishing, setIsUnpublishing] = useState(false);
+  const [unpublishModalOpened, setUnpublishModalOpened] = useState(false);
   const [position, setPosition] = useState<WindowPosition>({ x: 64, y: 96 });
   const floatingRef = useRef<HTMLDivElement | null>(null);
   const dragStartRef = useRef<{
@@ -133,6 +137,37 @@ export default function ReportedLessonFloatingReportsWindow({
       showError(error instanceof Error ? error.message : "Failed to dismiss all reports.");
     } finally {
       setIsDismissingAll(false);
+    }
+  };
+
+  const handleOpenUnpublishModal = () => {
+    setUnpublishModalOpened(true);
+  };
+
+  const handleCloseUnpublishModal = () => {
+    if (isUnpublishing) {
+      return;
+    }
+    setUnpublishModalOpened(false);
+  };
+
+  const handleConfirmUnpublish = async () => {
+    setIsUnpublishing(true);
+    try {
+      const result = await unpublishLessonAndResolveReports(lessonPublicId);
+      if (!result.success) {
+        showError(result.message ?? "Failed to unpublish lesson.");
+        return;
+      }
+
+      showSuccess("Lesson unpublished and all pending reports resolved.");
+      setSelectedReportPublicIds([]);
+      setUnpublishModalOpened(false);
+      router.refresh();
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Failed to unpublish lesson.");
+    } finally {
+      setIsUnpublishing(false);
     }
   };
 
@@ -336,17 +371,37 @@ export default function ReportedLessonFloatingReportsWindow({
                 color="blue"
                 onClick={handleDismissAll}
                 loading={isDismissingAll}
-                disabled={pendingCount === 0 || isDismissingSelected}
+                disabled={pendingCount === 0 || isDismissingSelected || isUnpublishing}
               >
                 Dismiss All
               </Button>
               </div>
-              <p className="text-xs text-[var(--color-text-muted)]">
-                Lesson action (unpublish) coming soon.
-              </p>
+              <Button
+                color="red"
+                variant="light"
+                onClick={handleOpenUnpublishModal}
+                loading={isUnpublishing}
+                disabled={isDismissingAll || isDismissingSelected}
+                fullWidth
+                className="justify-center"
+              >
+                Unpublish Lesson
+              </Button>
             </div>
           </div>
         </div>
+        <ConfirmModal
+          opened={unpublishModalOpened}
+          onClose={handleCloseUnpublishModal}
+          onConfirm={handleConfirmUnpublish}
+          title="Unpublish Lesson?"
+          message="This will unpublish the lesson and resolve all pending reports for this lesson."
+          confirmText="Unpublish & Resolve"
+          cancelText="Cancel"
+          confirmColor="red"
+          icon="warning"
+          loading={isUnpublishing}
+        />
         </>,
         document.body,
       )}
