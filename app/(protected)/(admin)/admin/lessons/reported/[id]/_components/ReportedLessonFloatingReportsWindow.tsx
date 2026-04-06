@@ -387,6 +387,10 @@ export default function ReportedLessonFloatingReportsWindow({
               >
                 Unpublish Lesson
               </Button>
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)]">
+                Lesson action (unpublish) coming soon.
+              </p>
             </div>
           </div>
         </div>
