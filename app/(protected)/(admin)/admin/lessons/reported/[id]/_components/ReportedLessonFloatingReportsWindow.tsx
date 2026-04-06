@@ -2,11 +2,18 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Badge, Button, Text } from "@mantine/core";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import type { AdminLessonReportEntry } from "@/interfaces/interfaces";
 import { formatDateTime } from "@/lib/utils/formatDate";
+import {
+  dismissAllLessonReportsForLesson,
+  dismissSingleLessonReport,
+} from "@/app/(protected)/(admin)/admin/lessons/actions";
+import { showError, showInfo, showSuccess } from "@/lib/utils/popUpNotifications";
 
 interface ReportedLessonFloatingReportsWindowProps {
+  lessonPublicId: string;
   pendingCount: number;
   reports: AdminLessonReportEntry[];
 }
@@ -17,11 +24,16 @@ interface WindowPosition {
 }
 
 export default function ReportedLessonFloatingReportsWindow({
+  lessonPublicId,
   pendingCount,
   reports,
 }: ReportedLessonFloatingReportsWindowProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedReportIndex, setSelectedReportIndex] = useState(0);
+  const [selectedReportPublicIds, setSelectedReportPublicIds] = useState<string[]>([]);
+  const [expandedReportKeys, setExpandedReportKeys] = useState<string[]>([]);
+  const [isDismissingSelected, setIsDismissingSelected] = useState(false);
+  const [isDismissingAll, setIsDismissingAll] = useState(false);
   const [position, setPosition] = useState<WindowPosition>({ x: 64, y: 96 });
   const floatingRef = useRef<HTMLDivElement | null>(null);
   const dragStartRef = useRef<{
@@ -35,6 +47,102 @@ export default function ReportedLessonFloatingReportsWindow({
     () => (Array.isArray(reports) ? reports : []),
     [reports],
   );
+  const selectedCount = selectedReportPublicIds.length;
+
+  const toggleSelectedReport = (reportPublicId: string | null) => {
+    if (!reportPublicId || reportPublicId.startsWith("unknown-")) {
+      return;
+    }
+
+    setSelectedReportPublicIds((current) =>
+      current.includes(reportPublicId)
+        ? current.filter((id) => id !== reportPublicId)
+        : [...current, reportPublicId],
+    );
+  };
+
+  const handleDismissSelected = async () => {
+    if (selectedReportPublicIds.length === 0) {
+      return;
+    }
+
+    setIsDismissingSelected(true);
+    try {
+      const results = await Promise.allSettled(
+        selectedReportPublicIds.map((reportPublicId) =>
+          dismissSingleLessonReport(lessonPublicId, reportPublicId),
+        ),
+      );
+
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value.success) {
+          successCount += 1;
+        } else {
+          failureCount += 1;
+        }
+      }
+
+      if (successCount > 0) {
+        showSuccess(
+          `Dismissed ${successCount} selected report${successCount === 1 ? "" : "s"}.`,
+        );
+      }
+
+      if (failureCount > 0) {
+        showError(
+          `${failureCount} selected report${failureCount === 1 ? "" : "s"} failed to dismiss.`,
+        );
+      }
+
+      setSelectedReportPublicIds([]);
+      router.refresh();
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Failed to dismiss selected reports.");
+    } finally {
+      setIsDismissingSelected(false);
+    }
+  };
+
+  const handleDismissAll = async () => {
+    setIsDismissingAll(true);
+    try {
+      const result = await dismissAllLessonReportsForLesson(lessonPublicId);
+      if (!result.success) {
+        showError(result.message ?? "Failed to dismiss all reports.");
+        return;
+      }
+
+      if (typeof result.resolvedCount === "number") {
+        if (result.resolvedCount === 0) {
+          showInfo("No pending reports to dismiss.");
+        } else {
+          showSuccess(
+            `Dismissed ${result.resolvedCount} report${result.resolvedCount === 1 ? "" : "s"}.`,
+          );
+        }
+      } else {
+        showSuccess("Dismissed all pending reports for this lesson.");
+      }
+
+      setSelectedReportPublicIds([]);
+      router.refresh();
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Failed to dismiss all reports.");
+    } finally {
+      setIsDismissingAll(false);
+    }
+  };
+
+  const toggleExpandedReport = (reportKey: string) => {
+    setExpandedReportKeys((current) =>
+      current.includes(reportKey)
+        ? current.filter((key) => key !== reportKey)
+        : [...current, reportKey],
+    );
+  };
 
   const clampPosition = (nextX: number, nextY: number): WindowPosition => {
     if (typeof window === "undefined") {
@@ -101,7 +209,7 @@ export default function ReportedLessonFloatingReportsWindow({
         <>
         <div
           ref={floatingRef}
-          className="fixed z-[9999] rounded-2xl border border-[var(--color-primary)]/70 bg-[var(--color-background)] shadow-2xl"
+          className="fixed z-[9999] rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] shadow-2xl"
           style={{
             top: `${position.y}px`,
             left: `${position.x}px`,
@@ -149,33 +257,93 @@ export default function ReportedLessonFloatingReportsWindow({
               ) : (
                 <div className="space-y-2">
                   {normalizedReports.map((report, index) => (
-                    <button
-                      key={report.publicId ?? `${report.reason}-${index}`}
-                      type="button"
-                      onClick={() => setSelectedReportIndex(index)}
-                      className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                        index === selectedReportIndex
+                    (() => {
+                      const reportKey = report.publicId ?? `${report.reason}-${index}`;
+                      const isExpanded = expandedReportKeys.includes(reportKey);
+                      const canExpand = report.reason.length > 120;
+
+                      return (
+                    <div
+                      key={reportKey}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleSelectedReport(report.publicId)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          toggleSelectedReport(report.publicId);
+                        }
+                      }}
+                      className={`flex w-full items-start gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
+                        report.publicId && selectedReportPublicIds.includes(report.publicId)
                           ? "border-red-500/50 bg-red-500/15"
                           : "border-[var(--color-border)] bg-[var(--color-background)] hover:bg-[var(--color-overlay)]"
                       }`}
                     >
-                      <p className="line-clamp-2 text-sm text-[var(--color-text)]">{report.reason}</p>
-                      <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                        {report.createdAt ? formatDateTime(report.createdAt) : "Time unavailable"}
-                      </p>
-                    </button>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(
+                          report.publicId && selectedReportPublicIds.includes(report.publicId),
+                        )}
+                        onChange={() => toggleSelectedReport(report.publicId)}
+                        onClick={(event) => event.stopPropagation()}
+                        disabled={!report.publicId || report.publicId.startsWith("unknown-")}
+                        className="mt-1 h-4 w-4 accent-red-500"
+                      />
+                      <div className="min-w-0 flex flex-1 flex-col items-start">
+                        <p
+                          className={`${isExpanded ? "" : "line-clamp-2"} w-full break-words text-sm text-[var(--color-text)]`}
+                          style={{ overflowWrap: "anywhere" }}
+                        >
+                          {report.reason}
+                        </p>
+                        {canExpand && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleExpandedReport(reportKey);
+                            }}
+                            className="mt-1 block w-fit text-xs font-semibold text-[var(--color-primary)] hover:underline"
+                          >
+                            {isExpanded ? "Show less" : "Show more"}
+                          </button>
+                        )}
+                        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                          {report.createdAt ? formatDateTime(report.createdAt) : "Time unavailable"}
+                        </p>
+                      </div>
+                    </div>
+                      );
+                    })()
                   ))}
                 </div>
               )}
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
-              <Button color="blue" variant="light" disabled title="Coming soon">
-                Dismiss Reports
+            <div className="mt-3 space-y-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
+              <div className="grid grid-cols-2 gap-2">
+              <Button
+                color="blue"
+                variant="light"
+                onClick={handleDismissSelected}
+                loading={isDismissingSelected}
+                disabled={selectedCount === 0 || isDismissingAll}
+              >
+                Dismiss ({selectedCount})
               </Button>
-              <Button color="red" disabled title="Coming soon">
-                Unpublish Lesson
+              <Button
+                color="blue"
+                onClick={handleDismissAll}
+                loading={isDismissingAll}
+                disabled={pendingCount === 0 || isDismissingSelected}
+              >
+                Dismiss All
               </Button>
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)]">
+                Lesson action (unpublish) coming soon.
+              </p>
             </div>
           </div>
         </div>

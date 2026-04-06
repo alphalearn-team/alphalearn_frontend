@@ -53,16 +53,35 @@ export async function rejectLesson(lessonPublicId: string, reason: string) {
   }
 }
 
-async function resolveReportedLesson(
+export async function dismissSingleLessonReport(
   lessonPublicId: string,
-  action: "dismiss" | "unpublish",
+  reportPublicId: string,
 ) {
   try {
-    const result = await apiFetch<AdminLessonReportResolutionResult>(
-      `/admin/lesson-reports/lessons/${lessonPublicId}/${action}`,
+    await apiFetch<null>(`/admin/lesson-reports/${reportPublicId}`, {
+      method: "DELETE",
+    });
+
+    revalidatePath("/admin/lessons");
+    revalidatePath(`/admin/lessons/reported/${lessonPublicId}`);
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error dismissing single report:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to dismiss report",
+    };
+  }
+}
+
+export async function dismissAllLessonReportsForLesson(lessonPublicId: string) {
+  try {
+    const result = await apiFetch<AdminLessonReportResolutionResult | null>(
+      `/admin/lesson-reports/lessons/${lessonPublicId}/reports`,
       {
-        method: "PUT",
-        headers,
+        method: "DELETE",
       },
     );
 
@@ -70,28 +89,20 @@ async function resolveReportedLesson(
     revalidatePath(`/admin/lessons/reported/${lessonPublicId}`);
 
     const resolvedCount =
-      typeof result?.resolvedCount === "number" && Number.isFinite(result.resolvedCount)
+      result && typeof result.resolvedCount === "number" && Number.isFinite(result.resolvedCount)
         ? result.resolvedCount
-        : 0;
+        : null;
 
     return {
       success: true,
       resolvedCount,
     };
   } catch (error) {
-    console.error(`Error trying to ${action} reports:`, error);
+    console.error("Error dismissing all reports for lesson:", error);
     return {
       success: false,
-      resolvedCount: 0,
-      message: error instanceof Error ? error.message : `Failed to ${action} reports`,
+      resolvedCount: null,
+      message: error instanceof Error ? error.message : "Failed to dismiss all reports",
     };
   }
-}
-
-export async function dismissLessonReports(lessonPublicId: string) {
-  return resolveReportedLesson(lessonPublicId, "dismiss");
-}
-
-export async function unpublishReportedLesson(lessonPublicId: string) {
-  return resolveReportedLesson(lessonPublicId, "unpublish");
 }
