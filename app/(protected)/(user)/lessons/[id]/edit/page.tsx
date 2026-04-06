@@ -12,6 +12,8 @@ import {
 import {
   getEditLessonViewModel,
 } from "./editLessonData";
+import { fetchLessonQuizzes } from "../quiz/_components/quizData";
+import LessonQuizManageSection from "./_components/LessonQuizManageSection";
 
 export default async function EditLessonPage({
   params,
@@ -32,6 +34,7 @@ export default async function EditLessonPage({
 
   const { lesson, lessonConceptLabels, status } = viewModel;
   const moderationMeta = getLessonModerationMeta(status);
+  const { quizzes } = await fetchLessonQuizzes(id);
 
   return (
     <ContributorLessonEditorShell
@@ -57,6 +60,7 @@ export default async function EditLessonPage({
           initialTitle={lesson.title}
           initialSections={lesson.sections || []}
           initialStatus={status}
+          quizSection={<LessonQuizManageSection lessonId={id} quizzes={quizzes} />}
         />
       </div>
     </ContributorLessonEditorShell>
