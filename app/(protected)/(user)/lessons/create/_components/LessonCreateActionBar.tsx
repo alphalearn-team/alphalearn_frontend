@@ -5,7 +5,6 @@ import { Button } from "@mantine/core";
 interface LessonCreateActionBarProps {
   hasSections: boolean;
   isSavingDraft: boolean;
-  isSubmitting: boolean;
   onCancel: () => void;
   onSaveDraft: () => void;
 }
@@ -13,46 +12,47 @@ interface LessonCreateActionBarProps {
 export default function LessonCreateActionBar({
   hasSections,
   isSavingDraft,
-  isSubmitting,
   onCancel,
   onSaveDraft,
 }: LessonCreateActionBarProps) {
-  const loading = isSubmitting || isSavingDraft;
-
   return (
     <div
-      className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 sm:pt-8 border-t"
+      className="flex flex-col gap-3 pt-6 sm:pt-8 border-t"
       style={{ borderColor: "var(--color-border)" }}
     >
-      <Button
-        type="button"
-        variant="default"
-        size="lg"
-        onClick={onCancel}
-        disabled={loading}
-        className="w-full sm:w-auto"
-        styles={{
-          root: {
-            borderColor: "var(--color-border)",
-            backgroundColor: "transparent",
-            color: "var(--color-text-secondary)",
-            fontWeight: 500,
-            padding: "0 32px",
-          },
-        }}
-      >
-        Cancel
-      </Button>
+      <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+        <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
+        After saving, go to the lesson editor to add a quiz before submitting for review.
+      </p>
 
-      <div className="flex gap-3 flex-1">
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+        <Button
+          type="button"
+          variant="default"
+          size="lg"
+          onClick={onCancel}
+          disabled={isSavingDraft}
+          className="w-full sm:w-auto"
+          styles={{
+            root: {
+              borderColor: "var(--color-border)",
+              backgroundColor: "transparent",
+              color: "var(--color-text-secondary)",
+              fontWeight: 500,
+              padding: "0 32px",
+            },
+          }}
+        >
+          Cancel
+        </Button>
+
         <Button
           type="button"
           size="lg"
           loading={isSavingDraft}
-          disabled={loading || !hasSections}
+          disabled={isSavingDraft || !hasSections}
           onClick={onSaveDraft}
           leftSection={!isSavingDraft && <span className="material-symbols-outlined text-lg">save</span>}
-          className="flex-1"
           styles={{
             root: {
               backgroundColor: "transparent",
@@ -66,27 +66,6 @@ export default function LessonCreateActionBar({
           }}
         >
           {isSavingDraft ? "Saving Draft..." : "Save Draft"}
-        </Button>
-
-        <Button
-          type="submit"
-          size="lg"
-          loading={isSubmitting}
-          disabled={loading || !hasSections}
-          leftSection={!isSubmitting && <span className="material-symbols-outlined text-lg">send</span>}
-          className="flex-1"
-          styles={{
-            root: {
-              backgroundColor: "var(--color-primary)",
-              color: "var(--color-surface)",
-              fontWeight: 600,
-              fontSize: "1rem",
-              padding: "0 40px",
-              boxShadow: "0 4px 12px var(--color-shadow)",
-            },
-          }}
-        >
-          {isSubmitting ? "Creating..." : "Create & Submit"}
         </Button>
       </div>
     </div>

@@ -24,9 +24,7 @@ export default function LessonEditorWithSections({
     error,
     handleCancel,
     handleSaveDraft,
-    handleSubmit,
     isSavingDraft,
-    isSubmitting,
     registerSectionElement,
     sections,
     selectedConceptIds,
@@ -42,7 +40,7 @@ export default function LessonEditorWithSections({
   });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 px-4 sm:px-0">
+    <form className="space-y-6 sm:space-y-8 px-4 sm:px-0">
       <LessonBasicsCard
         conceptFieldRef={conceptFieldRef}
         conceptOptions={conceptOptions}
@@ -64,7 +62,6 @@ export default function LessonEditorWithSections({
       <LessonCreateActionBar
         hasSections={sections.length > 0}
         isSavingDraft={isSavingDraft}
-        isSubmitting={isSubmitting}
         onCancel={handleCancel}
         onSaveDraft={handleSaveDraft}
       />

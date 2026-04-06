@@ -12,6 +12,7 @@ import {
   getSectionValidationError,
   highlightElement,
 } from "../../_shared/lessonValidationUtils";
+import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 
 interface UseLessonCreationFormParams {
   availableConcepts?: Concept[];
@@ -166,7 +167,8 @@ export function useLessonCreationForm({
       const result = await createLessonWithSections(payload);
 
       if (result.success && result.data?.lessonPublicId) {
-        router.push(`/lessons/${result.data.lessonPublicId}`);
+        showSuccess("Lesson saved! Add a quiz before submitting for review.");
+        router.push(`/lessons/${result.data.lessonPublicId}/edit`);
         return;
       }
 
@@ -177,11 +179,8 @@ export function useLessonCreationForm({
 
       setError(result.message || "Failed to save draft");
     } catch (submitError) {
-      setError(
-        `An unexpected error occurred: ${
-          submitError instanceof Error ? submitError.message : String(submitError)
-        }`,
-      );
+      showError(submitError instanceof Error ? submitError.message : "An unexpected error occurred");
+      setError(submitError instanceof Error ? submitError.message : "An unexpected error occurred");
     } finally {
       setIsSavingDraft(false);
     }
