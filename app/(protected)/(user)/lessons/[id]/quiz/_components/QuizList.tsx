@@ -40,6 +40,15 @@ export default function QuizList({
         const best = bestAttempts[quiz.quizPublicId];
         const hasAttempted = !!best?.summary;
         const totalQuestions = quiz.questions?.length || 0;
+        const score = best?.summary?.score ?? null;
+        const isPassed = score !== null && totalQuestions > 0 && score === totalQuestions;
+        const attemptedAt = best?.summary?.attemptedAt
+          ? new Date(best.summary.attemptedAt).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : null;
 
         return (
           <Card
@@ -50,7 +59,9 @@ export default function QuizList({
           >
             {hasAttempted && (
               <div className="absolute top-4 right-4 z-10">
-                <Badge color="green" radius="sm">Attempted</Badge>
+                <Badge color={isPassed ? "green" : "yellow"} radius="sm">
+                  {isPassed ? "Passed" : "Attempted"}
+                </Badge>
               </div>
             )}
 
@@ -69,6 +80,14 @@ export default function QuizList({
                   {totalQuestions} {totalQuestions === 1 ? "Question" : "Questions"}
                 </Text>
               </div>
+
+              {hasAttempted && score !== null && (
+                <Stack gap={2} mt="xs">
+                  <Text size="sm" fw={600} style={{ color: "var(--color-text)" }}>
+                    Best score: {score} / {totalQuestions}
+                  </Text>
+                </Stack>
+              )}
 
               {best?.error && !best?.summary && quiz.canAttempt && (
                 <Alert color="yellow" title="Could not load attempt data">{best.error}</Alert>

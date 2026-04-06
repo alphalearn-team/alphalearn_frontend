@@ -1,4 +1,4 @@
-import type { Lesson, LessonSummary } from "@/interfaces/interfaces";
+import type { Lesson, LessonProgress, LessonSummary } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api/api";
 import type { UserRole } from "@/lib/auth/server/rbac";
 import { getLessonModerationMeta, resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
@@ -71,6 +71,7 @@ export interface LessonDetailViewModel {
   shouldShowModerationState: boolean;
   showBackToMine: boolean;
   status: string;
+  progress: LessonProgress | null;
 }
 
 
@@ -88,7 +89,11 @@ export async function getLessonDetailViewModel(
   id: string,
   role: UserRole,
 ): Promise<LessonDetailViewModel | null> {
-  const lesson = await fetchLessonContent(id);
+  const [lesson, progressList] = await Promise.all([
+    fetchLessonContent(id),
+    apiFetch<LessonProgress[]>("/lessonenrollments/me/progress").catch(() => [] as LessonProgress[]),
+  ]);
+
   if (!lesson) {
     return null;
   }
@@ -102,6 +107,9 @@ export async function getLessonDetailViewModel(
   }
 
   const isEnrolled = ownsLesson || Boolean(lesson.enrolled);
+  const progress = isEnrolled && !ownsLesson
+    ? (progressList.find((p) => p.lessonPublicId === lessonId) ?? null)
+    : null;
 
   return {
     canDelete: ownsLesson && isDeletableLessonStatus(status),
@@ -116,6 +124,7 @@ export async function getLessonDetailViewModel(
       ownsLesson || (role === "CONTRIBUTOR" && hasModerationFeedback(lesson)),
     showBackToMine: role === "CONTRIBUTOR" && ownsLesson,
     status,
+    progress,
   };
 }
 
