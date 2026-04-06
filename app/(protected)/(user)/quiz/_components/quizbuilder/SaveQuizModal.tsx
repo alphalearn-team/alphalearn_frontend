@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Modal, Select } from "@mantine/core";
 import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 import { Question } from "./types";
@@ -18,6 +19,7 @@ interface SaveQuizModalProps {
 
 export default function SaveQuizModal({ opened, onClose, questions, quizPublicId, initialLessonPublicId }: SaveQuizModalProps) {
     const isEditMode = !!quizPublicId;
+    const router = useRouter();
     const [selectedLessonId, setSelectedLessonId] = useState<string | null>(initialLessonPublicId ?? null);
     const [isSaving, setIsSaving] = useState(false);
     const [availableLessons, setAvailableLessons] = useState<{ value: string; label: string }[]>([]);
@@ -147,6 +149,9 @@ export default function SaveQuizModal({ opened, onClose, questions, quizPublicId
             }
 
             showSuccess(isEditMode ? "Quiz updated successfully!" : "Quiz saved successfully!");
+            if (isEditMode && initialLessonPublicId) {
+                router.push(`/lessons/${initialLessonPublicId}/quiz`);
+            }
             onClose();
 
         } catch (error) {
