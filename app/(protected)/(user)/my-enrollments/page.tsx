@@ -38,11 +38,38 @@ export default async function MyEnrollmentsPage() {
             </Group>
           </Card>
         ) : (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
-            {lessons.map((lesson) => (
-              <LessonProgressCard key={lesson.lessonPublicId} lesson={lesson} />
-            ))}
-          </SimpleGrid>
+          (() => {
+            const inProgress = lessons.filter((l) => !l.completed);
+            const completed = lessons.filter((l) => l.completed);
+            return (
+              <div className="space-y-12">
+                {inProgress.length > 0 && (
+                  <section>
+                    <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-[var(--color-text-muted)] mb-6">
+                      In Progress · {inProgress.length}
+                    </p>
+                    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
+                      {inProgress.map((lesson) => (
+                        <LessonProgressCard key={lesson.lessonPublicId} lesson={lesson} />
+                      ))}
+                    </SimpleGrid>
+                  </section>
+                )}
+                {completed.length > 0 && (
+                  <section>
+                    <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-[var(--color-text-muted)] mb-6">
+                      Completed · {completed.length}
+                    </p>
+                    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
+                      {completed.map((lesson) => (
+                        <LessonProgressCard key={lesson.lessonPublicId} lesson={lesson} />
+                      ))}
+                    </SimpleGrid>
+                  </section>
+                )}
+              </div>
+            );
+          })()
         )}
       </Container>
     </div>
