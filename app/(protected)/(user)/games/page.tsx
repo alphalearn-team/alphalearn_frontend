@@ -7,8 +7,6 @@ const modeCardClassName =
   "group block rounded-[28px] border border-white/10 bg-black/20 p-6 transition-all hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-black/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)] active:translate-y-0";
 
 export default function GamesPage() {
-  const isRankedVisible = resolveRankedVisibility();
-
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8">
       <section className={`rounded-[32px] p-6 lg:p-8 ${sectionCardClassName}`}>
@@ -36,7 +34,8 @@ export default function GamesPage() {
               Multiplayer Lobby
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-              Create or join a lobby and play in real-time with authoritative server state.
+              Create or join a private lobby. Gameplay syncs in real-time with authoritative server
+              state.
             </p>
             <p className="mt-5 text-sm font-semibold text-[var(--color-primary)] group-hover:underline">
               Go to online mode
@@ -62,37 +61,7 @@ export default function GamesPage() {
             </p>
           </Link>
         </div>
-
-        {isRankedVisible ? (
-          <div className="mt-5">
-            <Link
-              href="/games/online?ranked=1"
-              className={modeCardClassName}
-              aria-label="Open ranked matchmaking entry"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                Ranked
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold text-[var(--color-text)]">
-                Find Ranked Match
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-                Queue into monthly ranked matchmaking from the online lobby screen.
-              </p>
-              <p className="mt-5 text-sm font-semibold text-[var(--color-primary)] group-hover:underline">
-                Open ranked queue
-              </p>
-            </Link>
-          </div>
-        ) : null}
       </section>
     </main>
   );
-}
-
-function resolveRankedVisibility(): boolean {
-  const enabled = process.env.NEXT_PUBLIC_RANKED_ENABLED === "true";
-  const forceDev = process.env.NEXT_PUBLIC_RANKED_FORCE_DEV === "true";
-  const isProduction = process.env.NODE_ENV === "production";
-  return enabled || (!isProduction && forceDev);
 }

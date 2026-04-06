@@ -6,12 +6,10 @@ import type {
   LeavePrivateImposterLobbyResponse,
   PrivateImposterLobbyDto,
   PrivateImposterLobbyStateDto,
-  RankedMatchmakingStatusDto,
   UpdatePrivateImposterLobbySettingsRequest,
 } from "./types";
 
 const PRIVATE_LOBBY_BASE_PATH = "/me/imposter/lobbies/private";
-const RANKED_MATCHMAKING_BASE_PATH = "/me/imposter/matchmaking/ranked";
 
 function toJsonRequest(body: unknown): RequestInit {
   return {
@@ -101,42 +99,6 @@ export async function getPrivateLobbyState(
 ): Promise<PrivateImposterLobbyStateDto> {
   return apiClientFetch<PrivateImposterLobbyStateDto>(
     `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}/state`,
-    accessToken,
-    {
-      method: "GET",
-    },
-  );
-}
-
-export async function enqueueRankedMatchmaking(
-  accessToken: string,
-): Promise<RankedMatchmakingStatusDto> {
-  return apiClientFetch<RankedMatchmakingStatusDto>(
-    `${RANKED_MATCHMAKING_BASE_PATH}/enqueue`,
-    accessToken,
-    {
-      method: "POST",
-    },
-  );
-}
-
-export async function cancelRankedMatchmaking(
-  accessToken: string,
-): Promise<RankedMatchmakingStatusDto> {
-  return apiClientFetch<RankedMatchmakingStatusDto>(
-    `${RANKED_MATCHMAKING_BASE_PATH}/cancel`,
-    accessToken,
-    {
-      method: "POST",
-    },
-  );
-}
-
-export async function getRankedMatchmakingStatus(
-  accessToken: string,
-): Promise<RankedMatchmakingStatusDto> {
-  return apiClientFetch<RankedMatchmakingStatusDto>(
-    `${RANKED_MATCHMAKING_BASE_PATH}/status`,
     accessToken,
     {
       method: "GET",
