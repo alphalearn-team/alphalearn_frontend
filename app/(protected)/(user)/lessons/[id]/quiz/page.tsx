@@ -5,6 +5,7 @@ import NotFound from "@/components/NotFound";
 import { fetchLessonQuizzes } from "./_components/quizData";
 import QuizListServerWrapper from "./_components/QuizListServerWrapper";
 import QuizListSkeleton from "./_components/QuizListSkeleton";
+import ContributorNavPanel from "@/app/(protected)/(user)/lessons/[id]/edit/_components/ContributorNavPanel";
 
 export default async function QuizListPage({
   params,
@@ -23,8 +24,11 @@ export default async function QuizListPage({
   }
 
   const lessonTitle = quizzes.length > 0 ? quizzes[0].lessonTitle : "Lesson";
+  const isOwner = quizzes.some(q => !q.canAttempt);
 
   return (
+    <>
+    {isOwner && <ContributorNavPanel lessonId={id} quizzes={quizzes} />}
     <Container size="md" py="xl">
       <div className="flex flex-col gap-6">
         <div>
@@ -39,5 +43,6 @@ export default async function QuizListPage({
         </Suspense>
       </div>
     </Container>
+    </>
   );
 }
