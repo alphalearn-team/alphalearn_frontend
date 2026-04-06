@@ -149,7 +149,7 @@ export default function SaveQuizModal({ opened, onClose, questions, quizPublicId
             }
 
             showSuccess(isEditMode ? "Quiz updated successfully!" : "Quiz saved successfully!");
-            if (isEditMode && initialLessonPublicId) {
+            if (initialLessonPublicId) {
                 router.push(`/lessons/${initialLessonPublicId}/quiz`);
             }
             onClose();
