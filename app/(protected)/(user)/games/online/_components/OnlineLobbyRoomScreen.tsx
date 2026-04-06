@@ -119,7 +119,6 @@ export default function OnlineLobbyRoomScreen({
   const sharedState = state.sharedState;
   const currentPhase = sharedState?.currentPhase ?? null;
   const isTerminalPhase = isTerminalLobbyPhase(currentPhase);
-  const isRankedLobby = sharedState?.isPrivate === false;
   const viewerState = state.viewerState;
   const viewerCapabilities = state.viewerCapabilities;
   const authoritativeStrokes = useMemo(
@@ -469,12 +468,7 @@ export default function OnlineLobbyRoomScreen({
     !isSubmittingDrawingDone;
 
   const handleSaveSettings = async () => {
-    if (
-      !accessToken ||
-      !sharedState ||
-      isRankedLobby ||
-      !viewerCapabilities?.viewerIsHost
-    ) {
+    if (!accessToken || !sharedState || !viewerCapabilities?.viewerIsHost) {
       return;
     }
 
@@ -510,12 +504,7 @@ export default function OnlineLobbyRoomScreen({
   };
 
   const handleStart = async () => {
-    if (
-      !accessToken ||
-      isRankedLobby ||
-      !viewerCapabilities?.canStart ||
-      isStarting
-    ) {
+    if (!accessToken || !viewerCapabilities?.canStart || isStarting) {
       return;
     }
 
@@ -555,24 +544,12 @@ export default function OnlineLobbyRoomScreen({
         return;
       }
 
-      router.push("/games");
+      router.push("/games/online");
     } catch (error) {
-      const message =
+      setErrorMessage(
         error instanceof Error && error.message
           ? error.message
-          : "Could not leave lobby.";
-      const isCloseConflictMessage = message.includes(
-        "Unable to close lobby because it is still referenced by active game data",
-      );
-
-      if (isRankedLobby && isCloseConflictMessage) {
-        setErrorMessage(null);
-        router.push("/games");
-        return;
-      }
-
-      setErrorMessage(
-        message,
+          : "Could not leave lobby.",
       );
       setIsLeaving(false);
     }
@@ -582,13 +559,10 @@ export default function OnlineLobbyRoomScreen({
     if (!sharedState) {
       return false;
     }
-    if (isRankedLobby) {
-      return false;
-    }
 
     const hasStartedGame = sharedState.currentPhase !== null;
     return hasStartedGame && !isTerminalLobbyPhase(sharedState.currentPhase);
-  }, [isRankedLobby, sharedState]);
+  }, [sharedState]);
 
   const handleLeave = () => {
     if (shouldConfirmLeave) {
@@ -804,26 +778,17 @@ export default function OnlineLobbyRoomScreen({
                   Online lobby
                 </p>
                 <Title order={1} className="mt-2 text-3xl text-[var(--color-text)]">
-                  {isRankedLobby ? "Ranked Lobby" : `Code ${sharedState.lobbyCode ?? "N/A"}`}
+                  Code {sharedState.lobbyCode}
                 </Title>
               </div>
-              <Group gap="xs">
-                {isRankedLobby ? (
-                  <Badge color="yellow" variant="filled">
-                    Ranked
-                  </Badge>
-                ) : null}
-                <Badge color={state.connected ? "green" : "orange"} variant="light">
-                  {state.connected ? "Connected" : "Reconnecting"}
-                </Badge>
-              </Group>
+              <Badge color={state.connected ? "green" : "orange"} variant="light">
+                {state.connected ? "Connected" : "Reconnecting"}
+              </Badge>
             </Group>
 
-            {!isRankedLobby ? (
-              <Text size="sm" c="dimmed">
-                Lobby: {sharedState.publicId}
-              </Text>
-            ) : null}
+            <Text size="sm" c="dimmed">
+              Lobby: {sharedState.publicId}
+            </Text>
           </Stack>
         </Card>
 
@@ -839,9 +804,7 @@ export default function OnlineLobbyRoomScreen({
           </Alert>
         ) : null}
 
-        {reconnectingLearnerPublicIds.length > 0 &&
-        sharedState.currentPhase !== null &&
-        sharedState.currentPhase !== "ABANDONED" ? (
+        {reconnectingLearnerPublicIds.length > 0 && sharedState.currentPhase !== "ABANDONED" ? (
           <Alert color="blue" radius="lg" variant="light" title="Reconnecting">
             <Stack gap={4}>
               {viewerIsReconnecting ? (
@@ -912,15 +875,9 @@ export default function OnlineLobbyRoomScreen({
                   Pre-start lobby
                 </p>
                 <Title order={2} className="mt-2 text-2xl text-[var(--color-text)]">
-                  {isRankedLobby ? "Waiting for players" : "Configure and start"}
+                  Configure and start
                 </Title>
               </div>
-
-              {isRankedLobby ? (
-                <Alert color="blue" variant="light" radius="lg">
-                  Waiting for 4 players. Lobbies auto-start when full.
-                </Alert>
-              ) : null}
 
               <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
                 <Text size="sm" c="dimmed" mb={8}>
@@ -930,98 +887,90 @@ export default function OnlineLobbyRoomScreen({
                   {sharedState.activeMembers.map((member) => (
                     <Group key={member.learnerPublicId ?? member.joinedAt} justify="space-between">
                       <Text>{toMemberLabel(member)}</Text>
-                      {member.host && !isRankedLobby ? <Badge color="lime">Host</Badge> : null}
+                      {member.host ? <Badge color="lime">Host</Badge> : null}
                     </Group>
                   ))}
                 </Stack>
               </div>
 
-              {!isRankedLobby ? (
-                <>
-                  <Divider />
+              <Divider />
 
-                  <Stack gap="sm">
-                    <NumberInput
-                      label="Concept count"
-                      value={settingsDraft.conceptCount}
-                      onChange={(value) =>
-                        setSettingsDraft((draft) => ({
-                          ...draft,
-                          conceptCount: toNumberInputValue(value),
-                        }))
-                      }
-                      disabled={!viewerCapabilities?.viewerIsHost}
-                    />
-                    <NumberInput
-                      label="Rounds per concept"
-                      value={settingsDraft.roundsPerConcept}
-                      onChange={(value) =>
-                        setSettingsDraft((draft) => ({
-                          ...draft,
-                          roundsPerConcept: toNumberInputValue(value),
-                        }))
-                      }
-                      disabled={!viewerCapabilities?.viewerIsHost}
-                    />
-                    <NumberInput
-                      label="Discussion timer (seconds)"
-                      value={settingsDraft.discussionTimerSeconds}
-                      onChange={(value) =>
-                        setSettingsDraft((draft) => ({
-                          ...draft,
-                          discussionTimerSeconds: toNumberInputValue(value),
-                        }))
-                      }
-                      disabled={!viewerCapabilities?.viewerIsHost}
-                    />
-                    <NumberInput
-                      label="Imposter guess timer (seconds)"
-                      value={settingsDraft.imposterGuessTimerSeconds}
-                      onChange={(value) =>
-                        setSettingsDraft((draft) => ({
-                          ...draft,
-                          imposterGuessTimerSeconds: toNumberInputValue(value),
-                        }))
-                      }
-                      disabled={!viewerCapabilities?.viewerIsHost}
-                    />
-                    <NumberInput
-                      label="Turn duration (seconds)"
-                      value={settingsDraft.turnDurationSeconds}
-                      onChange={(value) =>
-                        setSettingsDraft((draft) => ({
-                          ...draft,
-                          turnDurationSeconds: toNumberInputValue(value),
-                        }))
-                      }
-                      disabled={!viewerCapabilities?.viewerIsHost}
-                    />
-                  </Stack>
-                </>
-              ) : null}
+              <Stack gap="sm">
+                <NumberInput
+                  label="Concept count"
+                  value={settingsDraft.conceptCount}
+                  onChange={(value) =>
+                    setSettingsDraft((draft) => ({
+                      ...draft,
+                      conceptCount: toNumberInputValue(value),
+                    }))
+                  }
+                  disabled={!viewerCapabilities?.viewerIsHost}
+                />
+                <NumberInput
+                  label="Rounds per concept"
+                  value={settingsDraft.roundsPerConcept}
+                  onChange={(value) =>
+                    setSettingsDraft((draft) => ({
+                      ...draft,
+                      roundsPerConcept: toNumberInputValue(value),
+                    }))
+                  }
+                  disabled={!viewerCapabilities?.viewerIsHost}
+                />
+                <NumberInput
+                  label="Discussion timer (seconds)"
+                  value={settingsDraft.discussionTimerSeconds}
+                  onChange={(value) =>
+                    setSettingsDraft((draft) => ({
+                      ...draft,
+                      discussionTimerSeconds: toNumberInputValue(value),
+                    }))
+                  }
+                  disabled={!viewerCapabilities?.viewerIsHost}
+                />
+                <NumberInput
+                  label="Imposter guess timer (seconds)"
+                  value={settingsDraft.imposterGuessTimerSeconds}
+                  onChange={(value) =>
+                    setSettingsDraft((draft) => ({
+                      ...draft,
+                      imposterGuessTimerSeconds: toNumberInputValue(value),
+                    }))
+                  }
+                  disabled={!viewerCapabilities?.viewerIsHost}
+                />
+                <NumberInput
+                  label="Turn duration (seconds)"
+                  value={settingsDraft.turnDurationSeconds}
+                  onChange={(value) =>
+                    setSettingsDraft((draft) => ({
+                      ...draft,
+                      turnDurationSeconds: toNumberInputValue(value),
+                    }))
+                  }
+                  disabled={!viewerCapabilities?.viewerIsHost}
+                />
+              </Stack>
 
               <Group>
-                {!isRankedLobby ? (
-                  <>
-                    <Button
-                      radius="xl"
-                      loading={isSavingSettings}
-                      disabled={!viewerCapabilities?.viewerIsHost}
-                      onClick={handleSaveSettings}
-                    >
-                      Save settings
-                    </Button>
-                    <Button
-                      radius="xl"
-                      loading={isStarting}
-                      disabled={!viewerCapabilities?.canStart}
-                      onClick={handleStart}
-                      color="lime"
-                    >
-                      Start game
-                    </Button>
-                  </>
-                ) : null}
+                <Button
+                  radius="xl"
+                  loading={isSavingSettings}
+                  disabled={!viewerCapabilities?.viewerIsHost}
+                  onClick={handleSaveSettings}
+                >
+                  Save settings
+                </Button>
+                <Button
+                  radius="xl"
+                  loading={isStarting}
+                  disabled={!viewerCapabilities?.canStart}
+                  onClick={handleStart}
+                  color="lime"
+                >
+                  Start game
+                </Button>
                 <Button
                   radius="xl"
                   variant="default"
