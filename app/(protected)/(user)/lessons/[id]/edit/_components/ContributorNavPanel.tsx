@@ -81,11 +81,15 @@ export default function ContributorNavPanel({ lessonId, quizzes }: ContributorNa
       {/* Popover */}
       {open && (
         <div
-          className="absolute top-12 left-0 w-52 flex flex-col gap-3 py-4 px-3 shadow-xl"
+          className="absolute w-52 flex flex-col gap-3 py-4 px-3 shadow-xl"
           style={{
             backgroundColor: "var(--color-surface)",
             border: "1px solid var(--color-border)",
             borderRadius: 12,
+            top: pos.y > window.innerHeight / 2 ? "auto" : 48,
+            bottom: pos.y > window.innerHeight / 2 ? 48 : "auto",
+            left: pos.x > window.innerWidth / 2 ? "auto" : 0,
+            right: pos.x > window.innerWidth / 2 ? 0 : "auto",
           }}
         >
           {/* Lesson */}
