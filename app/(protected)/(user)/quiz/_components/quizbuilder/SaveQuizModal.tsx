@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Modal, Select } from "@mantine/core";
 import { showSuccess, showError } from "@/lib/utils/popUpNotifications";
 import { Question } from "./types";
-import { createQuizAction } from "../createQuizActions";
+import { createQuizAction, updateQuizAction } from "../createQuizActions";
 import { fetchMyLessonsAction } from "@/app/(protected)/(user)/lessons/_actions/lesson";
 import GlowButton from "../../../../../../components/GlowButton";
 
@@ -12,15 +12,18 @@ interface SaveQuizModalProps {
     opened: boolean;
     onClose: () => void;
     questions: Question[];
+    quizPublicId?: string;
+    initialLessonPublicId?: string;
 }
 
-export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizModalProps) {
-    const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+export default function SaveQuizModal({ opened, onClose, questions, quizPublicId, initialLessonPublicId }: SaveQuizModalProps) {
+    const isEditMode = !!quizPublicId;
+    const [selectedLessonId, setSelectedLessonId] = useState<string | null>(initialLessonPublicId ?? null);
     const [isSaving, setIsSaving] = useState(false);
     const [availableLessons, setAvailableLessons] = useState<{ value: string; label: string }[]>([]);
 
     useEffect(() => {
-        if (opened && availableLessons.length === 0) {
+        if (opened && !isEditMode && availableLessons.length === 0) {
             fetchMyLessonsAction().then((res) => {
                 if (res.success && res.data) {
                     setAvailableLessons(res.data.map((lesson) => ({
@@ -30,7 +33,7 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
                 }
             });
         }
-    }, [opened, availableLessons.length]);
+    }, [opened, isEditMode, availableLessons.length]);
 
     function validateQuiz(): string[] {
         const errors: string[] = [];
@@ -76,7 +79,7 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
     }
 
     async function handleSaveConfirm() {
-        if (!selectedLessonId) {
+        if (!isEditMode && !selectedLessonId) {
             showError("Please select a lesson to attach this quiz to.");
             return;
         }
@@ -94,54 +97,56 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
         setIsSaving(true);
 
         try {
-            const payload = {
-                lessonPublicId: selectedLessonId,
-                questions: questions.map((q) => {
-                    const base = {
-                        type: q.type,
-                        prompt: q.prompt || "Empty Question",
+            const questionPayload = questions.map((q) => {
+                const base = {
+                    type: q.type,
+                    prompt: q.prompt || "Empty Question",
+                };
+
+                if (q.type === "multiple-choice") {
+                    return {
+                        ...base,
+                        properties: {
+                            options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
+                            correctOptionIds: q.correctOptionIds.length > 0 ? q.correctOptionIds : [q.options[0]?.id],
+                        }
                     };
+                }
 
-                    if (q.type === "multiple-choice") {
-                        return {
-                            ...base,
-                            properties: {
-                                options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
-                                correctOptionIds: q.correctOptionIds.length > 0 ? q.correctOptionIds : [q.options[0]?.id],
-                            }
-                        };
-                    }
+                if (q.type === "single-choice") {
+                    return {
+                        ...base,
+                        properties: {
+                            options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
+                            correctOptionId: q.correctOptionId || q.options[0]?.id,
+                        }
+                    };
+                }
 
-                    if (q.type === "single-choice") {
-                        return {
-                            ...base,
-                            properties: {
-                                options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
-                                correctOptionId: q.correctOptionId || q.options[0]?.id,
-                            }
-                        };
-                    }
+                if (q.type === "true-false") {
+                    return {
+                        ...base,
+                        properties: {
+                            correctBoolean: q.correctBoolean,
+                        }
+                    };
+                }
 
-                    if (q.type === "true-false") {
-                        return {
-                            ...base,
-                            properties: {
-                                correctBoolean: q.correctBoolean,
-                            }
-                        };
-                    }
+                return base;
+            });
 
-                    return base;
-                }),
-            };
-            // console.log(JSON.stringify(payload));
-            const result = await createQuizAction(payload);
+            let result;
+            if (isEditMode) {
+                result = await updateQuizAction(quizPublicId!, { questions: questionPayload });
+            } else {
+                result = await createQuizAction({ lessonPublicId: selectedLessonId, questions: questionPayload });
+            }
 
             if (!result.success) {
                 throw new Error(result.error);
             }
 
-            showSuccess("Quiz saved successfully!");
+            showSuccess(isEditMode ? "Quiz updated successfully!" : "Quiz saved successfully!");
             onClose();
 
         } catch (error) {
@@ -156,7 +161,7 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
         <Modal
             opened={opened}
             onClose={() => !isSaving && onClose()}
-            title={<span style={{ fontWeight: 600, fontSize: "1.2rem", color: "var(--color-primary)" }}>Finish & Save Quiz</span>}
+            title={<span style={{ fontWeight: 600, fontSize: "1.2rem", color: "var(--color-primary)" }}>{isEditMode ? "Update Quiz" : "Finish & Save Quiz"}</span>}
             centered
             overlayProps={{ blur: 12, backgroundOpacity: 0.7, color: "#000" }}
             styles={{
@@ -167,23 +172,27 @@ export default function SaveQuizModal({ opened, onClose, questions }: SaveQuizMo
         >
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <p style={{ color: "var(--color-text-dimmed)", fontSize: "0.95rem", margin: 0 }}>
-                    Select the lesson you want to attach this quiz to.
+                    {isEditMode
+                        ? "Save your changes. This will replace all existing questions in the quiz."
+                        : "Select the lesson you want to attach this quiz to."}
                 </p>
 
-                <Select
-                    label="Target Lesson"
-                    placeholder="Pick a lesson"
-                    data={availableLessons}
-                    value={selectedLessonId}
-                    onChange={setSelectedLessonId}
-                    searchable
-                    styles={{
-                        input: { backgroundColor: "var(--color-bg)", borderColor: "var(--color-border)", color: "#fff" },
-                        label: { color: "var(--color-text-muted)", marginBottom: 8 },
-                        dropdown: { backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" },
-                        option: { color: "var(--color-text)" }
-                    }}
-                />
+                {!isEditMode && (
+                    <Select
+                        label="Target Lesson"
+                        placeholder="Pick a lesson"
+                        data={availableLessons}
+                        value={selectedLessonId}
+                        onChange={setSelectedLessonId}
+                        searchable
+                        styles={{
+                            input: { backgroundColor: "var(--color-bg)", borderColor: "var(--color-border)", color: "#fff" },
+                            label: { color: "var(--color-text-muted)", marginBottom: 8 },
+                            dropdown: { backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" },
+                            option: { color: "var(--color-text)" }
+                        }}
+                    />
+                )}
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
                     <GlowButton

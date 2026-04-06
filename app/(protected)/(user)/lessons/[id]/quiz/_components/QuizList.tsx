@@ -88,9 +88,9 @@ export default function QuizList({
 
               <Group justify="flex-end" mt="md">
                 {!quiz.canAttempt ? (
-                  <Text size="xs" fw={600} className="text-[var(--color-text-muted)] italic">
-                    Owners cannot attempt their own quizzes
-                  </Text>
+                  <GlowButton href={`/quiz/edit?quizId=${quiz.quizPublicId}&lessonId=${lessonId}`} icon="edit">
+                    Edit Quiz
+                  </GlowButton>
                 ) : (
                   <GlowButton href={`/lessons/${lessonId}/quiz/${quiz.quizPublicId}`}>
                     View Quiz
