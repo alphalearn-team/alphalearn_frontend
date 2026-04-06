@@ -35,6 +35,7 @@ export default function ReportedLessonDetailView({
   return (
     <div className="space-y-6">
       <ReportedLessonFloatingReportsWindow
+        lessonPublicId={lesson.lessonPublicId}
         pendingCount={lesson.pendingReportCount}
         reports={normalizedReports}
       />
