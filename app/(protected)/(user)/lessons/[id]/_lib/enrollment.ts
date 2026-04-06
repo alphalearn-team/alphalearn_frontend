@@ -32,5 +32,21 @@ export interface LessonProgressSummary {
 }
 
 export async function getMyProgress(): Promise<LessonProgressSummary[]> {
-  return apiFetch<LessonProgressSummary[]>("/lessonenrollments/me/progress");
+  try {
+    return await apiFetch<LessonProgressSummary[]>("/lessonenrollments/me/progress");
+  } catch {
+    try {
+      const enrollments = await getMyEnrollments();
+      return enrollments.map((lesson) => ({
+        lessonPublicId: lesson.lessonPublicId,
+        title: lesson.title,
+        completed: lesson.completed,
+        firstCompletedAt: lesson.firstCompletedAt,
+        totalQuizzes: 0,
+        passedQuizzes: 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
 }

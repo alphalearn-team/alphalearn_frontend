@@ -42,13 +42,6 @@ export default function QuizList({
         const totalQuestions = quiz.questions?.length || 0;
         const score = best?.summary?.score ?? null;
         const isPassed = score !== null && totalQuestions > 0 && score === totalQuestions;
-        const attemptedAt = best?.summary?.attemptedAt
-          ? new Date(best.summary.attemptedAt).toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })
-          : null;
 
         return (
           <Card
