@@ -223,6 +223,50 @@ export interface AdminLessonReviewDetail {
   adminRejectionReason: string | null;
 }
 
+export type LessonReportResolutionAction = "DISMISSED" | "UNPUBLISHED";
+
+export interface AdminReportedLessonQueueItem {
+  lessonPublicId: string;
+  title: string;
+  author: PublicAuthor;
+  lessonModerationStatus: LessonModerationStatus;
+  pendingReportCount: number;
+  totalReportCount: number;
+  latestReportReason: string | null;
+  latestReportedAt: string | null;
+  createdAt: string | null;
+}
+
+export interface AdminLessonReportEntry {
+  publicId: string | null;
+  reason: string;
+  createdAt: string | null;
+  reporterPublicId: string | null;
+  reporterUsername: string | null;
+  status: string | null;
+}
+
+export interface AdminReportedLessonDetail {
+  lessonPublicId: string;
+  title: string;
+  content: LessonContent;
+  sections?: LessonSection[];
+  conceptPublicIds?: string[];
+  author: PublicAuthor | null;
+  lessonModerationStatus: LessonModerationStatus;
+  createdAt: string | null;
+  submittedAt: string | null;
+  pendingReportCount: number;
+  totalReportCount: number;
+  resolutionAction: LessonReportResolutionAction | null;
+  resolvedAt: string | null;
+  reports: AdminLessonReportEntry[];
+}
+
+export interface AdminLessonReportResolutionResult {
+  resolvedCount: number;
+}
+
 export interface AdminDashboardTopConcept {
   conceptPublicId: string;
   title: string;
