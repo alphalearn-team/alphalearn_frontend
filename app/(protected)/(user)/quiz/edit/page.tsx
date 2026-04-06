@@ -1,7 +1,8 @@
-import { apiFetch } from "@/lib/api/api";
 import type { LessonQuiz, LessonQuizQuestion } from "@/interfaces/interfaces";
 import type { Question, MCQOption } from "@/app/(protected)/(user)/quiz/_components/quizbuilder/types";
 import QuizBuilder from "@/app/(protected)/(user)/quiz/_components/quizbuilder/QuizBuilder";
+import { fetchLessonQuizzes } from "@/app/(protected)/(user)/lessons/[id]/quiz/_components/quizData";
+import ContributorNavPanel from "@/app/(protected)/(user)/lessons/[id]/edit/_components/ContributorNavPanel";
 
 function mapToBuilderQuestions(apiQuestions: LessonQuizQuestion[]): Question[] {
   return apiQuestions.map((q) => {
@@ -46,27 +47,21 @@ export default async function QuizEditPage({
   const { quizId, lessonId } = await searchParams;
 
   if (!quizId || !lessonId) {
-    return <QuizBuilder />;
+    return <QuizBuilder lessonPublicId={lessonId} />;
   }
 
-  try {
-    const quizzes = await apiFetch<LessonQuiz[]>(`/quizzes/${lessonId}`);
-    const quiz = quizzes.find((q) => q.quizPublicId === quizId);
+  const { quizzes } = await fetchLessonQuizzes(lessonId);
+  const quiz = quizzes.find((q) => q.quizPublicId === quizId);
+  const initialQuestions = quiz ? mapToBuilderQuestions(quiz.questions) : undefined;
 
-    if (!quiz) {
-      return <QuizBuilder />;
-    }
-
-    const initialQuestions = mapToBuilderQuestions(quiz.questions);
-
-    return (
+  return (
+    <>
+      <ContributorNavPanel lessonId={lessonId} quizzes={quizzes} />
       <QuizBuilder
         initialQuestions={initialQuestions}
         quizPublicId={quizId}
         lessonPublicId={lessonId}
       />
-    );
-  } catch {
-    return <QuizBuilder />;
-  }
+    </>
+  );
 }

@@ -14,6 +14,7 @@ import {
 } from "./editLessonData";
 import { fetchLessonQuizzes } from "../quiz/_components/quizData";
 import LessonQuizManageSection from "./_components/LessonQuizManageSection";
+import ContributorNavPanel from "./_components/ContributorNavPanel";
 
 export default async function EditLessonPage({
   params,
@@ -37,6 +38,8 @@ export default async function EditLessonPage({
   const { quizzes } = await fetchLessonQuizzes(id);
 
   return (
+    <>
+    <ContributorNavPanel lessonId={id} quizzes={quizzes} />
     <ContributorLessonEditorShell
       headerMeta={<LessonEditStatusMeta status={status} />}
       title={
@@ -64,5 +67,6 @@ export default async function EditLessonPage({
         />
       </div>
     </ContributorLessonEditorShell>
+    </>
   );
 }
