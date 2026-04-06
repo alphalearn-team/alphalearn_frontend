@@ -387,13 +387,12 @@ export default function ReportedLessonFloatingReportsWindow({
               >
                 Unpublish Lesson
               </Button>
-              </div>
               <p className="text-xs text-[var(--color-text-muted)]">
-                Lesson action (unpublish) coming soon.
+                This action will resolve all pending reports for this lesson.
               </p>
+              </div>
             </div>
           </div>
-        </div>
         <ConfirmModal
           opened={unpublishModalOpened}
           onClose={handleCloseUnpublishModal}
