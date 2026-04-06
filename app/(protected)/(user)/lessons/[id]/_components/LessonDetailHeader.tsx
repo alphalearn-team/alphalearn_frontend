@@ -6,6 +6,7 @@ import LessonDetailOwnerActions from "./LessonDetailOwnerActions";
 interface LessonDetailHeaderProps {
   canDelete: boolean;
   canEdit: boolean;
+  canReport: boolean;
   conceptLabels: string[];
   lessonId: string;
   moderationMeta: LessonModerationMeta;
@@ -18,6 +19,7 @@ interface LessonDetailHeaderProps {
 export default function LessonDetailHeader({
   canDelete,
   canEdit,
+  canReport,
   conceptLabels,
   lessonId,
   moderationMeta,
@@ -72,6 +74,7 @@ export default function LessonDetailHeader({
         lessonId={lessonId}
         canEdit={canEdit}
         canDelete={canDelete}
+        canReport={canReport}
         showBackToMine={showBackToMine}
       />
     </Group>

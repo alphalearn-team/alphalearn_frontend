@@ -30,9 +30,10 @@ export async function apiClientFetch<T>(
     await throwApiErrorFromResponse(res);
   }
 
-  if (res.status === 204) {
+  const responseText = await res.text();
+  if (!responseText) {
     return null as T;
   }
 
-  return res.json();
+  return JSON.parse(responseText);
 }

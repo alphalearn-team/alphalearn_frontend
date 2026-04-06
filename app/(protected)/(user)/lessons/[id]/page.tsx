@@ -25,6 +25,7 @@ export default async function LessonPage({
   const {
     canDelete,
     canEdit,
+    canReport,
     lesson,
     lessonConceptLabels,
     lessonId,
@@ -47,6 +48,7 @@ export default async function LessonPage({
           lessonId={lessonId}
           canEdit={canEdit}
           canDelete={canDelete}
+          canReport={canReport}
           showBackToMine={showBackToMine}
         />
 

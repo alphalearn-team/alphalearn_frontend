@@ -62,6 +62,7 @@ export function resolveLessonStatus(lesson: Lesson): string {
 export interface LessonDetailViewModel {
   canDelete: boolean;
   canEdit: boolean;
+  canReport: boolean;
   isOwner: boolean;
   isEnrolled: boolean;
   lesson: Lesson;
@@ -114,6 +115,7 @@ export async function getLessonDetailViewModel(
   return {
     canDelete: ownsLesson && isDeletableLessonStatus(status),
     canEdit: role === "CONTRIBUTOR" && ownsLesson,
+    canReport: (role === "LEARNER" || role === "CONTRIBUTOR") && !ownsLesson,
     isOwner: ownsLesson,
     isEnrolled,
     lesson,
@@ -127,5 +129,4 @@ export async function getLessonDetailViewModel(
     progress,
   };
 }
-
 
