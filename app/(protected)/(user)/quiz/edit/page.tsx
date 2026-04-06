@@ -1,4 +1,4 @@
-import type { LessonQuiz, LessonQuizQuestion } from "@/interfaces/interfaces";
+import type { LessonQuizQuestion } from "@/interfaces/interfaces";
 import type { Question, MCQOption } from "@/app/(protected)/(user)/quiz/_components/quizbuilder/types";
 import QuizBuilder from "@/app/(protected)/(user)/quiz/_components/quizbuilder/QuizBuilder";
 import { fetchLessonQuizzes } from "@/app/(protected)/(user)/lessons/[id]/quiz/_components/quizData";

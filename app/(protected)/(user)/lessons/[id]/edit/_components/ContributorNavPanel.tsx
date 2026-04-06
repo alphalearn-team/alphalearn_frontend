@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import type { LessonQuiz } from "@/interfaces/interfaces";
 
@@ -28,29 +28,26 @@ export default function ContributorNavPanel({ lessonId, quizzes }: ContributorNa
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const onMouseMove = useCallback((e: MouseEvent) => {
-    if (!dragging.current) return;
-    hasDragged.current = true;
-    setPos({
-      x: e.clientX - dragOffset.current.x,
-      y: e.clientY - dragOffset.current.y,
-    });
-  }, []);
-
-  const onMouseUp = useCallback(() => {
-    dragging.current = false;
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-  }, [onMouseMove]);
-
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
+  const startDrag = (e: React.MouseEvent) => {
     e.preventDefault();
     hasDragged.current = false;
     dragging.current = true;
     dragOffset.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  }, [pos, onMouseMove, onMouseUp]);
+
+    function onMove(ev: MouseEvent) {
+      hasDragged.current = true;
+      setPos({ x: ev.clientX - dragOffset.current.x, y: ev.clientY - dragOffset.current.y });
+    }
+
+    function onUp() {
+      dragging.current = false;
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    }
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
 
   const handleButtonClick = () => {
     if (hasDragged.current) return; // ignore click if it was a drag
@@ -65,13 +62,13 @@ export default function ContributorNavPanel({ lessonId, quizzes }: ContributorNa
     >
       {/* Circle button */}
       <button
-        onMouseDown={onMouseDown}
+        onMouseDown={startDrag}
         onClick={handleButtonClick}
         className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95"
         style={{
           backgroundColor: "var(--color-primary)",
           color: "var(--color-background)",
-          cursor: dragging.current ? "grabbing" : "grab",
+          cursor: "grab",
         }}
         title="Lesson navigation"
       >
