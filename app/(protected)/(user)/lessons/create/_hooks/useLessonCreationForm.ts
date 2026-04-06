@@ -168,7 +168,7 @@ export function useLessonCreationForm({
 
       if (result.success && result.data?.lessonPublicId) {
         showSuccess("Lesson saved! Add a quiz before submitting for review.");
-        router.push(`/lessons/${result.data.lessonPublicId}/edit`);
+        router.push(`/lessons/${result.data.lessonPublicId}`);
         return;
       }
 
