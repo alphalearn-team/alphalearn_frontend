@@ -121,7 +121,7 @@ function ProfileLoadingSkeleton() {
 }
 
 export default function ProfilePageClient() {
-  const { isLoading, session } = useAuth();
+  const { isLoading, refreshProfile, session } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
@@ -304,6 +304,7 @@ export default function ProfilePageClient() {
 
       setProfile(updatedProfile);
       resetDraftState(updatedProfile);
+      await refreshProfile();
 
       if (!selectedImageFile) {
         setIsEditingProfile(false);
@@ -368,6 +369,7 @@ export default function ProfilePageClient() {
 
       setProfile(updatedProfile);
       resetDraftState(updatedProfile);
+      await refreshProfile();
       clearSelectedImage();
       showSuccess("Profile picture updated successfully.");
     } catch (error) {
