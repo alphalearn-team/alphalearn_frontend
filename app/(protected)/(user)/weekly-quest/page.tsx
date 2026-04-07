@@ -14,7 +14,7 @@ export default async function WeeklyQuestPage() {
         <Card
           radius="32px"
           padding="xl"
-          className="border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]"
+          className="border border-[var(--color-border)] bg-black/30"
         >
           <Stack gap="lg">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-black/25 text-[var(--color-text-muted)]">
@@ -50,7 +50,7 @@ export default async function WeeklyQuestPage() {
         <Card
           radius="32px"
           padding="xl"
-          className="border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.04),rgba(14,14,14,0.96))]"
+          className="border border-[var(--color-border)] bg-black/30"
         >
           <Stack gap="lg">
             <div>
@@ -79,71 +79,75 @@ export default async function WeeklyQuestPage() {
             padding="xl"
             className="border border-[#2d5c50] bg-[#25231d]"
           >
-            <Stack gap="xl">
+            <Stack gap="lg">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#19f0c2]">
                   Weekly quest
                 </p>
-                <h1 className="mt-3 text-[clamp(2rem,3.5vw,3.1rem)] font-semibold tracking-tight leading-[1.02] text-[var(--color-text)]">
-                  Post your weekly challenge in two steps.
+                <h1 className="mt-2 text-[clamp(1.5rem,2.8vw,2.4rem)] font-semibold tracking-tight leading-[1.1] text-[var(--color-text)]">
+                  Complete your weekly challenge
                 </h1>
               </div>
 
-              <Text size="sm" className="max-w-xl leading-relaxed text-[var(--color-text-secondary)]">
-                Learn first, upload next!
+              <Text size="sm" className="leading-relaxed text-[var(--color-text-secondary)]">
+                Learn the concept, create your unique submission, and share with friends. You can tag people who inspired or contributed to your work.
               </Text>
 
-              <div className="grid pl-1">
+              <div className="grid gap-2 sm:grid-cols-2">
                 <Link
                   href={`/concepts/${weeklyQuest.concept.publicId}`}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-[#19f0c2]/40 bg-[#19f0c2] px-5 text-sm font-semibold text-[#102019] transition-colors hover:bg-[#40f3cf]"
+                  className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-[#19f0c2]/40 bg-[#19f0c2] px-4 text-xs font-semibold text-[#102019] transition-colors hover:bg-[#40f3cf]"
                 >
-                  View concept details
+                  Review concept
+                </Link>
+                <Link
+                  href="/friends-feed"
+                  className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-[#2f5f53] bg-[#1e2f29] px-4 text-xs font-semibold text-[#8bf6dd] transition-colors hover:bg-[#254037]"
+                >
+                  Browse feed
                 </Link>
               </div>
 
-              <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2">
-                <div className="flex h-full flex-col rounded-[26px] border border-[#3a3a34] bg-[#1f1e1a] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Concept of the week
+              <div className="space-y-3">
+                <div className="rounded-[20px] border border-[#3a3a34] bg-[#1f1e1a] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                    This week's topic
                   </p>
-                  <h2 className="mt-3 min-h-[5.25rem] text-2xl font-semibold leading-[1.1] text-[var(--color-text)]">
+                  <h2 className="mt-2 text-lg font-semibold leading-tight text-[var(--color-text)]">
                     {weeklyQuest.concept.title}
                   </h2>
                   {weeklyQuest.concept.description ? (
-                    <Text size="sm" className="mt-2 flex-1 leading-relaxed text-[var(--color-text-secondary)]">
+                    <Text size="xs" className="mt-2 leading-relaxed text-[var(--color-text-secondary)]">
                       {weeklyQuest.concept.description}
                     </Text>
-                  ) : (
-                    <div className="mt-2 flex-1" />
-                  )}
+                  ) : null}
                 </div>
 
-                <div className="flex h-full flex-col rounded-[26px] border border-[#3a3a34] bg-[#1f1e1a] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    Submission status
+                <div className="rounded-[20px] border border-[#3a3a34] bg-[#1f1e1a] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                    Your submission
                   </p>
-                  <h2 className="mt-3 min-h-[5.25rem] text-2xl font-semibold leading-[1.1] text-[var(--color-text)]">
-                    {submission ? "Submitted" : "Start upload"}
+                  <h2 className="mt-2 text-lg font-semibold leading-tight text-[var(--color-text)]">
+                    {submission ? "Already submitted" : "Not yet submitted"}
                   </h2>
-                  <Text size="sm" className="mt-2 flex-1 leading-relaxed text-[var(--color-text-secondary)]">
+                  <Text size="xs" className="mt-2 leading-relaxed text-[var(--color-text-secondary)]">
                     {submission
-                      ? "You can replace it from this page."
-                      : "Upload one image or video when you are ready."}
+                      ? "You can update or replace your submission below."
+                      : "Upload an image or video to complete the challenge."}
                   </Text>
                 </div>
-              </div>
 
-              <div className="rounded-[28px] border border-[#3a3a34] bg-[#1f1e1a] p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Prompt
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold text-[var(--color-text)]">
-                  {weeklyQuest.quest.title}
-                </h2>
-                <Text size="sm" className="mt-3 leading-relaxed text-[var(--color-text-secondary)]">
-                  {weeklyQuest.quest.instructionText}
-                </Text>
+                <div className="rounded-[20px] border border-[#3a3a34] bg-[#1f1e1a] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                    Challenge prompt
+                  </p>
+                  <h2 className="mt-2 text-base font-semibold text-[var(--color-text)]">
+                    {weeklyQuest.quest.title}
+                  </h2>
+                  <Text size="xs" className="mt-2 leading-relaxed text-[var(--color-text-secondary)]">
+                    {weeklyQuest.quest.instructionText}
+                  </Text>
+                </div>
               </div>
             </Stack>
           </Card>

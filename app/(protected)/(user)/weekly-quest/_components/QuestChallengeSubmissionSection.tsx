@@ -38,7 +38,7 @@ export default function QuestChallengeSubmissionSection({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [captionDraft, setCaptionDraft] = useState(initialSubmission?.caption ?? "");
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>(
-    initialSubmission?.taggedFriends?.map((friend) => friend.learnerPublicId) ?? []
+    initialSubmission?.taggedFriends.map((friend) => friend.learnerPublicId) ?? []
   );
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -52,7 +52,22 @@ export default function QuestChallengeSubmissionSection({
   const hasActiveQuest = Boolean(weeklyQuest);
   const isSubmitted = Boolean(savedSubmission);
   const isBusy = uploadState === "uploading" || saveState === "saving";
-  const canSubmit = Boolean(session?.access_token) && !isBusy && Boolean(selectedFile || uploadedAsset);
+  const normalizeFriendIds = (ids: string[]) => Array.from(new Set(ids)).sort();
+  const normalizedDraftCaption = captionDraft.trim();
+  const normalizedSavedCaption = savedSubmission?.caption?.trim() ?? "";
+  const normalizedSelectedFriendIds = normalizeFriendIds(selectedFriendIds);
+  const normalizedSavedFriendIds = normalizeFriendIds(
+    savedSubmission?.taggedFriends.map((friend) => friend.learnerPublicId) ?? [],
+  );
+  const hasCaptionChanged = normalizedDraftCaption !== normalizedSavedCaption;
+  const hasTagsChanged =
+    normalizedSelectedFriendIds.length !== normalizedSavedFriendIds.length ||
+    normalizedSelectedFriendIds.some((id, index) => id !== normalizedSavedFriendIds[index]);
+  const hasMediaChanged = Boolean(selectedFile || uploadedAsset);
+  const canSubmit =
+    Boolean(session?.access_token) &&
+    !isBusy &&
+    (hasMediaChanged || (Boolean(savedSubmission) && (hasCaptionChanged || hasTagsChanged)));
   const isPageVariant = variant === "page";
 
   useEffect(() => {
@@ -131,8 +146,13 @@ export default function QuestChallengeSubmissionSection({
       return;
     }
 
-    if (!selectedFile && !uploadedAsset) {
+    if (!selectedFile && !uploadedAsset && !savedSubmission) {
       setErrorMessage("Select one image or video before submitting.");
+      return;
+    }
+
+    if (!selectedFile && savedSubmission && !hasCaptionChanged && !hasTagsChanged) {
+      setErrorMessage("No changes to save yet.");
       return;
     }
 
@@ -148,6 +168,13 @@ export default function QuestChallengeSubmissionSection({
         setUploadState("uploaded");
       }
 
+      if (!nextUploadedAsset && savedSubmission) {
+        nextUploadedAsset = {
+          objectKey: savedSubmission.objectKey,
+          originalFilename: savedSubmission.originalFilename,
+        };
+      }
+
       if (!nextUploadedAsset) {
         setErrorMessage("The upload did not complete. Please try again.");
         return;
@@ -158,8 +185,8 @@ export default function QuestChallengeSubmissionSection({
       const saved = await saveQuestChallengeSubmission(accessToken, {
         objectKey: nextUploadedAsset.objectKey,
         originalFilename: nextUploadedAsset.originalFilename,
-        caption: captionDraft.trim() ? captionDraft.trim() : null,
-        taggedFriendPublicIds: selectedFriendIds.length > 0 ? selectedFriendIds : undefined,
+        caption: normalizedDraftCaption ? normalizedDraftCaption : null,
+        taggedFriendPublicIds: normalizedSelectedFriendIds,
       });
 
       setCurrentSubmission(saved);
@@ -168,7 +195,7 @@ export default function QuestChallengeSubmissionSection({
       setUploadedAsset(null);
       setSelectedFile(null);
       setCaptionDraft(saved.caption ?? "");
-      setSelectedFriendIds(saved.taggedFriends?.map((friend) => friend.learnerPublicId) ?? []);
+      setSelectedFriendIds(saved.taggedFriends.map((friend) => friend.learnerPublicId));
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -317,7 +344,7 @@ export default function QuestChallengeSubmissionSection({
                       Caption: {savedSubmission.caption}
                     </Text>
                   )}
-                  {savedSubmission.taggedFriends && savedSubmission.taggedFriends.length > 0 && (
+                  {savedSubmission.taggedFriends.length > 0 && (
                     <div className="mt-3">
                       <Text size="xs" className="text-[var(--color-text-muted)]">
                         Tagged friends:
@@ -469,7 +496,7 @@ export default function QuestChallengeSubmissionSection({
                   Back
                 </Button>
                 <Button
-                  disabled={(!selectedFile && !savedSubmission) || !canSubmit}
+                  disabled={!canSubmit}
                   loading={isBusy}
                   onClick={handleSubmit}
                 >
