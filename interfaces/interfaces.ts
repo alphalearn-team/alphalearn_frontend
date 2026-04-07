@@ -431,7 +431,7 @@ export interface LearnerQuestChallengeSubmission {
   originalFilename: string;
   fileSizeBytes: number;
   caption: string | null;
-  taggedFriends?: TaggedFriend[];
+  taggedFriends: TaggedFriend[];
   submittedAt: string;
   updatedAt: string;
 }
@@ -455,7 +455,7 @@ export interface SaveQuestChallengeSubmissionRequest {
   objectKey: string;
   originalFilename: string;
   caption: string | null;
-  taggedFriendPublicIds?: string[];
+  taggedFriendPublicIds: string[];
 }
 
 export interface LearnerCurrentWeeklyQuest {
@@ -463,4 +463,26 @@ export interface LearnerCurrentWeeklyQuest {
   concept: LearnerWeeklyQuestConcept;
   quest: LearnerWeeklyQuestDetails;
   questChallengeSubmission: LearnerQuestChallengeSubmission | null;
+}
+
+export interface LearnerWeeklyQuestFriendFeedItem {
+  submissionPublicId: string;
+  learnerPublicId: string;
+  learnerUsername: string;
+  conceptPublicId: string;
+  conceptTitle: string;
+  assignmentPublicId: string;
+  mediaPublicUrl: string;
+  mediaContentType: string;
+  originalFilename: string;
+  caption: string | null;
+  taggedFriends: TaggedFriend[];
+  submittedAt: string;
+}
+
+export interface LearnerWeeklyQuestFriendFeedResponse {
+  items: LearnerWeeklyQuestFriendFeedItem[];
+  page: number;
+  size: number;
+  hasNext: boolean;
 }
