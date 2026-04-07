@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader, Stack, Text, TextInput } from "@mantine/core";
+import { Loader, Stack, TextInput } from "@mantine/core";
 import type { Friend } from "@/lib/utils/friends";
 import { fetchFriendsList, searchFriends } from "@/lib/utils/friends";
 
@@ -185,7 +185,7 @@ export default function FriendTagger({
       {!isLoading && friends.length === 0 && (
         <div className="rounded-lg border border-dashed border-white/10 bg-black/20 p-4 text-center">
           <p className="text-sm text-[var(--color-text-muted)]">
-            You don't have any friends yet. Add some friends to tag them in your submissions!
+            You don&apos;t have any friends yet. Add some friends to tag them in your submissions!
           </p>
         </div>
       )}
