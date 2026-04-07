@@ -1,0 +1,417 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Card, Loader, Modal, Skeleton, Stack, Text } from "@mantine/core";
+import type { LearnerWeeklyQuestFriendFeedItem } from "@/interfaces/interfaces";
+import { useAuth } from "@/lib/auth/client/AuthContext";
+import { formatDateTime } from "@/lib/utils/formatDate";
+import {
+  fetchWeeklyQuestFriendsFeed,
+  getDefaultWeeklyQuestFeedPageSize,
+  toWeeklyQuestFriendsFeedError,
+} from "@/lib/utils/weeklyQuestFriendsFeed";
+import { getQuestChallengeMediaKind } from "@/lib/utils/weeklyQuestChallenge";
+
+type FeedMediaFilter = "all" | "image" | "video";
+
+interface ExpandedMedia {
+  url: string;
+  contentType: string;
+  learnerUsername: string;
+}
+
+function getInitials(username: string): string {
+  return username
+    .split(/[._-]/)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export default function WeeklyQuestFriendsFeedSection() {
+  const { session } = useAuth();
+  const [items, setItems] = useState<LearnerWeeklyQuestFriendFeedItem[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [mediaFilter, setMediaFilter] = useState<FeedMediaFilter>("all");
+  const [expandedMedia, setExpandedMedia] = useState<ExpandedMedia | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+
+  const setVideoRef = useCallback((submissionPublicId: string, element: HTMLVideoElement | null) => {
+    if (element) {
+      videoRefs.current[submissionPublicId] = element;
+      return;
+    }
+
+    delete videoRefs.current[submissionPublicId];
+  }, []);
+
+  const accessToken = session?.access_token ?? null;
+  const pageSize = useMemo(() => getDefaultWeeklyQuestFeedPageSize(), []);
+  const filteredItems = useMemo(() => {
+    if (mediaFilter === "all") {
+      return items;
+    }
+
+    return items.filter((item) => getQuestChallengeMediaKind(item.mediaContentType) === mediaFilter);
+  }, [items, mediaFilter]);
+
+  const loadPage = useCallback(
+    async (targetPage: number, mode: "replace" | "append") => {
+      if (!accessToken) {
+        return;
+      }
+
+      if (mode === "replace") {
+        setIsInitialLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      setErrorMessage(null);
+
+      try {
+        const response = await fetchWeeklyQuestFriendsFeed(accessToken, {
+          page: targetPage,
+          size: pageSize,
+        });
+
+        setItems((prev) => (mode === "append" ? [...prev, ...response.items] : response.items));
+        setPage(response.page);
+        setHasNext(response.hasNext);
+      } catch (error) {
+        setErrorMessage(toWeeklyQuestFriendsFeedError(error));
+      } finally {
+        setIsInitialLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [accessToken, pageSize],
+  );
+
+  useEffect(() => {
+    if (!accessToken) {
+      setIsInitialLoading(false);
+      return;
+    }
+
+    void loadPage(0, "replace");
+  }, [accessToken, loadPage]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNext && !isLoadingMore && !isInitialLoading) {
+          void loadPage(page + 1, "append");
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
+    }
+
+    return () => {
+      if (sentinelRef.current) {
+        observer.unobserve(sentinelRef.current);
+      }
+    };
+  }, [hasNext, isLoadingMore, isInitialLoading, page, loadPage]);
+
+  useEffect(() => {
+    const videos = Object.values(videoRefs.current).filter(
+      (video): video is HTMLVideoElement => video !== null,
+    );
+
+    if (videos.length === 0) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+            void video.play().catch(() => {
+              // Ignore autoplay rejection from browser policies.
+            });
+            return;
+          }
+
+          video.pause();
+        });
+      },
+      { threshold: [0.6] },
+    );
+
+    videos.forEach((video) => {
+      video.muted = true;
+      video.playsInline = true;
+      observer.observe(video);
+    });
+
+    return () => {
+      videos.forEach((video) => {
+        observer.unobserve(video);
+        video.pause();
+      });
+    };
+  }, [filteredItems, mediaFilter]);
+
+  if (!accessToken) {
+    return (
+      <Card radius="24px" padding="xl" className="border border-white/10 bg-black/20">
+        <Text size="sm" className="text-[var(--color-text-secondary)]">
+          Waiting for your session before loading friend submissions.
+        </Text>
+      </Card>
+    );
+  }
+
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-6">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="space-y-4 py-6 border-t border-[#19f0c2]/20 first:border-t-0 first:py-0">
+            <div className="flex items-start gap-3">
+              <Skeleton height={40} width={40} radius="full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton height={16} width="30%" radius="sm" />
+                <Skeleton height={12} width="20%" radius="sm" />
+              </div>
+            </div>
+            <Skeleton height={320} width="100%" radius="md" />
+            <Skeleton height={12} width="100%" radius="sm" />
+            <Skeleton height={12} width="80%" radius="sm" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Modal
+        opened={expandedMedia !== null}
+        onClose={() => setExpandedMedia(null)}
+        centered
+        size="xl"
+        radius="lg"
+        title={
+          expandedMedia ? (
+            <span className="text-sm font-medium text-[var(--color-text-secondary)]">
+              @{expandedMedia.learnerUsername}
+            </span>
+          ) : undefined
+        }
+      >
+        {expandedMedia ? (
+          getQuestChallengeMediaKind(expandedMedia.contentType) === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={expandedMedia.url}
+              alt="Post media"
+              className="max-h-[70vh] w-full rounded-lg object-contain bg-black"
+            />
+          ) : (
+            <video
+              controls
+              src={expandedMedia.url}
+              className="max-h-[70vh] w-full rounded-lg bg-black"
+            />
+          )
+        ) : null}
+      </Modal>
+
+      <Stack gap="lg">
+        {/* <Card radius="24px" padding="lg" className="border border-[#2f5f53] bg-[#16201d]"> */}
+
+            <div className="flex flex-wrap justify-end gap-1">
+              {(["all", "image", "video"] as const).map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setMediaFilter(filter)}
+                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
+                    mediaFilter === filter
+                      ? "border-[#19f0c2] bg-[#19f0c2] text-[#102019]"
+                      : "border-white/15 bg-black/20 text-[var(--color-text-muted)] hover:border-[#19f0c2]/40"
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+        {/* </Card> */}
+
+      {errorMessage ? (
+        <Alert color="red" radius="lg" title="Could not load feed" variant="light">
+          {errorMessage}
+        </Alert>
+      ) : null}
+
+      {!errorMessage && items.length === 0 ? (
+        <Card radius="24px" padding="xl" className="border border-[#19f0c2]/20 bg-black/30 flex flex-col items-center justify-center min-h-80 text-center">
+          <Stack gap="md" align="center">
+            <div className="text-6xl">👥</div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+              Friends feed
+            </p>
+            <h2 className="text-2xl font-semibold text-[var(--color-text)]">
+              No friend submissions yet
+            </h2>
+            <Text size="sm" className="max-w-xl text-[var(--color-text-secondary)]">
+              When your friends publish weekly quest challenges, they will appear here in a live feed.
+            </Text>
+            <Link
+              href="/weekly-quest"
+              className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-primary)]/14 px-5 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20 mt-4"
+            >
+              Start posting
+            </Link>
+          </Stack>
+        </Card>
+      ) : null}
+
+      {filteredItems.length > 0 ? (
+        <div className="space-y-6">
+          {filteredItems.map((item) => {
+            const mediaKind = getQuestChallengeMediaKind(item.mediaContentType);
+            const tagNames = item.taggedFriends?.map((friend) => friend.learnerUsername) ?? [];
+            const initials = getInitials(item.learnerUsername);
+
+            return (
+              <div
+                key={item.submissionPublicId}
+                className="border-t border-[#19f0c2]/20 pt-6 first:border-t-0 first:pt-0 transition-all duration-300 hover:border-t-[#19f0c2]/50"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#19f0c2]/30 bg-[#19f0c2]/12 text-sm font-semibold text-[#19f0c2]">
+                        {initials}
+                      </div>
+                      <div>
+                        <p className="text-base font-semibold text-[var(--color-text)]">@{item.learnerUsername}</p>
+                        <p className="text-xs uppercase tracking-[0.16em] text-[#19f0c2]/70 mt-1">
+                          {item.conceptTitle}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">
+                      {formatDateTime(item.submittedAt)}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedMedia({
+                        url: item.mediaPublicUrl,
+                        contentType: item.mediaContentType,
+                        learnerUsername: item.learnerUsername,
+                      })
+                    }
+                    className="group relative w-full overflow-hidden rounded-xl border border-[#19f0c2]/20 bg-black/5 text-left transition-all duration-300 hover:border-[#19f0c2]/50 hover:shadow-[0_8px_24px_rgba(25,240,194,0.08)]"
+                  >
+                    {mediaKind === "image" ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.mediaPublicUrl}
+                        alt="Post media"
+                        className="w-full max-h-96 object-contain transition duration-300 group-hover:scale-105"
+                      />
+                    ) : mediaKind === "video" ? (
+                      <video
+                        ref={(element) => setVideoRef(item.submissionPublicId, element)}
+                        controls
+                        muted
+                        playsInline
+                        preload="metadata"
+                        src={item.mediaPublicUrl}
+                        className="w-full max-h-96 bg-black object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-64 items-center justify-center text-sm text-[var(--color-text-muted)]">
+                        Preview unavailable
+                      </div>
+                    )}
+                    <span className="pointer-events-none absolute right-3 top-3 rounded-full border border-[#19f0c2]/40 bg-[#19f0c2]/10 px-3 py-1.5 text-xs font-semibold text-[#19f0c2] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      Expand
+                    </span>
+                  </button>
+
+                  <div className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                    {item.caption ? (
+                      <>
+                        <span>{item.caption}</span>
+                        {tagNames.length > 0 && (
+                          <span className="ml-1">
+                            {tagNames.map((name, idx) => (
+                              <span key={`${item.submissionPublicId}-${name}`}>
+                                {idx > 0 && " "}
+                                <span className="text-[#19f0c2] font-medium">#{name}</span>
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </>
+                    ) : tagNames.length > 0 ? (
+                      <span>
+                        {tagNames.map((name, idx) => (
+                          <span key={`${item.submissionPublicId}-${name}`}>
+                            {idx > 0 && " "}
+                            <span className="text-[#19f0c2] font-medium">#{name}</span>
+                          </span>
+                        ))}
+                      </span>
+                    ) : (
+                      <span className="italic text-[var(--color-text-muted)]">
+                        No caption provided.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {isLoadingMore && (
+            <div className="space-y-4 py-6 border-t border-[#19f0c2]/20">
+              <div className="flex items-start gap-3">
+                <Skeleton height={40} width={40} radius="full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton height={16} width="30%" radius="sm" />
+                  <Skeleton height={12} width="20%" radius="sm" />
+                </div>
+              </div>
+              <Skeleton height={320} width="100%" radius="md" />
+            </div>
+          )}
+          <div ref={sentinelRef} className="h-4" />
+        </div>
+      ) : !errorMessage && items.length > 0 && mediaFilter !== "all" ? (
+        <Card radius="24px" padding="xl" className="border border-[#19f0c2]/20 bg-black/30 flex flex-col items-center justify-center min-h-60 text-center">
+          <Stack gap="md" align="center">
+            <div className="text-5xl">🔍</div>
+            <h2 className="text-xl font-semibold text-[var(--color-text)]">
+              No {mediaFilter} posts found
+            </h2>
+            <Text size="sm" className="max-w-xl text-[var(--color-text-secondary)]">
+              Your friends have posts this week, but none include {mediaFilter} media yet. Try switching to "all".
+            </Text>
+          </Stack>
+        </Card>
+      ) : null}
+
+      </Stack>
+    </>
+  );
+}
