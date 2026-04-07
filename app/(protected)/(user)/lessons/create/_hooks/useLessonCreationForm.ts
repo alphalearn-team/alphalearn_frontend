@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type {
   Concept,
   LessonSectionInput,
 } from "@/interfaces/interfaces";
-import { createLessonWithSections } from "@/app/(protected)/(user)/lessons/_actions/lesson";
+import { createLessonWithSections, submitLesson } from "@/app/(protected)/(user)/lessons/_actions/lesson";
+import { createQuizAction } from "@/app/(protected)/(user)/quiz/_components/createQuizActions";
+import type { Question } from "@/app/(protected)/(user)/quiz/_components/quizbuilder/types";
 import {
   getSectionValidationError,
   highlightElement,
@@ -18,12 +19,61 @@ interface UseLessonCreationFormParams {
   availableConcepts?: Concept[];
   concepts?: Concept[];
   initialConceptPublicIds: string[];
+  quizQuestions?: Question[];
+}
+
+function mapQuestionsToPayload(questions: Question[]) {
+  return questions.map((q) => {
+    const base = { type: q.type, prompt: q.prompt || "Empty Question" };
+    if (q.type === "multiple-choice") {
+      return {
+        ...base,
+        properties: {
+          options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
+          correctOptionIds: q.correctOptionIds.length > 0 ? q.correctOptionIds : [q.options[0]?.id],
+        },
+      };
+    }
+    if (q.type === "single-choice") {
+      return {
+        ...base,
+        properties: {
+          options: q.options.map((o) => ({ id: o.id, text: o.text || "Empty Option" })),
+          correctOptionId: q.correctOptionId || q.options[0]?.id,
+        },
+      };
+    }
+    if (q.type === "true-false") {
+      return { ...base, properties: { correctBoolean: q.correctBoolean } };
+    }
+    return base;
+  });
+}
+
+function validateQuizQuestions(questions: Question[]): string | null {
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const num = i + 1;
+    if (!q.prompt?.trim()) return `Question ${num}: Prompt is required.`;
+    if (q.type === "multiple-choice") {
+      if (q.options.length < 2) return `Question ${num}: Requires at least 2 options.`;
+      if (q.correctOptionIds.length === 0) return `Question ${num}: Select at least one correct answer.`;
+      if (q.options.some((o) => !o.text?.trim())) return `Question ${num}: All options must have text.`;
+    }
+    if (q.type === "single-choice") {
+      if (q.options.length < 2) return `Question ${num}: Requires at least 2 options.`;
+      if (!q.correctOptionId) return `Question ${num}: Select a correct answer.`;
+      if (q.options.some((o) => !o.text?.trim())) return `Question ${num}: All options must have text.`;
+    }
+  }
+  return null;
 }
 
 export function useLessonCreationForm({
   availableConcepts,
   concepts,
   initialConceptPublicIds,
+  quizQuestions = [],
 }: UseLessonCreationFormParams) {
   const router = useRouter();
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -153,6 +203,15 @@ export function useLessonCreationForm({
       return;
     }
 
+    // Validate quiz questions if any were added
+    if (quizQuestions.length > 0) {
+      const quizError = validateQuizQuestions(quizQuestions);
+      if (quizError) {
+        setError(`Quiz: ${quizError}`);
+        return;
+      }
+    }
+
     setIsSavingDraft(true);
 
     try {
@@ -166,18 +225,35 @@ export function useLessonCreationForm({
 
       const result = await createLessonWithSections(payload);
 
-      if (result.success && result.data?.lessonPublicId) {
-        showSuccess("Lesson saved! Add a quiz before submitting for review.");
-        router.push(`/lessons/${result.data.lessonPublicId}`);
+      if (!result.success) {
+        setError(result.message || "Failed to save draft");
         return;
       }
 
-      if (result.success) {
+      if (!result.data?.lessonPublicId) {
         setError("Lesson created but could not navigate to it");
         return;
       }
 
-      setError(result.message || "Failed to save draft");
+      const { lessonPublicId } = result.data;
+
+      // Create quiz if questions were added
+      if (quizQuestions.length > 0) {
+        const quizResult = await createQuizAction({
+          lessonPublicId,
+          questions: mapQuestionsToPayload(quizQuestions),
+        });
+        if (!quizResult.success) {
+          showError("Lesson saved but quiz could not be created. You can add it from the lesson editor.");
+          router.push(`/lessons/${lessonPublicId}`);
+          return;
+        }
+        showSuccess("Lesson and quiz saved!");
+      } else {
+        showSuccess("Lesson saved! Add a quiz before submitting for review.");
+      }
+
+      router.push(`/lessons/${lessonPublicId}`);
     } catch (submitError) {
       showError(submitError instanceof Error ? submitError.message : "An unexpected error occurred");
       setError(submitError instanceof Error ? submitError.message : "An unexpected error occurred");
@@ -186,64 +262,73 @@ export function useLessonCreationForm({
     }
   };
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const handleSubmitForReview = async () => {
     setError(null);
 
     const titleError = validateTitle();
-    if (titleError) {
-      setError(titleError);
-      return;
-    }
+    if (titleError) { setError(titleError); return; }
 
     const conceptError = validateConcepts();
-    if (conceptError) {
-      setError(conceptError);
-      return;
-    }
+    if (conceptError) { setError(conceptError); return; }
 
     const sectionError = validateSections();
-    if (sectionError) {
-      setError(sectionError);
+    if (sectionError) { setError(sectionError); return; }
+
+    const sectionContentError = validateSectionContent();
+    if (sectionContentError) { setError(sectionContentError); return; }
+
+    if (quizQuestions.length === 0) {
+      setError("Please add at least one quiz question before submitting for review.");
       return;
     }
 
-    const sectionContentError = validateSectionContent();
-    if (sectionContentError) {
-      setError(sectionContentError);
-      return;
-    }
+    const quizError = validateQuizQuestions(quizQuestions);
+    if (quizError) { setError(`Quiz: ${quizError}`); return; }
 
     setIsSubmitting(true);
 
     try {
-      const payload = {
+      // 1. Create lesson as draft
+      const lessonResult = await createLessonWithSections({
         title: title.trim(),
         conceptPublicIds: selectedConceptIds,
         sections,
         content: {},
-        submit: true,
-      };
+        submit: false,
+      });
 
-      const result = await createLessonWithSections(payload);
-
-      if (result.success && result.data?.lessonPublicId) {
-        router.push(`/lessons/${result.data.lessonPublicId}`);
+      if (!lessonResult.success || !lessonResult.data?.lessonPublicId) {
+        setError(lessonResult.message || "Failed to create lesson");
         return;
       }
 
-      if (result.success) {
-        setError("Lesson created but could not navigate to it");
+      const { lessonPublicId } = lessonResult.data;
+
+      // 2. Create quiz
+      const quizResult = await createQuizAction({
+        lessonPublicId,
+        questions: mapQuestionsToPayload(quizQuestions),
+      });
+
+      if (!quizResult.success) {
+        showError("Lesson saved but quiz could not be created. You can submit from the lesson editor.");
+        router.push(`/lessons/${lessonPublicId}`);
         return;
       }
 
-      setError(result.message || "Failed to create lesson");
-    } catch (submitError) {
-      setError(
-        `An unexpected error occurred: ${
-          submitError instanceof Error ? submitError.message : String(submitError)
-        }`,
-      );
+      // 3. Submit for review
+      const submitResult = await submitLesson(lessonPublicId);
+
+      if (!submitResult.success) {
+        showError(submitResult.message || "Lesson and quiz saved but submission failed. Try submitting from the lesson editor.");
+        router.push(`/lessons/${lessonPublicId}`);
+        return;
+      }
+
+      showSuccess("Lesson submitted for review!");
+      router.push(`/lessons/${lessonPublicId}`);
+    } catch (err) {
+      setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -266,7 +351,7 @@ export function useLessonCreationForm({
     error,
     handleCancel,
     handleSaveDraft,
-    handleSubmit,
+    handleSubmitForReview,
     isSavingDraft,
     isSubmitting,
     registerSectionElement,

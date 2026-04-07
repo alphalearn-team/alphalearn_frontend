@@ -1,10 +1,13 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import type { Concept } from "@/interfaces/interfaces";
+import type { Question } from "@/app/(protected)/(user)/quiz/_components/quizbuilder/types";
 import LessonBasicsCard from "./LessonBasicsCard";
 import LessonContentSection from "./LessonContentSection";
 import LessonCreateActionBar from "./LessonCreateActionBar";
 import LessonSubmissionError from "./LessonSubmissionError";
+import LessonInlineQuizSection from "./LessonInlineQuizSection";
 import { useLessonCreationForm } from "../_hooks/useLessonCreationForm";
 
 interface LessonEditorWithSectionsProps {
@@ -18,13 +21,20 @@ export default function LessonEditorWithSections({
   concepts,
   initialConceptPublicIds = [],
 }: LessonEditorWithSectionsProps) {
+  const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
+  const handleQuestionsChange = useCallback((questions: Question[]) => {
+    setQuizQuestions(questions);
+  }, []);
+
   const {
     conceptFieldRef,
     conceptOptions,
     error,
     handleCancel,
     handleSaveDraft,
+    handleSubmitForReview,
     isSavingDraft,
+    isSubmitting,
     registerSectionElement,
     sections,
     selectedConceptIds,
@@ -37,6 +47,7 @@ export default function LessonEditorWithSections({
     availableConcepts,
     concepts,
     initialConceptPublicIds,
+    quizQuestions,
   });
 
   return (
@@ -57,13 +68,18 @@ export default function LessonEditorWithSections({
         onRegisterSectionElement={registerSectionElement}
       />
 
+      <LessonInlineQuizSection onQuestionsChange={handleQuestionsChange} />
+
       <LessonSubmissionError error={error} />
 
       <LessonCreateActionBar
         hasSections={sections.length > 0}
+        hasQuiz={quizQuestions.length > 0}
         isSavingDraft={isSavingDraft}
+        isSubmitting={isSubmitting}
         onCancel={handleCancel}
         onSaveDraft={handleSaveDraft}
+        onSubmitForReview={handleSubmitForReview}
       />
     </form>
   );
