@@ -12,6 +12,7 @@ import {
   saveQuestChallengeSubmission,
   toFriendlyQuestChallengeError,
 } from "@/lib/utils/weeklyQuestChallenge";
+import FriendTagger from "./FriendTagger";
 
 type UploadState = "idle" | "uploading" | "uploadFailed" | "uploaded";
 type SaveState = "idle" | "saving" | "saveFailed" | "saved";
@@ -36,6 +37,9 @@ export default function QuestChallengeSubmissionSection({
   const initialSubmission = weeklyQuest?.questChallengeSubmission ?? null;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [captionDraft, setCaptionDraft] = useState(initialSubmission?.caption ?? "");
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>(
+    initialSubmission?.taggedFriends?.map((friend) => friend.learnerPublicId) ?? []
+  );
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [uploadedAsset, setUploadedAsset] = useState<UploadedQuestChallengeAsset | null>(null);
@@ -155,6 +159,7 @@ export default function QuestChallengeSubmissionSection({
         objectKey: nextUploadedAsset.objectKey,
         originalFilename: nextUploadedAsset.originalFilename,
         caption: captionDraft.trim() ? captionDraft.trim() : null,
+        taggedFriendPublicIds: selectedFriendIds.length > 0 ? selectedFriendIds : undefined,
       });
 
       setCurrentSubmission(saved);
@@ -163,6 +168,7 @@ export default function QuestChallengeSubmissionSection({
       setUploadedAsset(null);
       setSelectedFile(null);
       setCaptionDraft(saved.caption ?? "");
+      setSelectedFriendIds(saved.taggedFriends?.map((friend) => friend.learnerPublicId) ?? []);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -306,6 +312,28 @@ export default function QuestChallengeSubmissionSection({
                   <Text size="xs" className="mt-2 text-[var(--color-text-muted)]">
                     Updated {formatDateTime(savedSubmission.updatedAt)}
                   </Text>
+                  {savedSubmission.caption && (
+                    <Text size="xs" className="mt-3 text-[var(--color-text-secondary)]">
+                      Caption: {savedSubmission.caption}
+                    </Text>
+                  )}
+                  {savedSubmission.taggedFriends && savedSubmission.taggedFriends.length > 0 && (
+                    <div className="mt-3">
+                      <Text size="xs" className="text-[var(--color-text-muted)]">
+                        Tagged friends:
+                      </Text>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {savedSubmission.taggedFriends.map((friend) => (
+                          <span
+                            key={friend.learnerPublicId}
+                            className="inline-block rounded-full bg-[var(--color-primary)]/20 px-3 py-1 text-xs text-[var(--color-primary)]"
+                          >
+                            {friend.learnerUsername}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -422,6 +450,19 @@ export default function QuestChallengeSubmissionSection({
                 mt="xl"
                 disabled={isBusy}
               />
+
+              {session?.access_token ? (
+                <div className="mt-6 rounded-[18px] border border-white/10 bg-black/20 p-5">
+                  <FriendTagger
+                    accessToken={session.access_token}
+                    selectedFriendIds={selectedFriendIds}
+                    onSelectedFriendsChange={setSelectedFriendIds}
+                    disabled={isBusy}
+                    label="Tag friends (optional)"
+                    placeholder="Search for friends to tag"
+                  />
+                </div>
+              ) : null}
 
               <div className="mt-8 flex flex-wrap justify-end gap-3">
                 <Button variant="default" onClick={() => setCurrentStep(1)} disabled={isBusy}>
