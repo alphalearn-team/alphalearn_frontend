@@ -28,7 +28,6 @@ export default function SidebarFooter({
           styles={{
             root: {
               backgroundColor: "var(--color-primary)",
-              border: "2px solid var(--color-accent)",
               flexShrink: 0,
             },
           }}
