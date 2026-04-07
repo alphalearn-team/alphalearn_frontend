@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { showError, showSuccess } from "@/lib/utils/popUpNotifications";
+import { fetchMyProfile, type UserProfile } from "@/lib/utils/profile";
 import { getUserRoleAction } from "../server/actions";
 
 export type UserRole = "ADMIN" | "CONTRIBUTOR" | "LEARNER" | null;
@@ -13,6 +14,7 @@ export type UserRole = "ADMIN" | "CONTRIBUTOR" | "LEARNER" | null;
 type AuthContextType = {
   user: User | null;
   session: Session | null;
+  profile: UserProfile | null;
   userRole: UserRole;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -20,11 +22,13 @@ type AuthContextType = {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshUserRole: () => Promise<UserRole>;
+  refreshProfile: () => Promise<UserProfile | null>;
 };
 
 const defaultAuthContextValue: AuthContextType = {
   user: null,
   session: null,
+  profile: null,
   userRole: null,
   isLoading: true,
   signIn: async () => {},
@@ -32,6 +36,7 @@ const defaultAuthContextValue: AuthContextType = {
   signInWithGoogle: async () => {},
   signOut: async () => {},
   refreshUserRole: async () => null,
+  refreshProfile: async () => null,
 };
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContextValue);
@@ -47,6 +52,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -69,6 +75,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshProfile = async (accessToken?: string | null): Promise<UserProfile | null> => {
+    const token = accessToken ?? session?.access_token;
+
+    if (!token) {
+      setProfile(null);
+      return null;
+    }
+
+    try {
+      const nextProfile = await fetchMyProfile(token);
+      setProfile(nextProfile);
+      return nextProfile;
+    } catch {
+      setProfile(null);
+      return null;
+    }
+  };
+
   useEffect(() => {
 
     const getSession = async () => {
@@ -81,7 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Fetch role if user is authenticated
         if (data.session?.user) {
-          await fetchUserRole();
+          await Promise.all([
+            fetchUserRole(),
+            refreshProfile(data.session.access_token),
+          ]);
+        } else {
+          setProfile(null);
         }
       }
 
@@ -97,9 +126,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Fetch role when auth state changes
         if (session?.user) {
-          await fetchUserRole();
+          await Promise.all([
+            fetchUserRole(),
+            refreshProfile(session.access_token),
+          ]);
         } else {
           setUserRole(null);
+          setProfile(null);
         }
 
         setIsLoading(false);
@@ -164,6 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      setProfile(null);
       setUserRole(null);
       showSuccess("Logged out successfully!");
       router.push("/signin");
@@ -175,6 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     user,
     session,
+    profile,
     userRole,
     isLoading,
     signIn,
@@ -182,6 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     refreshUserRole: fetchUserRole,
+    refreshProfile: () => refreshProfile(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
