@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Alert, Loader, Skeleton, TextInput } from "@mantine/core";
+import { Alert, Avatar, Loader, Skeleton, TextInput } from "@mantine/core";
 import CommonButton from "@/components/CommonButton";
 import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import {
@@ -94,8 +94,48 @@ function EmptyState({
   );
 }
 
+function getUserInitials(username: string) {
+  const parts = username.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) {
+    return "AL";
+  }
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
+function UserListAvatar({
+  username,
+  profilePictureUrl,
+}: {
+  username: string;
+  profilePictureUrl: string | null;
+}) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const avatarSrc = profilePictureUrl && !hasImageError ? profilePictureUrl : null;
+
+  return (
+    <Avatar
+      src={avatarSrc}
+      size={44}
+      radius={999}
+      color="teal"
+      className="shrink-0 border border-white/10 bg-black/20 text-sm font-semibold text-[var(--color-primary)]"
+      imageProps={{
+        onError: () => setHasImageError(true),
+      }}
+    >
+      {getUserInitials(username)}
+    </Avatar>
+  );
+}
+
 function SquadRow({
   username,
+  profilePictureUrl,
   actionLabel,
   actionLoadingLabel,
   disabled,
@@ -103,6 +143,7 @@ function SquadRow({
   tone = "danger",
 }: {
   username: string;
+  profilePictureUrl: string | null;
   actionLabel: string;
   actionLoadingLabel: string;
   disabled: boolean;
@@ -115,8 +156,12 @@ function SquadRow({
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 md:flex-row md:items-center md:justify-between">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-[var(--color-text)]">{username}</p>
+      <div className="flex min-w-0 items-center gap-3">
+        <UserListAvatar username={username} profilePictureUrl={profilePictureUrl} />
+
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-[var(--color-text)]">{username}</p>
+        </div>
       </div>
 
       <button
@@ -133,6 +178,7 @@ function SquadRow({
 
 function RequestRow({
   username,
+  profilePictureUrl,
   meta,
   primaryActionLabel,
   secondaryActionLabel,
@@ -143,6 +189,7 @@ function RequestRow({
   onSecondaryAction,
 }: {
   username: string;
+  profilePictureUrl: string | null;
   meta: string;
   primaryActionLabel: string;
   secondaryActionLabel: string;
@@ -158,9 +205,13 @@ function RequestRow({
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 md:flex-row md:items-center md:justify-between">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-[var(--color-text)]">{username}</p>
-        <p className="mt-1 text-xs text-[var(--color-text-muted)]">{meta}</p>
+      <div className="flex min-w-0 items-center gap-3">
+        <UserListAvatar username={username} profilePictureUrl={profilePictureUrl} />
+
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-[var(--color-text)]">{username}</p>
+          <p className="mt-1 text-xs text-[var(--color-text-muted)]">{meta}</p>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -513,6 +564,7 @@ export default function ProfileSquadSection({
           {
             publicId: request.otherUserPublicId,
             username: request.otherUsername,
+            profilePictureUrl: request.otherUserProfilePictureUrl,
           },
         ];
       });
@@ -624,6 +676,7 @@ export default function ProfileSquadSection({
                   <SquadRow
                     key={friend.publicId}
                     username={friend.username}
+                    profilePictureUrl={friend.profilePictureUrl}
                     actionLabel="Unfriend"
                     actionLoadingLabel="Removing..."
                     disabled={unfriendingFriendIds.includes(friend.publicId)}
@@ -689,6 +742,7 @@ export default function ProfileSquadSection({
                   <SquadRow
                     key={learner.publicId}
                     username={learner.username}
+                    profilePictureUrl={learner.profilePictureUrl}
                     actionLabel="Add friend"
                     actionLoadingLabel="Sending..."
                     disabled={addingFriendIds.includes(learner.publicId)}
@@ -746,6 +800,7 @@ export default function ProfileSquadSection({
                   <RequestRow
                     key={request.requestId}
                     username={request.otherUsername}
+                    profilePictureUrl={request.otherUserProfilePictureUrl}
                     meta={toCreatedLabel(request.createdAt)}
                     primaryActionLabel="Accept"
                     secondaryActionLabel="Decline"
@@ -788,6 +843,7 @@ export default function ProfileSquadSection({
                   <RequestRow
                     key={request.requestId}
                     username={request.otherUsername}
+                    profilePictureUrl={request.otherUserProfilePictureUrl}
                     meta={toCreatedLabel(request.createdAt)}
                     primaryActionLabel="Cancel request"
                     secondaryActionLabel="Pending"

@@ -14,17 +14,20 @@ export type FriendRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 export interface Friend {
   publicId: string;
   username: string;
+  profilePictureUrl: string | null;
 }
 
 export interface LearnerPublic {
   publicId: string;
   username: string;
+  profilePictureUrl: string | null;
 }
 
 export interface FriendRequest {
   requestId: number;
   otherUserPublicId: string;
   otherUsername: string;
+  otherUserProfilePictureUrl: string | null;
   status: FriendRequestStatus;
   createdAt: string;
 }
