@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Card, Loader, Modal, Skeleton, Stack, Text } from "@mantine/core";
+import { Alert, Card, Modal, Skeleton, Stack, Text } from "@mantine/core";
 import type { LearnerWeeklyQuestFriendFeedItem } from "@/interfaces/interfaces";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import { formatDateTime } from "@/lib/utils/formatDate";
@@ -105,6 +105,7 @@ export default function WeeklyQuestFriendsFeedSection() {
   }, [accessToken, loadPage]);
 
   useEffect(() => {
+    const sentinel = sentinelRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasNext && !isLoadingMore && !isInitialLoading) {
@@ -114,13 +115,13 @@ export default function WeeklyQuestFriendsFeedSection() {
       { threshold: 0.1 },
     );
 
-    if (sentinelRef.current) {
-      observer.observe(sentinelRef.current);
+    if (sentinel) {
+      observer.observe(sentinel);
     }
 
     return () => {
-      if (sentinelRef.current) {
-        observer.unobserve(sentinelRef.current);
+      if (sentinel) {
+        observer.unobserve(sentinel);
       }
     };
   }, [hasNext, isLoadingMore, isInitialLoading, page, loadPage]);
@@ -405,7 +406,7 @@ export default function WeeklyQuestFriendsFeedSection() {
               No {mediaFilter} posts found
             </h2>
             <Text size="sm" className="max-w-xl text-[var(--color-text-secondary)]">
-              Your friends have posts this week, but none include {mediaFilter} media yet. Try switching to "all".
+              Your friends have posts this week, but none include {mediaFilter} media yet. Try switching to &quot;all&quot;.
             </Text>
           </Stack>
         </Card>

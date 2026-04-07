@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Card, Container, Stack, Text } from "@mantine/core";
+import { Container, Stack } from "@mantine/core";
 import WeeklyQuestFriendsFeedSection from "../weekly-quest/_components/WeeklyQuestFriendsFeedSection";
 
 export default function FriendsFeedPage() {

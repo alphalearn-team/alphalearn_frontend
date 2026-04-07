@@ -111,7 +111,7 @@ export default async function WeeklyQuestPage() {
               <div className="space-y-3">
                 <div className="rounded-[20px] border border-[#3a3a34] bg-[#1f1e1a] p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                    This week's topic
+                    This week&apos;s topic
                   </p>
                   <h2 className="mt-2 text-lg font-semibold leading-tight text-[var(--color-text)]">
                     {weeklyQuest.concept.title}
