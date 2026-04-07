@@ -129,6 +129,7 @@ export default function AppSidebar({
           collapsed={collapsed}
           onSignOut={signOut}
           profilePicture={profilePicture}
+          profileHref="/profile"
           roleLabel={roleLabel}
           userLabel={userLabel}
         />
