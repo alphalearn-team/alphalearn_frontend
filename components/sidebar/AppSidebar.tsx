@@ -43,12 +43,16 @@ export default function AppSidebar({
   userFallbackLabel = "User",
 }: AppSidebarProps) {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpenPath, setMobileOpenPath] = useState<string | null>(null);
 
-  const avatarLetter = user?.email ? user.email[0].toUpperCase() : "?";
-  const profilePicture = user?.user_metadata?.picture || user?.user_metadata?.avatar_url;
+  const userLabel = profile?.username || user?.email || userFallbackLabel;
+  const avatarLetter = userLabel[0]?.toUpperCase() || "?";
+  const profilePicture =
+    profile?.profilePictureUrl
+    || user?.user_metadata?.picture
+    || user?.user_metadata?.avatar_url;
   const mobileOpen = mobileOpenPath === pathname;
 
   const closeMobileSidebar = () => {
@@ -126,7 +130,7 @@ export default function AppSidebar({
           onSignOut={signOut}
           profilePicture={profilePicture}
           roleLabel={roleLabel}
-          userLabel={user?.email || userFallbackLabel}
+          userLabel={userLabel}
         />
       </aside>
     </>
