@@ -417,6 +417,11 @@ export interface LearnerWeeklyQuestDetails {
   submissionMode: WeeklyQuestSubmissionMode;
 }
 
+export interface TaggedFriend {
+  learnerPublicId: string;
+  learnerUsername: string;
+}
+
 export interface LearnerQuestChallengeSubmission {
   publicId: string;
   assignmentPublicId: string;
@@ -426,6 +431,7 @@ export interface LearnerQuestChallengeSubmission {
   originalFilename: string;
   fileSizeBytes: number;
   caption: string | null;
+  taggedFriends?: TaggedFriend[];
   submittedAt: string;
   updatedAt: string;
 }
@@ -449,6 +455,7 @@ export interface SaveQuestChallengeSubmissionRequest {
   objectKey: string;
   originalFilename: string;
   caption: string | null;
+  taggedFriendPublicIds?: string[];
 }
 
 export interface LearnerCurrentWeeklyQuest {
