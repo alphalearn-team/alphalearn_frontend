@@ -31,6 +31,7 @@ interface ProfileSquadSectionProps {
   accessToken: string;
   currentUserPublicId: string;
   currentUsername: string;
+  onFriendsCountChange?: (count: number) => void;
 }
 
 function SectionCard({
@@ -39,21 +40,27 @@ function SectionCard({
   children,
   className = "",
 }: {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <section className={`rounded-[28px] border border-white/10 bg-black/20 p-6 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.85)] md:p-7 ${className}`}>
-      <div className="mb-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-          {title}
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-          {description}
-        </p>
-      </div>
+      {title || description ? (
+        <div className="mb-5">
+          {title ? (
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+              {title}
+            </p>
+          ) : null}
+          {description ? (
+            <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              {description}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       {children}
     </section>
   );
@@ -251,6 +258,7 @@ export default function ProfileSquadSection({
   accessToken,
   currentUserPublicId,
   currentUsername,
+  onFriendsCountChange,
 }: ProfileSquadSectionProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [learners, setLearners] = useState<LearnerPublic[]>([]);
@@ -264,10 +272,19 @@ export default function ProfileSquadSection({
   const [isFriendsLoading, setIsFriendsLoading] = useState(true);
   const [isLearnersLoading, setIsLearnersLoading] = useState(true);
   const [isRequestsLoading, setIsRequestsLoading] = useState(true);
+  const [isFindFriendsOpen, setIsFindFriendsOpen] = useState(false);
   const [friendPendingRemoval, setFriendPendingRemoval] = useState<Friend | null>(null);
   const [unfriendingFriendIds, setUnfriendingFriendIds] = useState<string[]>([]);
   const [addingFriendIds, setAddingFriendIds] = useState<string[]>([]);
   const [requestActionIds, setRequestActionIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (isFriendsLoading || friendsError) {
+      return;
+    }
+
+    onFriendsCountChange?.(friends.length);
+  }, [friends.length, friendsError, isFriendsLoading, onFriendsCountChange]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -730,141 +747,156 @@ export default function ProfileSquadSection({
         </SectionCard>
       ) : null}
 
-      <div className={`grid gap-6 xl:grid-cols-2 ${shouldShowPendingRequestsCard ? "mt-6" : "mt-10"}`}>
-        <SectionCard
-          title="My Squad"
-          description="See your current friends, search within your squad, and remove connections when needed."
-        >
-          <div className="space-y-4">
-            <TextInput
-              placeholder="Search your squad"
-              value={squadSearchQuery}
-              onChange={(event) => setSquadSearchQuery(event.currentTarget.value)}
-              disabled={isFriendsLoading}
-              radius="xl"
-              size="md"
-            />
+      <SectionCard className={shouldShowPendingRequestsCard ? "mt-6" : "mt-10"}>
+        <div className="space-y-4">
+          <TextInput
+            placeholder="Search your squad"
+            value={squadSearchQuery}
+            onChange={(event) => setSquadSearchQuery(event.currentTarget.value)}
+            disabled={isFriendsLoading}
+            radius="xl"
+            size="md"
+          />
 
-            {friendsError ? (
-              <Alert color="red" radius="lg" variant="light" title="Squad load failed">
-                <div className="space-y-3">
-                  <p>{friendsError}</p>
-                  <CommonButton onClick={retryFriendsLoad} size="sm">
-                    Retry
-                  </CommonButton>
-                </div>
-              </Alert>
-            ) : null}
-
-            {isFriendsLoading ? <SquadListSkeleton /> : null}
-
-            {!isFriendsLoading && !friendsError && friends.length === 0 ? (
-              <EmptyState
-                title="Your squad is empty"
-                message="Add a few friends below and they will show up here for quick access."
-              />
-            ) : null}
-
-            {!isFriendsLoading && !friendsError && friends.length > 0 && filteredFriends.length === 0 ? (
-              <EmptyState
-                title="No squad matches"
-                message={hasSquadSearch
-                  ? "No current friends match that username."
-                  : "Your squad is empty right now."}
-              />
-            ) : null}
-
-            {!isFriendsLoading && !friendsError && filteredFriends.length > 0 ? (
+          {friendsError ? (
+            <Alert color="red" radius="lg" variant="light" title="Squad load failed">
               <div className="space-y-3">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                  {filteredFriends.length} {filteredFriends.length === 1 ? "friend" : "friends"}
-                </p>
-
-                {filteredFriends.map((friend) => (
-                  <SquadRow
-                    key={friend.publicId}
-                    username={friend.username}
-                    profilePictureUrl={friend.profilePictureUrl}
-                    actionLabel="Unfriend"
-                    actionLoadingLabel="Removing..."
-                    disabled={unfriendingFriendIds.includes(friend.publicId)}
-                    onAction={() => setFriendPendingRemoval(friend)}
-                    tone="danger"
-                  />
-                ))}
+                <p>{friendsError}</p>
+                <CommonButton onClick={retryFriendsLoad} size="sm">
+                  Retry
+                </CommonButton>
               </div>
-            ) : null}
-          </div>
-        </SectionCard>
+            </Alert>
+          ) : null}
 
-        <SectionCard
-          title="Find Friends"
-          description={`Search AlphaLearn learners and send friend requests to grow ${currentUsername}'s squad.`}
-        >
-          <div className="space-y-4">
-            <TextInput
-              placeholder="Search learners by username"
-              value={learnerSearchQuery}
-              onChange={(event) => setLearnerSearchQuery(event.currentTarget.value)}
-              disabled={isLearnersLoading}
-              radius="xl"
-              size="md"
+          {isFriendsLoading ? <SquadListSkeleton /> : null}
+
+          {!isFriendsLoading && !friendsError && friends.length === 0 ? (
+            <EmptyState
+              title="Your squad is empty"
+              message="Add a few friends below and they will show up here for quick access."
             />
+          ) : null}
 
-            {learnersError ? (
-              <Alert color="red" radius="lg" variant="light" title="Learners load failed">
-                <div className="space-y-3">
-                  <p>{learnersError}</p>
-                  <CommonButton onClick={retryLearnersLoad} size="sm">
-                    Retry
-                  </CommonButton>
-                </div>
-              </Alert>
-            ) : null}
+          {!isFriendsLoading && !friendsError && friends.length > 0 && filteredFriends.length === 0 ? (
+            <EmptyState
+              title="No squad matches"
+              message={hasSquadSearch
+                ? "No current friends match that username."
+                : "Your squad is empty right now."}
+            />
+          ) : null}
 
-            {isLearnersLoading ? (
-              <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6">
-                <Loader size={20} />
-                <span className="ml-3 text-sm text-[var(--color-text-secondary)]">
-                  Loading learners...
-                </span>
-              </div>
-            ) : null}
+          {!isFriendsLoading && !friendsError && filteredFriends.length > 0 ? (
+            <div className="space-y-3">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                {filteredFriends.length} {filteredFriends.length === 1 ? "friend" : "friends"}
+              </p>
 
-            {!isLearnersLoading && !learnersError && addableLearners.length === 0 ? (
-              <EmptyState
-                title={hasLearnerSearch ? "No learners found" : "No learners available"}
-                message={hasLearnerSearch
-                  ? "Try a different username. Matching learners will appear here."
-                  : "There are no eligible learners to add right now."}
+              {filteredFriends.map((friend) => (
+                <SquadRow
+                  key={friend.publicId}
+                  username={friend.username}
+                  profilePictureUrl={friend.profilePictureUrl}
+                  actionLabel="Unfriend"
+                  actionLoadingLabel="Removing..."
+                  disabled={unfriendingFriendIds.includes(friend.publicId)}
+                  onAction={() => setFriendPendingRemoval(friend)}
+                  tone="danger"
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </SectionCard>
+
+      <SectionCard className="mt-6">
+        <div className="space-y-5">
+          <button
+            type="button"
+            onClick={() => setIsFindFriendsOpen((current) => !current)}
+            className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left transition-colors hover:bg-white/[0.05]"
+          >
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                Find Friends
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                Search AlphaLearn learners and send friend requests to grow {currentUsername}&apos;s squad.
+              </p>
+            </div>
+
+            <span className="ml-4 shrink-0 text-2xl font-light text-[var(--color-text)]">
+              {isFindFriendsOpen ? "-" : "+"}
+            </span>
+          </button>
+
+          {isFindFriendsOpen ? (
+            <div className="space-y-4">
+              <TextInput
+                placeholder="Search learners by username"
+                value={learnerSearchQuery}
+                onChange={(event) => setLearnerSearchQuery(event.currentTarget.value)}
+                disabled={isLearnersLoading}
+                radius="xl"
+                size="md"
               />
-            ) : null}
 
-            {!isLearnersLoading && !learnersError && addableLearners.length > 0 ? (
-              <div className="space-y-3">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                  {hasLearnerSearch ? "Matching learners" : "Suggested learners"}
-                </p>
+              {learnersError ? (
+                <Alert color="red" radius="lg" variant="light" title="Learners load failed">
+                  <div className="space-y-3">
+                    <p>{learnersError}</p>
+                    <CommonButton onClick={retryLearnersLoad} size="sm">
+                      Retry
+                    </CommonButton>
+                  </div>
+                </Alert>
+              ) : null}
 
-                {addableLearners.map((learner) => (
-                  <SquadRow
-                    key={learner.publicId}
-                    username={learner.username}
-                    profilePictureUrl={learner.profilePictureUrl}
-                    actionLabel="Add friend"
-                    actionLoadingLabel="Sending..."
-                    disabled={addingFriendIds.includes(learner.publicId)}
-                    onAction={() => {
-                      void handleAddFriend(learner);
-                    }}
-                    tone="primary"
-                  />
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </SectionCard>
-      </div>
+              {isLearnersLoading ? (
+                <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6">
+                  <Loader size={20} />
+                  <span className="ml-3 text-sm text-[var(--color-text-secondary)]">
+                    Loading learners...
+                  </span>
+                </div>
+              ) : null}
+
+              {!isLearnersLoading && !learnersError && addableLearners.length === 0 ? (
+                <EmptyState
+                  title={hasLearnerSearch ? "No learners found" : "No learners available"}
+                  message={hasLearnerSearch
+                    ? "Try a different username. Matching learners will appear here."
+                    : "There are no eligible learners to add right now."}
+                />
+              ) : null}
+
+              {!isLearnersLoading && !learnersError && addableLearners.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                    {hasLearnerSearch ? "Matching learners" : "Suggested learners"}
+                  </p>
+
+                  {addableLearners.map((learner) => (
+                    <SquadRow
+                      key={learner.publicId}
+                      username={learner.username}
+                      profilePictureUrl={learner.profilePictureUrl}
+                      actionLabel="Add friend"
+                      actionLoadingLabel="Sending..."
+                      disabled={addingFriendIds.includes(learner.publicId)}
+                      onAction={() => {
+                        void handleAddFriend(learner);
+                      }}
+                      tone="primary"
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </SectionCard>
 
       <ConfirmModal
         opened={friendPendingRemoval !== null}

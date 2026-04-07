@@ -14,6 +14,7 @@ import {
 import CommonButton from "@/components/CommonButton";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import { supabase } from "@/lib/supabase/client";
+import { fetchFriends, getFriendsLoadErrorMessage } from "@/lib/utils/friends";
 import { showError, showInfo, showSuccess } from "@/lib/utils/popUpNotifications";
 import {
   createProfilePictureUpload,
@@ -29,6 +30,8 @@ import {
   type UserProfile,
 } from "@/lib/utils/profile";
 import ProfileSquadSection from "./ProfileSquadSection";
+
+const PROFILE_SQUAD_OPEN_STORAGE_KEY = "profile:squad-open";
 
 function getProfileInitials(profile: UserProfile | null) {
   const source = profile?.username || profile?.email || "AL";
@@ -141,6 +144,7 @@ export default function ProfilePageClient() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isPasswordEditorOpen, setIsPasswordEditorOpen] = useState(false);
   const [isSquadSectionOpen, setIsSquadSectionOpen] = useState(false);
+  const [squadMemberCount, setSquadMemberCount] = useState(0);
   const [profileReloadSeed, setProfileReloadSeed] = useState(0);
 
   useEffect(() => {
@@ -150,6 +154,28 @@ export default function ProfilePageClient() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const savedValue = window.localStorage.getItem(PROFILE_SQUAD_OPEN_STORAGE_KEY);
+    if (savedValue === "true") {
+      setIsSquadSectionOpen(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      PROFILE_SQUAD_OPEN_STORAGE_KEY,
+      isSquadSectionOpen ? "true" : "false",
+    );
+  }, [isSquadSectionOpen]);
 
   useEffect(() => {
     if (isLoading) {
@@ -201,6 +227,45 @@ export default function ProfilePageClient() {
       isCancelled = true;
     };
   }, [isLoading, profileReloadSeed, session?.access_token]);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    const accessToken = session?.access_token;
+
+    if (!accessToken) {
+      setSquadMemberCount(0);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadSquadCount = async () => {
+      try {
+        const friends = await fetchFriends(accessToken);
+
+        if (isCancelled) {
+          return;
+        }
+
+        setSquadMemberCount(friends.length);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        console.error("Failed to load squad count:", getFriendsLoadErrorMessage(error));
+      }
+    };
+
+    void loadSquadCount();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLoading, session?.access_token]);
 
   const avatarUrl = selectedImagePreviewUrl || profile?.profilePictureUrl || null;
   const accessToken = session?.access_token ?? null;
@@ -570,13 +635,15 @@ export default function ProfilePageClient() {
                   </p>
 
                   <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsSquadSectionOpen((current) => !current)}
-                      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-white/10"
-                    >
-                      {isSquadSectionOpen ? "Hide My Squad" : "My Squad"}
-                    </button>
+                    <p className="text-sm text-[var(--color-text-secondary)]">
+                      <button
+                        type="button"
+                        onClick={() => setIsSquadSectionOpen((current) => !current)}
+                        className="cursor-pointer bg-transparent p-0 text-inherit transition-colors hover:text-[var(--color-text)]"
+                      >
+                        {squadMemberCount} {squadMemberCount === 1 ? "Member" : "Members"} in My Squad
+                      </button>
+                    </p>
                   </div>
                 </div>
 
@@ -752,6 +819,7 @@ export default function ProfilePageClient() {
             accessToken={accessToken}
             currentUserPublicId={profile.publicId}
             currentUsername={profile.username}
+            onFriendsCountChange={setSquadMemberCount}
           />
         ) : null}
       </div>
