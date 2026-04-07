@@ -66,6 +66,10 @@ export function toFriendlyQuestChallengeError(error: unknown) {
       return "There is no active quest challenge right now.";
     }
 
+    if (error.status === 403) {
+      return "This action is available to learner accounts only.";
+    }
+
     if (error.status === 409) {
       return error.message || "This quest challenge is no longer accepting submissions.";
     }
