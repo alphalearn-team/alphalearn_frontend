@@ -28,6 +28,7 @@ import {
   type ProfilePictureErrorStage,
   type UserProfile,
 } from "@/lib/utils/profile";
+import ProfileSquadSection from "./ProfileSquadSection";
 
 function getProfileInitials(profile: UserProfile | null) {
   const source = profile?.username || profile?.email || "AL";
@@ -201,6 +202,7 @@ export default function ProfilePageClient() {
   }, [isLoading, profileReloadSeed, session?.access_token]);
 
   const avatarUrl = selectedImagePreviewUrl || profile?.profilePictureUrl || null;
+  const accessToken = session?.access_token ?? null;
   const emailValue = profile?.email ?? "No email available";
   const isBusy = isSavingProfile || isUploadingPicture;
   const shouldShowEditorSection =
@@ -732,6 +734,14 @@ export default function ProfilePageClient() {
               ) : null}
             </div>
           </section>
+        ) : null}
+
+        {accessToken ? (
+          <ProfileSquadSection
+            accessToken={accessToken}
+            currentUserPublicId={profile.publicId}
+            currentUsername={profile.username}
+          />
         ) : null}
       </div>
     </Container>
