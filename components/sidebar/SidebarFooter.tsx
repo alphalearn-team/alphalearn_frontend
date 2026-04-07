@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Avatar } from "@mantine/core";
 
 interface SidebarFooterProps {
@@ -5,6 +6,7 @@ interface SidebarFooterProps {
   collapsed: boolean;
   onSignOut: () => Promise<void>;
   profilePicture?: string;
+  profileHref: string;
   roleLabel: string;
   userLabel: string;
 }
@@ -14,12 +16,17 @@ export default function SidebarFooter({
   collapsed,
   onSignOut,
   profilePicture,
+  profileHref,
   roleLabel,
   userLabel,
 }: SidebarFooterProps) {
   return (
     <div className="sidebar-footer">
-      <div className="sidebar-user">
+      <Link
+        href={profileHref}
+        className="sidebar-user"
+        title={collapsed ? "Profile" : undefined}
+      >
         <Avatar
           src={profilePicture}
           color="white"
@@ -28,7 +35,6 @@ export default function SidebarFooter({
           styles={{
             root: {
               backgroundColor: "var(--color-primary)",
-              border: "2px solid var(--color-accent)",
               flexShrink: 0,
             },
           }}
@@ -39,7 +45,7 @@ export default function SidebarFooter({
           <span className="sidebar-user-email">{userLabel}</span>
           <span className="sidebar-user-role">{roleLabel}</span>
         </div>
-      </div>
+      </Link>
 
       <button
         onClick={onSignOut}

@@ -349,6 +349,12 @@
   padding: 8px;
   border-radius: 10px;
   background: var(--color-background);
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-user:hover {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-background));
 }
 
 .sidebar-user-info {
