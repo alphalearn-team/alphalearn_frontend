@@ -619,10 +619,118 @@ export default function ProfileSquadSection({
 
   const hasSquadSearch = squadSearchQuery.trim().length > 0;
   const hasLearnerSearch = learnerSearchQuery.trim().length > 0;
+  const shouldShowPendingRequestsCard =
+    pendingIncomingRequests.length > 0 || pendingOutgoingRequests.length > 0;
 
   return (
     <>
-      <div className="mt-10 grid gap-6 xl:grid-cols-2">
+      {shouldShowPendingRequestsCard ? (
+        <SectionCard
+          title="Pending Requests"
+          description="Track requests you have received and the invites you have already sent."
+          className="mt-10"
+        >
+          {requestsError ? (
+            <Alert color="red" radius="lg" variant="light" title="Friend requests failed to load" className="mb-4">
+              <div className="space-y-3">
+                <p>{requestsError}</p>
+                <CommonButton onClick={retryRequestsLoad} size="sm">
+                  Retry
+                </CommonButton>
+              </div>
+            </Alert>
+          ) : null}
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                  Incoming
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+                  Approve or decline requests sent to you.
+                </p>
+              </div>
+
+              {isRequestsLoading ? <PendingRequestSkeleton /> : null}
+
+              {!isRequestsLoading && !requestsError && pendingIncomingRequests.length === 0 ? (
+                <EmptyState
+                  title="No incoming requests"
+                  message="When another learner adds you, their request will appear here."
+                />
+              ) : null}
+
+              {!isRequestsLoading && !requestsError && pendingIncomingRequests.length > 0 ? (
+                <div className="space-y-3">
+                  {pendingIncomingRequests.map((request) => (
+                    <RequestRow
+                      key={request.requestId}
+                      username={request.otherUsername}
+                      profilePictureUrl={request.otherUserProfilePictureUrl}
+                      meta={toCreatedLabel(request.createdAt)}
+                      primaryActionLabel="Accept"
+                      secondaryActionLabel="Decline"
+                      primaryActionDisabled={requestActionIds.includes(request.requestId)}
+                      secondaryActionDisabled={requestActionIds.includes(request.requestId)}
+                      onPrimaryAction={() => {
+                        void handleAcceptRequest(request);
+                      }}
+                      onSecondaryAction={() => {
+                        void handleRejectRequest(request);
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                  Sent
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+                  Pending requests you have already sent to other learners.
+                </p>
+              </div>
+
+              {isRequestsLoading ? <PendingRequestSkeleton /> : null}
+
+              {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length === 0 ? (
+                <EmptyState
+                  title="No sent requests"
+                  message="Friend requests you send will stay here until they are accepted or cancelled."
+                />
+              ) : null}
+
+              {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length > 0 ? (
+                <div className="space-y-3">
+                  {pendingOutgoingRequests.map((request) => (
+                    <RequestRow
+                      key={request.requestId}
+                      username={request.otherUsername}
+                      profilePictureUrl={request.otherUserProfilePictureUrl}
+                      meta={toCreatedLabel(request.createdAt)}
+                      primaryActionLabel="Cancel request"
+                      secondaryActionLabel="Pending"
+                      primaryActionTone="danger"
+                      primaryActionDisabled={requestActionIds.includes(request.requestId)}
+                      secondaryActionDisabled
+                      onPrimaryAction={() => {
+                        void handleCancelRequest(request);
+                      }}
+                      onSecondaryAction={() => {}}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </SectionCard>
+      ) : null}
+
+      <div className={`grid gap-6 xl:grid-cols-2 ${shouldShowPendingRequestsCard ? "mt-6" : "mt-10"}`}>
         <SectionCard
           title="My Squad"
           description="See your current friends, search within your squad, and remove connections when needed."
@@ -757,110 +865,6 @@ export default function ProfileSquadSection({
           </div>
         </SectionCard>
       </div>
-
-      <SectionCard
-        title="Pending Requests"
-        description="Track requests you have received and the invites you have already sent."
-        className="mt-6"
-      >
-        {requestsError ? (
-          <Alert color="red" radius="lg" variant="light" title="Friend requests failed to load" className="mb-4">
-            <div className="space-y-3">
-              <p>{requestsError}</p>
-              <CommonButton onClick={retryRequestsLoad} size="sm">
-                Retry
-              </CommonButton>
-            </div>
-          </Alert>
-        ) : null}
-
-        <div className="grid gap-6 xl:grid-cols-2">
-          <div className="space-y-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                Incoming
-              </p>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                Approve or decline requests sent to you.
-              </p>
-            </div>
-
-            {isRequestsLoading ? <PendingRequestSkeleton /> : null}
-
-            {!isRequestsLoading && !requestsError && pendingIncomingRequests.length === 0 ? (
-              <EmptyState
-                title="No incoming requests"
-                message="When another learner adds you, their request will appear here."
-              />
-            ) : null}
-
-            {!isRequestsLoading && !requestsError && pendingIncomingRequests.length > 0 ? (
-              <div className="space-y-3">
-                {pendingIncomingRequests.map((request) => (
-                  <RequestRow
-                    key={request.requestId}
-                    username={request.otherUsername}
-                    profilePictureUrl={request.otherUserProfilePictureUrl}
-                    meta={toCreatedLabel(request.createdAt)}
-                    primaryActionLabel="Accept"
-                    secondaryActionLabel="Decline"
-                    primaryActionDisabled={requestActionIds.includes(request.requestId)}
-                    secondaryActionDisabled={requestActionIds.includes(request.requestId)}
-                    onPrimaryAction={() => {
-                      void handleAcceptRequest(request);
-                    }}
-                    onSecondaryAction={() => {
-                      void handleRejectRequest(request);
-                    }}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                Sent
-              </p>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                Pending requests you have already sent to other learners.
-              </p>
-            </div>
-
-            {isRequestsLoading ? <PendingRequestSkeleton /> : null}
-
-            {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length === 0 ? (
-              <EmptyState
-                title="No sent requests"
-                message="Friend requests you send will stay here until they are accepted or cancelled."
-              />
-            ) : null}
-
-            {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length > 0 ? (
-              <div className="space-y-3">
-                {pendingOutgoingRequests.map((request) => (
-                  <RequestRow
-                    key={request.requestId}
-                    username={request.otherUsername}
-                    profilePictureUrl={request.otherUserProfilePictureUrl}
-                    meta={toCreatedLabel(request.createdAt)}
-                    primaryActionLabel="Cancel request"
-                    secondaryActionLabel="Pending"
-                    primaryActionTone="danger"
-                    primaryActionDisabled={requestActionIds.includes(request.requestId)}
-                    secondaryActionDisabled
-                    onPrimaryAction={() => {
-                      void handleCancelRequest(request);
-                    }}
-                    onSecondaryAction={() => {}}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </SectionCard>
 
       <ConfirmModal
         opened={friendPendingRemoval !== null}

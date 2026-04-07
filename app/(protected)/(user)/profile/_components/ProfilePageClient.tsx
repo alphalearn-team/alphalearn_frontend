@@ -140,6 +140,7 @@ export default function ProfilePageClient() {
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isPasswordEditorOpen, setIsPasswordEditorOpen] = useState(false);
+  const [isSquadSectionOpen, setIsSquadSectionOpen] = useState(false);
   const [profileReloadSeed, setProfileReloadSeed] = useState(0);
 
   useEffect(() => {
@@ -567,6 +568,16 @@ export default function ProfilePageClient() {
                   <p className="mt-2 break-words text-sm text-[var(--color-text-secondary)]">
                     {emailValue}
                   </p>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsSquadSectionOpen((current) => !current)}
+                      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-white/10"
+                    >
+                      {isSquadSectionOpen ? "Hide My Squad" : "My Squad"}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -736,7 +747,7 @@ export default function ProfilePageClient() {
           </section>
         ) : null}
 
-        {accessToken ? (
+        {accessToken && isSquadSectionOpen ? (
           <ProfileSquadSection
             accessToken={accessToken}
             currentUserPublicId={profile.publicId}
