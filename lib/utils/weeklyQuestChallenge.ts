@@ -48,7 +48,18 @@ export function toFriendlyQuestChallengeError(error: unknown) {
 
   if (isQuestChallengeApiLikeError(error)) {
     if (error.status === 400) {
-      return error.message || "The selected file or submission data is invalid.";
+      const msg = error.message || "The selected file or submission data is invalid.";
+      // Handle friend tag specific errors
+      if (msg.toLowerCase().includes("self")) {
+        return "You cannot tag yourself.";
+      }
+      if (msg.toLowerCase().includes("non-friend")) {
+        return "One or more tagged friends are not in your friend list.";
+      }
+      if (msg.toLowerCase().includes("unknown learner")) {
+        return "One or more friends could not be found.";
+      }
+      return msg;
     }
 
     if (error.status === 404) {
