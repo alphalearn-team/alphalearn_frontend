@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Alert, Avatar, Loader, Skeleton, TextInput } from "@mantine/core";
+import { useRouter } from "next/navigation";
 import CommonButton from "@/components/CommonButton";
 import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import {
@@ -141,6 +142,7 @@ function UserListAvatar({
 }
 
 function SquadRow({
+  publicId,
   username,
   profilePictureUrl,
   actionLabel,
@@ -149,6 +151,7 @@ function SquadRow({
   onAction,
   tone = "danger",
 }: {
+  publicId: string;
   username: string;
   profilePictureUrl: string | null;
   actionLabel: string;
@@ -157,12 +160,30 @@ function SquadRow({
   onAction: () => void;
   tone?: "danger" | "primary";
 }) {
+  const router = useRouter();
   const buttonClassName = tone === "danger"
     ? "border-red-500/30 bg-red-500/10 text-red-100 hover:bg-red-500/20"
     : "border-white/10 bg-white/5 text-[var(--color-text)] hover:bg-white/10";
 
+  const handleOpenProfile = () => {
+    router.push(`/friends/${publicId}`);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpenProfile();
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 md:flex-row md:items-center md:justify-between">
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={handleOpenProfile}
+      onKeyDown={handleKeyDown}
+      className="flex cursor-pointer flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)] md:flex-row md:items-center md:justify-between"
+    >
       <div className="flex min-w-0 items-center gap-3">
         <UserListAvatar username={username} profilePictureUrl={profilePictureUrl} />
 
@@ -173,7 +194,13 @@ function SquadRow({
 
       <button
         type="button"
-        onClick={onAction}
+        onClick={(event) => {
+          event.stopPropagation();
+          onAction();
+        }}
+        onKeyDown={(event) => {
+          event.stopPropagation();
+        }}
         disabled={disabled}
         className={`inline-flex min-h-10 items-center justify-center rounded-xl border px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${buttonClassName}`}
       >
@@ -796,6 +823,7 @@ export default function ProfileSquadSection({
               {filteredFriends.map((friend) => (
                 <SquadRow
                   key={friend.publicId}
+                  publicId={friend.publicId}
                   username={friend.username}
                   profilePictureUrl={friend.profilePictureUrl}
                   actionLabel="Unfriend"
@@ -880,6 +908,7 @@ export default function ProfileSquadSection({
                   {addableLearners.map((learner) => (
                     <SquadRow
                       key={learner.publicId}
+                      publicId={learner.publicId}
                       username={learner.username}
                       profilePictureUrl={learner.profilePictureUrl}
                       actionLabel="Add friend"

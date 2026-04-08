@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Card, Modal, Skeleton, Stack, Text } from "@mantine/core";
+import { Alert, Avatar, Card, Modal, Skeleton, Stack, Text } from "@mantine/core";
 import type { LearnerWeeklyQuestFriendFeedItem } from "@/interfaces/interfaces";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import { formatDateTime } from "@/lib/utils/formatDate";
+import { fetchFriendsList } from "@/lib/utils/friends";
 import {
   fetchWeeklyQuestFriendsFeed,
   getDefaultWeeklyQuestFeedPageSize,
@@ -33,6 +34,7 @@ function getInitials(username: string): string {
 export default function WeeklyQuestFriendsFeedSection() {
   const { session } = useAuth();
   const [items, setItems] = useState<LearnerWeeklyQuestFriendFeedItem[]>([]);
+  const [friendProfilePictures, setFriendProfilePictures] = useState<Record<string, string | null>>({});
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -103,6 +105,41 @@ export default function WeeklyQuestFriendsFeedSection() {
 
     void loadPage(0, "replace");
   }, [accessToken, loadPage]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setFriendProfilePictures({});
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadFriendProfilePictures = async () => {
+      try {
+        const friends = await fetchFriendsList(accessToken);
+
+        if (isCancelled) {
+          return;
+        }
+
+        setFriendProfilePictures(
+          Object.fromEntries(
+            friends.map((friend) => [friend.publicId, friend.profilePictureUrl ?? null]),
+          ),
+        );
+      } catch {
+        if (!isCancelled) {
+          setFriendProfilePictures({});
+        }
+      }
+    };
+
+    void loadFriendProfilePictures();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [accessToken]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -288,6 +325,7 @@ export default function WeeklyQuestFriendsFeedSection() {
             const mediaKind = getQuestChallengeMediaKind(item.mediaContentType);
             const tagNames = item.taggedFriends?.map((friend) => friend.learnerUsername) ?? [];
             const initials = getInitials(item.learnerUsername);
+            const profilePictureUrl = friendProfilePictures[item.learnerPublicId] ?? null;
 
             return (
               <div
@@ -296,17 +334,28 @@ export default function WeeklyQuestFriendsFeedSection() {
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#19f0c2]/30 bg-[#19f0c2]/12 text-sm font-semibold text-[#19f0c2]">
+                    <Link
+                      href={`/friends/${item.learnerPublicId}`}
+                      className="flex min-w-0 flex-1 items-start gap-3 rounded-xl transition-colors hover:text-[var(--color-text)]"
+                    >
+                      <Avatar
+                        src={profilePictureUrl}
+                        size={40}
+                        radius={999}
+                        color="teal"
+                        className="flex-shrink-0 border border-[#19f0c2]/30 bg-[#19f0c2]/12 text-sm font-semibold text-[#19f0c2]"
+                      >
                         {initials}
-                      </div>
-                      <div>
-                        <p className="text-base font-semibold text-[var(--color-text)]">@{item.learnerUsername}</p>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-semibold text-[var(--color-text)] transition-colors hover:text-[#19f0c2]">
+                          @{item.learnerUsername}
+                        </p>
                         <p className="text-xs uppercase tracking-[0.16em] text-[#19f0c2]/70 mt-1">
                           {item.conceptTitle}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                     <p className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {formatDateTime(item.submittedAt)}
                     </p>

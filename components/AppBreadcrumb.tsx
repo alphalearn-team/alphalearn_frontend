@@ -17,6 +17,7 @@ const defaultLabelOverrides: Record<string, string> = {
   quiz: "Quizzes",
   games: "Game",
   profile: "Profile",
+  friends: "Friends",
   "weekly-quest": "Weekly Quest",
   mine: "My Lessons",
   create: "Create Lesson",

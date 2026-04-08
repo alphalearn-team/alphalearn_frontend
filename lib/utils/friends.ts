@@ -22,6 +22,14 @@ export interface LearnerPublic {
   profilePictureUrl: string | null;
 }
 
+export interface LearnerProfile {
+  publicId: string;
+  username: string;
+  bio: string | null;
+  profilePictureUrl: string | null;
+  viewerIsFriend: boolean;
+}
+
 export interface FriendRequest {
   requestId: number;
   otherUserPublicId: string;
@@ -79,6 +87,20 @@ export async function fetchLearners(accessToken: string): Promise<LearnerPublic[
   const { apiClientFetch } = await import("../api/apiClient");
 
   return apiClientFetch<LearnerPublic[]>(LEARNERS_API_PATH, accessToken, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+export async function fetchLearnerProfile(
+  accessToken: string,
+  learnerPublicId: string,
+): Promise<LearnerProfile> {
+  const { apiClientFetch } = await import("../api/apiClient");
+
+  return apiClientFetch<LearnerProfile>(`${LEARNERS_API_PATH}/${learnerPublicId}`, accessToken, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -206,6 +228,26 @@ export function getLearnersLoadErrorMessage(error: unknown): string {
   }
 
   return "We could not load learners.";
+}
+
+export function getLearnerProfileLoadErrorMessage(error: unknown): string {
+  if (isFriendApiLikeError(error)) {
+    if (error.status === 404) {
+      return "That learner profile could not be found.";
+    }
+
+    if (error.status >= 500) {
+      return "We could not load this profile right now. Please try again.";
+    }
+
+    return error.message || "We could not load this profile.";
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "We could not load this profile.";
 }
 
 export function getUnfriendErrorMessage(error: unknown): string {
