@@ -1,6 +1,6 @@
 import type { LearnerWeeklyQuestFriendFeedResponse, TaggedFriend } from "@/interfaces/interfaces";
 
-const WEEKLY_QUEST_FRIENDS_FEED_PATH = "/me/weekly-quests/entries";
+const WEEKLY_QUEST_FRIENDS_FEED_PATH = "/me/weekly-quests/friends/feed";
 const DEFAULT_PAGE_SIZE = 20;
 
 interface WeeklyQuestFriendsFeedApiLikeError {
@@ -11,6 +11,7 @@ interface WeeklyQuestFriendsFeedApiLikeError {
 interface FetchWeeklyQuestFriendsFeedParams {
   page?: number;
   size?: number;
+  conceptPublicIds?: string[];
 }
 
 type RawFeedItem = LearnerWeeklyQuestFriendFeedResponse["items"][number] & {
@@ -67,10 +68,15 @@ export async function fetchWeeklyQuestFriendsFeed(
   const size = Math.min(50, Math.max(1, params.size ?? DEFAULT_PAGE_SIZE));
 
   const searchParams = new URLSearchParams({
-    view: "FEED",
     page: String(page),
     size: String(size),
   });
+
+  if (params.conceptPublicIds && params.conceptPublicIds.length > 0) {
+    params.conceptPublicIds.forEach((conceptPublicId) => {
+      searchParams.append("conceptPublicIds", conceptPublicId);
+    });
+  }
 
   const response = await apiClientFetch<RawFeedResponse>(
     `${WEEKLY_QUEST_FRIENDS_FEED_PATH}?${searchParams.toString()}`,
