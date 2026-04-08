@@ -142,6 +142,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       authListener.subscription.unsubscribe();
     };
+    // refreshProfile is always called with an explicit token here, so no stale closure risk.
+    // The effect must only run on mount to avoid registering duplicate auth listeners.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signIn = async (email: string, password: string) => {

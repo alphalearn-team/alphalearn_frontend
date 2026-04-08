@@ -27,10 +27,12 @@ export default function LessonInlineQuizSection({ onQuestionsChange, quizLabel, 
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Use a ref so the effect only re-runs when `questions` changes,
-  // not when the parent re-renders and passes a new inline function reference.
+  // Keep the ref in sync via an effect (not during render) so the callback
+  // below only re-runs when `questions` changes, not on every parent render.
   const onQuestionsChangeRef = useRef(onQuestionsChange);
-  onQuestionsChangeRef.current = onQuestionsChange;
+  useEffect(() => {
+    onQuestionsChangeRef.current = onQuestionsChange;
+  });
 
   useEffect(() => {
     onQuestionsChangeRef.current(questions);
