@@ -46,6 +46,7 @@ export default function QuizAttemptView({
   const [isStarted, setIsStarted] = useState(false);
   const [bestAttempt, setBestAttempt] = useState<QuizAttemptSummary | null>(null);
   const [isLoadingBest, setIsLoadingBest] = useState(true);
+  const [attemptHistory, setAttemptHistory] = useState<QuizAttemptSummary[]>([]);
   const [submittedResult, setSubmittedResult] = useState<QuizAttemptSummary | null>(null);
   const [showExitModal, setShowExitModal] = useState(false);
 
@@ -67,6 +68,15 @@ export default function QuizAttemptView({
       .catch(() => {
         setIsLoadingBest(false);
       });
+
+    apiClientFetch<QuizAttemptSummary[]>(
+      `/me/quizzes/${quiz.quizPublicId}/attempts/history`,
+      accessToken,
+      { signal: abortController.signal }
+    )
+      .then(setAttemptHistory)
+      .catch(() => {});
+
     return () => abortController.abort();
   }, [accessToken, quiz.quizPublicId]);
 
@@ -126,6 +136,12 @@ export default function QuizAttemptView({
       );
       setSubmittedResult(result);
       setBestAttempt(result);
+
+      apiClientFetch<QuizAttemptSummary[]>(
+        `/me/quizzes/${quiz.quizPublicId}/attempts/history`,
+        accessToken
+      ).then(setAttemptHistory).catch(() => {});
+
       setIsStarted(false);
       showSuccess("Quiz completed!");
     } catch (error) {
@@ -181,11 +197,12 @@ export default function QuizAttemptView({
         <div>
           <Title order={2} className="text-3xl font-extrabold tracking-tight">Quiz Overview</Title>
         </div>
-        <QuizOverviewPanel 
-          quiz={quiz} 
-          bestAttempt={bestAttempt} 
-          isLoadingBest={isLoadingBest} 
-          onStart={() => setIsStarted(true)} 
+        <QuizOverviewPanel
+          quiz={quiz}
+          bestAttempt={bestAttempt}
+          isLoadingBest={isLoadingBest}
+          onStart={() => setIsStarted(true)}
+          attemptHistory={attemptHistory}
         />
       </div>
     );
