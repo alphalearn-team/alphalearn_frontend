@@ -609,15 +609,20 @@ export default function ProfilePageClient() {
                     {emailValue}
                   </p>
 
-                  <p className="mt-2 break-words text-sm text-[var(--color-text-secondary)]">
+                  <div className="mt-3">
                     <button
                       type="button"
                       onClick={() => setIsSquadPreviewOpen((current) => !current)}
-                      className="cursor-pointer bg-transparent p-0 text-inherit transition-colors hover:text-[var(--color-text)]"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-white/[0.08] hover:text-[var(--color-text)]"
                     >
-                      {squadMemberCount} {squadMemberCount === 1 ? "Member" : "Members"} in My Squad
+                      <span>
+                        {squadMemberCount} {squadMemberCount === 1 ? "Member" : "Members"} in My Squad
+                      </span>
+                      <span className="material-symbols-outlined text-base leading-none">
+                        {isSquadPreviewOpen ? "expand_less" : "expand_more"}
+                      </span>
                     </button>
-                  </p>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3">

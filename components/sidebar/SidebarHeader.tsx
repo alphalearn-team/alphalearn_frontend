@@ -1,5 +1,4 @@
 import Link from "next/link";
-import NotificationBell from "@/components/notifications/NotificationBell";
 
 interface SidebarHeaderProps {
   brandHref: string;
@@ -35,9 +34,6 @@ export default function SidebarHeader({
           )}
         </div>
       </Link>
-      <div className="sidebar-header-actions">
-        <NotificationBell compact={collapsed} />
-      </div>
     </div>
   );
 }

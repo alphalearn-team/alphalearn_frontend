@@ -94,7 +94,7 @@ export default function ProfileSquadPageClient() {
                 My Squad
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--color-text-secondary)]">
-                Manage friends, respond to requests, and discover more learners to add to your
+                Manage friends, handle friend requests, and discover more learners to add to your
                 learning circle.
               </p>
             </div>

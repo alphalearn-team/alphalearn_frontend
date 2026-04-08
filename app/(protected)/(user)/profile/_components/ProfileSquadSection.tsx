@@ -78,15 +78,6 @@ function SquadListSkeleton() {
   );
 }
 
-function PendingRequestSkeleton() {
-  return (
-    <div className="space-y-3">
-      <Skeleton height={72} radius="xl" />
-      <Skeleton height={72} radius="xl" />
-    </div>
-  );
-}
-
 function EmptyState({
   title,
   message,
@@ -226,12 +217,12 @@ function RequestRow({
   profilePictureUrl: string | null;
   meta: string;
   primaryActionLabel: string;
-  secondaryActionLabel: string;
+  secondaryActionLabel?: string;
   primaryActionTone?: "primary" | "danger";
   primaryActionDisabled: boolean;
-  secondaryActionDisabled: boolean;
+  secondaryActionDisabled?: boolean;
   onPrimaryAction: () => void;
-  onSecondaryAction: () => void;
+  onSecondaryAction?: () => void;
 }) {
   const primaryActionClassName = primaryActionTone === "danger"
     ? "border-red-500/30 bg-red-500/10 text-red-100 hover:bg-red-500/20"
@@ -249,14 +240,16 @@ function RequestRow({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={onSecondaryAction}
-          disabled={secondaryActionDisabled}
-          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/10 bg-transparent px-4 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-white/5 hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {secondaryActionLabel}
-        </button>
+        {secondaryActionLabel && onSecondaryAction ? (
+          <button
+            type="button"
+            onClick={onSecondaryAction}
+            disabled={secondaryActionDisabled}
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/10 bg-transparent px-4 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-white/5 hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {secondaryActionLabel}
+          </button>
+        ) : null}
 
         <button
           type="button"
@@ -287,6 +280,7 @@ export default function ProfileSquadSection({
   currentUsername,
   onFriendsCountChange,
 }: ProfileSquadSectionProps) {
+  const PREVIEW_COUNT = 3;
   const [friends, setFriends] = useState<Friend[]>([]);
   const [learners, setLearners] = useState<LearnerPublic[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
@@ -304,6 +298,9 @@ export default function ProfileSquadSection({
   const [unfriendingFriendIds, setUnfriendingFriendIds] = useState<string[]>([]);
   const [addingFriendIds, setAddingFriendIds] = useState<string[]>([]);
   const [requestActionIds, setRequestActionIds] = useState<number[]>([]);
+  const [showAllFriends, setShowAllFriends] = useState(false);
+  const [showAllIncoming, setShowAllIncoming] = useState(false);
+  const [showAllOutgoing, setShowAllOutgoing] = useState(false);
 
   useEffect(() => {
     if (isFriendsLoading || friendsError) {
@@ -392,7 +389,6 @@ export default function ProfileSquadSection({
       if (showLoading) {
         setIsRequestsLoading(true);
       }
-
       setRequestsError(null);
 
       try {
@@ -411,9 +407,7 @@ export default function ProfileSquadSection({
         if (isCancelled) {
           return;
         }
-
-        const message = getFriendRequestsLoadErrorMessage(error);
-        setRequestsError(message);
+        setRequestsError(getFriendRequestsLoadErrorMessage(error));
       } finally {
         if (!isCancelled && showLoading) {
           setIsRequestsLoading(false);
@@ -596,7 +590,6 @@ export default function ProfileSquadSection({
       await updateFriendRequestStatus(accessToken, request.requestId, {
         status: "APPROVED",
       });
-
       setIncomingRequests((current) => current.filter((item) => item.requestId !== request.requestId));
       setFriends((current) => {
         if (current.some((friend) => friend.publicId === request.otherUserPublicId)) {
@@ -614,8 +607,7 @@ export default function ProfileSquadSection({
       });
       showSuccess(`${request.otherUsername} is now in your squad.`);
     } catch (error) {
-      const message = getRespondToFriendRequestErrorMessage(error);
-      showError(message);
+      showError(getRespondToFriendRequestErrorMessage(error));
     } finally {
       setRequestActionIds((current) => current.filter((id) => id !== request.requestId));
     }
@@ -635,8 +627,7 @@ export default function ProfileSquadSection({
       setIncomingRequests((current) => current.filter((item) => item.requestId !== request.requestId));
       showSuccess(`Friend request from ${request.otherUsername} was declined.`);
     } catch (error) {
-      const message = getRespondToFriendRequestErrorMessage(error);
-      showError(message);
+      showError(getRespondToFriendRequestErrorMessage(error));
     } finally {
       setRequestActionIds((current) => current.filter((id) => id !== request.requestId));
     }
@@ -654,8 +645,7 @@ export default function ProfileSquadSection({
       setOutgoingRequests((current) => current.filter((item) => item.requestId !== request.requestId));
       showSuccess(`Friend request to ${request.otherUsername} was cancelled.`);
     } catch (error) {
-      const message = getCancelFriendRequestErrorMessage(error);
-      showError(message);
+      showError(getCancelFriendRequestErrorMessage(error));
     } finally {
       setRequestActionIds((current) => current.filter((id) => id !== request.requestId));
     }
@@ -663,118 +653,128 @@ export default function ProfileSquadSection({
 
   const hasSquadSearch = squadSearchQuery.trim().length > 0;
   const hasLearnerSearch = learnerSearchQuery.trim().length > 0;
-  const shouldShowPendingRequestsCard =
-    pendingIncomingRequests.length > 0 || pendingOutgoingRequests.length > 0;
+  const visibleFriends = showAllFriends ? filteredFriends : filteredFriends.slice(0, PREVIEW_COUNT);
+  const visibleIncomingRequests = showAllIncoming
+    ? pendingIncomingRequests
+    : pendingIncomingRequests.slice(0, PREVIEW_COUNT);
+  const visibleOutgoingRequests = showAllOutgoing
+    ? pendingOutgoingRequests
+    : pendingOutgoingRequests.slice(0, PREVIEW_COUNT);
 
   return (
     <>
-      {shouldShowPendingRequestsCard ? (
-        <SectionCard
-          title="Pending Requests"
-          description="Track requests you have received and the invites you have already sent."
-          className="mt-10"
-        >
-          {requestsError ? (
-            <Alert color="red" radius="lg" variant="light" title="Friend requests failed to load" className="mb-4">
+      <SectionCard
+        title="Friend Requests"
+        description="Manage incoming and outgoing requests here."
+        className="mt-10"
+      >
+        {requestsError ? (
+          <Alert color="red" radius="lg" variant="light" title="Friend requests failed to load" className="mb-4">
+            <div className="space-y-3">
+              <p>{requestsError}</p>
+              <CommonButton onClick={retryRequestsLoad} size="sm">
+                Retry
+              </CommonButton>
+            </div>
+          </Alert>
+        ) : null}
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <div className="space-y-4">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              Incoming Requests
+            </p>
+
+            {isRequestsLoading ? <SquadListSkeleton /> : null}
+
+            {!isRequestsLoading && !requestsError && pendingIncomingRequests.length === 0 ? (
+              <EmptyState
+                title="No incoming requests"
+                message="When someone sends you a request, it will appear here."
+              />
+            ) : null}
+
+            {!isRequestsLoading && !requestsError && pendingIncomingRequests.length > 0 ? (
               <div className="space-y-3">
-                <p>{requestsError}</p>
-                <CommonButton onClick={retryRequestsLoad} size="sm">
-                  Retry
-                </CommonButton>
+                {visibleIncomingRequests.map((request) => (
+                  <RequestRow
+                    key={request.requestId}
+                    username={request.otherUsername}
+                    profilePictureUrl={request.otherUserProfilePictureUrl}
+                    meta={toCreatedLabel(request.createdAt)}
+                    primaryActionLabel="Accept"
+                    secondaryActionLabel="Decline"
+                    primaryActionDisabled={requestActionIds.includes(request.requestId)}
+                    secondaryActionDisabled={requestActionIds.includes(request.requestId)}
+                    onPrimaryAction={() => {
+                      void handleAcceptRequest(request);
+                    }}
+                    onSecondaryAction={() => {
+                      void handleRejectRequest(request);
+                    }}
+                  />
+                ))}
+
+                {pendingIncomingRequests.length > PREVIEW_COUNT ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllIncoming((current) => !current)}
+                    className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-primary)] hover:text-[var(--color-accent)]"
+                  >
+                    {showAllIncoming ? "Show less" : "Show more"}
+                  </button>
+                ) : null}
               </div>
-            </Alert>
-          ) : null}
-
-          <div className="grid gap-6 xl:grid-cols-2">
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                  Incoming
-                </p>
-                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                  Approve or decline requests sent to you.
-                </p>
-              </div>
-
-              {isRequestsLoading ? <PendingRequestSkeleton /> : null}
-
-              {!isRequestsLoading && !requestsError && pendingIncomingRequests.length === 0 ? (
-                <EmptyState
-                  title="No incoming requests"
-                  message="When another learner adds you, their request will appear here."
-                />
-              ) : null}
-
-              {!isRequestsLoading && !requestsError && pendingIncomingRequests.length > 0 ? (
-                <div className="space-y-3">
-                  {pendingIncomingRequests.map((request) => (
-                    <RequestRow
-                      key={request.requestId}
-                      username={request.otherUsername}
-                      profilePictureUrl={request.otherUserProfilePictureUrl}
-                      meta={toCreatedLabel(request.createdAt)}
-                      primaryActionLabel="Accept"
-                      secondaryActionLabel="Decline"
-                      primaryActionDisabled={requestActionIds.includes(request.requestId)}
-                      secondaryActionDisabled={requestActionIds.includes(request.requestId)}
-                      onPrimaryAction={() => {
-                        void handleAcceptRequest(request);
-                      }}
-                      onSecondaryAction={() => {
-                        void handleRejectRequest(request);
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                  Sent
-                </p>
-                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                  Pending requests you have already sent to other learners.
-                </p>
-              </div>
-
-              {isRequestsLoading ? <PendingRequestSkeleton /> : null}
-
-              {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length === 0 ? (
-                <EmptyState
-                  title="No sent requests"
-                  message="Friend requests you send will stay here until they are accepted or cancelled."
-                />
-              ) : null}
-
-              {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length > 0 ? (
-                <div className="space-y-3">
-                  {pendingOutgoingRequests.map((request) => (
-                    <RequestRow
-                      key={request.requestId}
-                      username={request.otherUsername}
-                      profilePictureUrl={request.otherUserProfilePictureUrl}
-                      meta={toCreatedLabel(request.createdAt)}
-                      primaryActionLabel="Cancel request"
-                      secondaryActionLabel="Pending"
-                      primaryActionTone="danger"
-                      primaryActionDisabled={requestActionIds.includes(request.requestId)}
-                      secondaryActionDisabled
-                      onPrimaryAction={() => {
-                        void handleCancelRequest(request);
-                      }}
-                      onSecondaryAction={() => {}}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            ) : null}
           </div>
-        </SectionCard>
-      ) : null}
 
-      <SectionCard className={shouldShowPendingRequestsCard ? "mt-6" : "mt-10"}>
+          <div className="space-y-4">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              Outgoing Requests
+            </p>
+
+            {isRequestsLoading ? <SquadListSkeleton /> : null}
+
+            {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length === 0 ? (
+              <EmptyState
+                title="No outgoing requests"
+                message="Requests you send will appear here until accepted or cancelled."
+              />
+            ) : null}
+
+            {!isRequestsLoading && !requestsError && pendingOutgoingRequests.length > 0 ? (
+              <div className="space-y-3">
+                {visibleOutgoingRequests.map((request) => (
+                  <RequestRow
+                    key={request.requestId}
+                    username={request.otherUsername}
+                    profilePictureUrl={request.otherUserProfilePictureUrl}
+                    meta={toCreatedLabel(request.createdAt)}
+                    primaryActionLabel="Cancel request"
+                    primaryActionTone="danger"
+                    primaryActionDisabled={requestActionIds.includes(request.requestId)}
+                    onPrimaryAction={() => {
+                      void handleCancelRequest(request);
+                    }}
+                  />
+                ))}
+
+                {pendingOutgoingRequests.length > PREVIEW_COUNT ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllOutgoing((current) => !current)}
+                    className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-primary)] hover:text-[var(--color-accent)]"
+                  >
+                    {showAllOutgoing ? "Show less" : "Show more"}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard className="mt-6">
         <div className="space-y-4">
           <TextInput
             placeholder="Search your squad"
@@ -817,10 +817,10 @@ export default function ProfileSquadSection({
           {!isFriendsLoading && !friendsError && filteredFriends.length > 0 ? (
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                {filteredFriends.length} {filteredFriends.length === 1 ? "friend" : "friends"}
+                Friends
               </p>
 
-              {filteredFriends.map((friend) => (
+              {visibleFriends.map((friend) => (
                 <SquadRow
                   key={friend.publicId}
                   publicId={friend.publicId}
@@ -833,6 +833,16 @@ export default function ProfileSquadSection({
                   tone="danger"
                 />
               ))}
+
+              {filteredFriends.length > PREVIEW_COUNT ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAllFriends((current) => !current)}
+                  className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-primary)] hover:text-[var(--color-accent)]"
+                >
+                  {showAllFriends ? "Show less" : "Show more"}
+                </button>
+              ) : null}
             </div>
           ) : null}
         </div>

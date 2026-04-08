@@ -1,25 +1,31 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import AppSidebar, {
   type SidebarNavSection,
 } from "@/components/sidebar/AppSidebar";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/lib/auth/client/AuthContext";
+import { fetchFriendRequests } from "@/lib/utils/friends";
 
-const sections: SidebarNavSection[] = [
-  {
-    label: "Navigation",
-    items: [
-      { label: "Home", href: "/", icon: "home", exact: true },
-      { label: "Squad", href: "/profile/squad", icon: "groups" },
-      { label: "Game", href: "/games", icon: "sports_esports" },
-      { label: "Weekly Quest", href: "/weekly-quest", icon: "bolt" },
-      { label: "Friends Feed", href: "/friends-feed", icon: "dynamic_feed" },
-      { label: "Concepts", href: "/concepts", icon: "library_books" },
-      { label: "Lessons", href: "/lessons", icon: "menu_book" },
-      { label: "My Enrolled Lessons", href: "/my-enrollments", icon: "bookmark" },
-    ],
-  },
-];
+function getSections(unreadNotificationsCount: number, incomingRequestCount: number): SidebarNavSection[] {
+  return [
+    {
+      label: "Navigation",
+      items: [
+        { label: "Home", href: "/", icon: "home", exact: true },
+        { label: "Inbox", href: "/inbox", icon: "inbox", badgeCount: unreadNotificationsCount || undefined },
+        { label: "Squad", href: "/profile/squad", icon: "groups", badgeCount: incomingRequestCount || undefined },
+        { label: "Game", href: "/games", icon: "sports_esports" },
+        { label: "Weekly Quest", href: "/weekly-quest", icon: "bolt" },
+        { label: "Friends Feed", href: "/friends-feed", icon: "dynamic_feed" },
+        { label: "Concepts", href: "/concepts", icon: "library_books" },
+        { label: "Lessons", href: "/lessons", icon: "menu_book" },
+        { label: "My Enrolled Lessons", href: "/my-enrollments", icon: "bookmark" },
+      ],
+    },
+  ];
+}
 
 function getQuickActionsSection(
   userRole: string | null,
@@ -56,7 +62,47 @@ function toRoleLabel(role: string | null) {
 }
 
 export default function UserSidebar() {
-  const { userRole } = useAuth();
+  const { userRole, user, session } = useAuth();
+  const accessToken = session?.access_token ?? null;
+  const { unreadCount } = useNotifications(Boolean(user));
+  const [incomingRequestCount, setIncomingRequestCount] = useState(0);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadIncomingRequestCount = async () => {
+      try {
+        const incoming = await fetchFriendRequests(accessToken, "INCOMING");
+        if (isCancelled) {
+          return;
+        }
+        setIncomingRequestCount(incoming.filter((request) => request.status === "PENDING").length);
+      } catch {
+        if (!isCancelled) {
+          setIncomingRequestCount(0);
+        }
+      }
+    };
+
+    void loadIncomingRequestCount();
+    const intervalId = window.setInterval(() => {
+      void loadIncomingRequestCount();
+    }, 15000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [accessToken]);
+
+  const sections = useMemo(
+    () => getSections(unreadCount, accessToken ? incomingRequestCount : 0),
+    [accessToken, incomingRequestCount, unreadCount],
+  );
   const quickActionsSection = getQuickActionsSection(userRole);
 
   return (
