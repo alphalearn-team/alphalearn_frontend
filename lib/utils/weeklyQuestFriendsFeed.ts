@@ -27,7 +27,7 @@ export function getDefaultWeeklyQuestFeedPageSize() {
 }
 
 export function toWeeklyQuestFriendsFeedError(error: unknown) {
-  const fallback = "Could not load the weekly quest friends feed.";
+  const fallback = "Could not load the weekly quest feed.";
 
   if (isWeeklyQuestFriendsFeedApiLikeError(error)) {
     if (error.status === 400) {
@@ -39,7 +39,7 @@ export function toWeeklyQuestFriendsFeedError(error: unknown) {
     }
 
     if (error.status >= 500) {
-      return "The server could not load the friends feed right now. Please try again.";
+      return "The server could not load the feed right now. Please try again.";
     }
 
     return error.message || fallback;
