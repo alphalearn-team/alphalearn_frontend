@@ -336,7 +336,6 @@ export default function MyPostsSection() {
         ) : !errorMessage && items.length > 0 && mediaFilter !== "all" ? (
           <Card radius="24px" padding="xl" className="border border-[#19f0c2]/20 bg-black/30 flex flex-col items-center justify-center min-h-60 text-center">
             <Stack gap="md" align="center">
-              <div className="text-5xl">🔍</div>
               <h2 className="text-xl font-semibold text-[var(--color-text)]">
                 No {mediaFilter} posts found
               </h2>
