@@ -10,10 +10,10 @@ export default function FriendsFeedPage() {
             <Stack gap="lg">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#19f0c2]">
+                  {/* <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#19f0c2]">
                     Friends feed
                   </p>
-     
+      */}
         
                 </div>
               </div>

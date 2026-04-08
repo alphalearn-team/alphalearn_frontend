@@ -236,7 +236,7 @@ function SubmissionCard({
                   {tagNames.map((name, index) => (
                     <span key={`${item.submissionPublicId}-${name}`}>
                       {index > 0 && " "}
-                      <span className="font-medium text-[#19f0c2]">#{name}</span>
+                      <span className="font-medium text-[#19f0c2]">@{name}</span>
                     </span>
                   ))}
                 </span>
@@ -247,7 +247,7 @@ function SubmissionCard({
               {tagNames.map((name, index) => (
                 <span key={`${item.submissionPublicId}-${name}`}>
                   {index > 0 && " "}
-                  <span className="font-medium text-[#19f0c2]">#{name}</span>
+                  <span className="font-medium text-[#19f0c2]">@{name}</span>
                 </span>
               ))}
             </span>

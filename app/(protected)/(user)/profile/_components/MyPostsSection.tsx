@@ -305,7 +305,7 @@ export default function MyPostsSection() {
                               {tagNames.map((name, idx) => (
                                 <span key={`${item.submissionPublicId}-${name}`}>
                                   {idx > 0 && " "}
-                                  <span className="text-[#19f0c2] font-medium">#{name}</span>
+                                  <span className="text-[#19f0c2] font-medium">@{name}</span>
                                 </span>
                               ))}
                             </span>
@@ -316,7 +316,7 @@ export default function MyPostsSection() {
                           {tagNames.map((name, idx) => (
                             <span key={`${item.submissionPublicId}-${name}`}>
                               {idx > 0 && " "}
-                              <span className="text-[#19f0c2] font-medium">#{name}</span>
+                              <span className="text-[#19f0c2] font-medium">@{name}</span>
                             </span>
                           ))}
                         </span>
