@@ -13,10 +13,15 @@ import {
   getDefaultWeeklyQuestFeedPageSize,
   toWeeklyQuestFriendsFeedError,
 } from "@/lib/utils/weeklyQuestFriendsFeed";
+import {
+  fetchWeeklyQuestTaggedHistory,
+  toWeeklyQuestTaggedHistoryError,
+} from "@/lib/utils/weeklyQuestTaggedHistory";
 import { getQuestChallengeMediaKind } from "@/lib/utils/weeklyQuestChallenge";
 
 type FeedMediaFilter = "all" | "image" | "video";
 type FeedSortOrder = "newest" | "oldest";
+type FeedTab = "feed" | "tagged";
 
 interface ExpandedMedia {
   url: string;
@@ -42,6 +47,7 @@ export default function WeeklyQuestFriendsFeedSection() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<FeedTab>("feed");
   const [mediaFilter, setMediaFilter] = useState<FeedMediaFilter>("all");
   const [sortOrder, setSortOrder] = useState<FeedSortOrder>("newest");
   const [selectedConceptPublicId, setSelectedConceptPublicId] = useState<string>("all");
@@ -101,24 +107,33 @@ export default function WeeklyQuestFriendsFeedSection() {
       setErrorMessage(null);
 
       try {
-        const response = await fetchWeeklyQuestFriendsFeed(accessToken, {
+        const requestParams = {
           page: targetPage,
           size: pageSize,
           conceptPublicIds:
             selectedConceptPublicId === "all" ? undefined : [selectedConceptPublicId],
-        });
+        };
+
+        const response =
+          activeTab === "feed"
+            ? await fetchWeeklyQuestFriendsFeed(accessToken, requestParams)
+            : await fetchWeeklyQuestTaggedHistory(accessToken, requestParams);
 
         setItems((prev) => (mode === "append" ? [...prev, ...response.items] : response.items));
         setPage(response.page);
         setHasNext(response.hasNext);
       } catch (error) {
-        setErrorMessage(toWeeklyQuestFriendsFeedError(error));
+        setErrorMessage(
+          activeTab === "feed"
+            ? toWeeklyQuestFriendsFeedError(error)
+            : toWeeklyQuestTaggedHistoryError(error),
+        );
       } finally {
         setIsInitialLoading(false);
         setIsLoadingMore(false);
       }
     },
-    [accessToken, pageSize, selectedConceptPublicId],
+    [accessToken, activeTab, pageSize, selectedConceptPublicId],
   );
 
   useEffect(() => {
@@ -128,7 +143,7 @@ export default function WeeklyQuestFriendsFeedSection() {
     }
 
     void loadPage(0, "replace");
-  }, [accessToken, loadPage]);
+  }, [accessToken, activeTab, loadPage]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -267,6 +282,43 @@ export default function WeeklyQuestFriendsFeedSection() {
       </Modal>
 
       <Stack gap="lg">
+        <div className="flex items-center justify-center">
+          <div
+            role="tablist"
+            aria-label="Friends feed tabs"
+            className="inline-flex rounded-2xl border border-white/10 bg-black/20 p-1 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.9)]"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "feed"}
+              onClick={() => setActiveTab("feed")}
+              className={`relative inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-xs font-semibold tracking-[0.16em] transition-all ${
+                activeTab === "feed"
+                  ? "bg-[#19f0c2] text-[#102019] shadow-[0_0_0_1px_rgba(25,240,194,0.35)]"
+                  : "text-[var(--color-text-muted)] hover:bg-white/5 hover:text-[var(--color-text)]"
+              }`}
+            >
+              <span className="mr-2 text-sm leading-none">◉</span>
+              Feed
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "tagged"}
+              onClick={() => setActiveTab("tagged")}
+              className={`relative inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-xs font-semibold tracking-[0.16em] transition-all ${
+                activeTab === "tagged"
+                  ? "bg-[#19f0c2] text-[#102019] shadow-[0_0_0_1px_rgba(25,240,194,0.35)]"
+                  : "text-[var(--color-text-muted)] hover:bg-white/5 hover:text-[var(--color-text)]"
+              }`}
+            >
+              <span className="mr-2 text-sm leading-none">@</span>
+              Tagged
+            </button>
+          </div>
+        </div>
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
@@ -330,7 +382,7 @@ export default function WeeklyQuestFriendsFeedSection() {
         </div>
 
       {errorMessage ? (
-        <Alert color="red" radius="lg" title="Could not load feed" variant="light">
+          <Alert color="red" radius="lg" title="Could not load feed" variant="light">
           {errorMessage}
         </Alert>
       ) : null}
@@ -338,17 +390,19 @@ export default function WeeklyQuestFriendsFeedSection() {
       {!errorMessage && items.length === 0 ? (
         <Card radius="24px" padding="xl" className="border border-[#19f0c2]/20 bg-black/30 flex flex-col items-center justify-center min-h-80 text-center">
           <Stack gap="md" align="center">
-            <h2 className="text-2xl font-semibold text-[var(--color-text)]">
-              No friend submissions yet
-            </h2>
+              <h2 className="text-2xl font-semibold text-[var(--color-text)]">
+                {activeTab === "feed" ? "No friend submissions yet" : "No tagged submissions yet"}
+              </h2>
             <Text size="sm" className="max-w-xl text-[var(--color-text-secondary)]">
-              When your friends publish weekly quest challenges, they will appear here in a live feed.
+                {activeTab === "feed"
+                  ? "When your friends publish weekly quest challenges, they will appear here in a live feed."
+                  : "When friends tag you in weekly quest challenges, those posts will appear here."}
             </Text>
             <Link
               href="/weekly-quest"
               className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-primary)]/14 px-5 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20 mt-4"
             >
-              Start posting
+                Start posting
             </Link>
           </Stack>
         </Card>
@@ -443,7 +497,7 @@ export default function WeeklyQuestFriendsFeedSection() {
                             {tagNames.map((name, idx) => (
                               <span key={`${item.submissionPublicId}-${name}`}>
                                 {idx > 0 && " "}
-                                <span className="text-[#19f0c2] font-medium">#{name}</span>
+                                <span className="text-[#19f0c2] font-medium">@{name}</span>
                               </span>
                             ))}
                           </span>
@@ -454,7 +508,7 @@ export default function WeeklyQuestFriendsFeedSection() {
                         {tagNames.map((name, idx) => (
                           <span key={`${item.submissionPublicId}-${name}`}>
                             {idx > 0 && " "}
-                            <span className="text-[#19f0c2] font-medium">#{name}</span>
+                            <span className="text-[#19f0c2] font-medium">@{name}</span>
                           </span>
                         ))}
                       </span>
