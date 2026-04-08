@@ -2,6 +2,7 @@ import { Container, SimpleGrid, Title, Text, Card, Group } from "@mantine/core";
 import { getMyProgress } from "@/app/(protected)/(user)/lessons/[id]/_lib/enrollment";
 import Link from "next/link";
 import LessonProgressCard from "./_components/LessonProgressCard";
+import CommonButton from "@/components/CommonButton";
 
 export default async function MyEnrollmentsPage() {
   const lessons = await getMyProgress();
@@ -29,11 +30,8 @@ export default async function MyEnrollmentsPage() {
               Explore our lesson catalog and enroll in a topic that interests you!
             </Text>
             <Group justify="center">
-              <Link
-                href="/lessons"
-                className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-light)] transition-colors"
-              >
-                Browse Lessons
+              <Link href="/lessons">
+                <CommonButton>Browse Lessons</CommonButton>
               </Link>
             </Group>
           </Card>

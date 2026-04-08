@@ -9,8 +9,8 @@ import {
   makeQuestion,
 } from "./types";
 
-export function useQuizState() {
-  const [questions, setQuestions] = useState<Question[]>([]);
+export function useQuizState(initialQuestions: Question[] = []) {
+  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
 
   type DragEvent = {
     canceled?: boolean;

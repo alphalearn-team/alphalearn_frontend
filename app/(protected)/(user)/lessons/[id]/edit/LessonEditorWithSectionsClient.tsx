@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import type { LessonSection } from "@/interfaces/interfaces";
 import ConfirmModal from "@/components/confirmModal/ConfirmModal";
 import LessonEditTitleCard from "./_components/LessonEditTitleCard";
@@ -14,6 +15,7 @@ export interface LessonEditorWithSectionsProps {
   initialTitle: string;
   initialSections: LessonSection[];
   initialStatus: string;
+  quizSection?: ReactNode;
 }
 
 export default function LessonEditorWithSectionsClient({
@@ -21,6 +23,7 @@ export default function LessonEditorWithSectionsClient({
   initialTitle,
   initialSections,
   initialStatus,
+  quizSection,
 }: LessonEditorWithSectionsProps) {
   const {
     currentStatus,
@@ -64,6 +67,8 @@ export default function LessonEditorWithSectionsClient({
       />
 
       <LessonEditSubmissionError error={error} />
+
+      {quizSection}
 
       <LessonEditActionBar
         currentStatus={currentStatus}

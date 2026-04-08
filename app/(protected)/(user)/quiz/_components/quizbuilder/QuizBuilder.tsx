@@ -9,8 +9,15 @@ import SaveQuizModal from "./SaveQuizModal";
 import MobileDrawer from "./sidebar/MobileDrawer";
 import Canvas from "./Canvas";
 import GlowButton from "../../../../../../components/GlowButton";
+import type { Question } from "./types";
 
-export default function QuizBuilder() {
+interface QuizBuilderProps {
+  initialQuestions?: Question[];
+  quizPublicId?: string;
+  lessonPublicId?: string;
+}
+
+export default function QuizBuilder({ initialQuestions, quizPublicId, lessonPublicId }: QuizBuilderProps) {
   const {
     questions,
     addQuestion,
@@ -19,7 +26,7 @@ export default function QuizBuilder() {
     handleDragStart,
     handleDragMove,
     handleDragEnd,
-  } = useQuizState();
+  } = useQuizState(initialQuestions);
 
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -94,6 +101,8 @@ export default function QuizBuilder() {
         opened={saveModalOpen}
         onClose={() => setSaveModalOpen(false)}
         questions={questions}
+        quizPublicId={quizPublicId}
+        initialLessonPublicId={lessonPublicId}
       />
     </div>
   );
