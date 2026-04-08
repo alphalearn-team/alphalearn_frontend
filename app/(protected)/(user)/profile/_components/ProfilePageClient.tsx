@@ -29,6 +29,7 @@ import {
   type UserProfile,
 } from "@/lib/utils/profile";
 import ProfileSquadPreview from "./ProfileSquadPreview";
+import MyPostsSection from "./MyPostsSection";
 
 function getProfileInitials(profile: UserProfile | null) {
   const source = profile?.username || profile?.email || "AL";
@@ -798,6 +799,18 @@ export default function ProfilePageClient() {
             onFriendsCountChange={setSquadMemberCount}
           />
         ) : null}
+
+        <section className="border-t border-white/10 pt-10">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+              My posts
+            </p>
+          </div>
+
+          <div className="mt-6">
+            {accessToken ? <MyPostsSection /> : null}
+          </div>
+        </section>
       </div>
     </Container>
   );

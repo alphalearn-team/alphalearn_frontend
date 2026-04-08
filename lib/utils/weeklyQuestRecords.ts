@@ -1,6 +1,6 @@
 import type { TaggedFriend } from "@/interfaces/interfaces";
 
-const WEEKLY_QUEST_RECORDS_PATH = "/me/weekly-quests/records";
+const WEEKLY_QUEST_RECORDS_PATH = "/me/weekly-quests/friends";
 const DEFAULT_PAGE_SIZE = 20;
 
 interface WeeklyQuestRecordsApiLikeError {
@@ -99,13 +99,12 @@ export async function fetchFriendWeeklyQuestRecords(
   const page = Math.max(0, params.page ?? 0);
   const size = Math.min(50, Math.max(1, params.size ?? DEFAULT_PAGE_SIZE));
   const searchParams = new URLSearchParams({
-    friendPublicId: params.friendPublicId,
     page: String(page),
     size: String(size),
   });
 
   const response = await apiClientFetch<RawFriendWeeklyQuestRecordsResponse>(
-    `${WEEKLY_QUEST_RECORDS_PATH}?${searchParams.toString()}`,
+    `${WEEKLY_QUEST_RECORDS_PATH}/${encodeURIComponent(params.friendPublicId)}/history?${searchParams.toString()}`,
     accessToken,
     {
       method: "GET",

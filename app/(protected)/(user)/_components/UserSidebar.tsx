@@ -18,7 +18,7 @@ function getSections(unreadNotificationsCount: number, incomingRequestCount: num
         { label: "Squad", href: "/profile/squad", icon: "groups", badgeCount: incomingRequestCount || undefined },
         { label: "Game", href: "/games", icon: "sports_esports" },
         { label: "Weekly Quest", href: "/weekly-quest", icon: "bolt" },
-        { label: "Friends Feed", href: "/friends-feed", icon: "dynamic_feed" },
+        { label: "Feed", href: "/friends-feed", icon: "dynamic_feed" },
         { label: "Concepts", href: "/concepts", icon: "library_books" },
         { label: "Lessons", href: "/lessons", icon: "menu_book" },
         { label: "My Enrolled Lessons", href: "/my-enrollments", icon: "bookmark" },

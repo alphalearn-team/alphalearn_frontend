@@ -1,17 +1,19 @@
 import type { LearnerWeeklyQuestFriendFeedResponse, TaggedFriend } from "@/interfaces/interfaces";
 
-const WEEKLY_QUEST_FRIENDS_FEED_PATH = "/me/weekly-quests/friends/feed";
+const WEEKLY_QUEST_HISTORY_PATH = "/me/weekly-quests/history";
 const DEFAULT_PAGE_SIZE = 20;
 
-interface WeeklyQuestFriendsFeedApiLikeError {
+interface WeeklyQuestHistoryApiLikeError {
   status: number;
   message?: string;
 }
 
-interface FetchWeeklyQuestFriendsFeedParams {
+interface FetchWeeklyQuestHistoryParams {
   page?: number;
   size?: number;
-  conceptPublicIds?: string[];
+  weekPublicIds?: string[];
+  submittedFrom?: string;
+  submittedTo?: string;
 }
 
 type RawFeedItem = LearnerWeeklyQuestFriendFeedResponse["items"][number] & {
@@ -22,16 +24,16 @@ type RawFeedResponse = Omit<LearnerWeeklyQuestFriendFeedResponse, "items"> & {
   items: RawFeedItem[];
 };
 
-export function getDefaultWeeklyQuestFeedPageSize() {
+export function getDefaultWeeklyQuestHistoryPageSize() {
   return DEFAULT_PAGE_SIZE;
 }
 
-export function toWeeklyQuestFriendsFeedError(error: unknown) {
-  const fallback = "Could not load the weekly quest feed.";
+export function toWeeklyQuestHistoryError(error: unknown) {
+  const fallback = "Could not load your quest history.";
 
-  if (isWeeklyQuestFriendsFeedApiLikeError(error)) {
+  if (isWeeklyQuestHistoryApiLikeError(error)) {
     if (error.status === 400) {
-      return error.message || "Invalid page request. Please try again.";
+      return error.message || "Invalid request. Please try again.";
     }
 
     if (error.status === 403) {
@@ -39,7 +41,7 @@ export function toWeeklyQuestFriendsFeedError(error: unknown) {
     }
 
     if (error.status >= 500) {
-      return "The server could not load the feed right now. Please try again.";
+      return "The server could not load your history right now. Please try again.";
     }
 
     return error.message || fallback;
@@ -52,15 +54,15 @@ export function toWeeklyQuestFriendsFeedError(error: unknown) {
   return fallback;
 }
 
-function isWeeklyQuestFriendsFeedApiLikeError(
+function isWeeklyQuestHistoryApiLikeError(
   error: unknown,
-): error is WeeklyQuestFriendsFeedApiLikeError {
+): error is WeeklyQuestHistoryApiLikeError {
   return typeof error === "object" && error !== null && "status" in error;
 }
 
-export async function fetchWeeklyQuestFriendsFeed(
+export async function fetchWeeklyQuestHistory(
   accessToken: string,
-  params: FetchWeeklyQuestFriendsFeedParams = {},
+  params: FetchWeeklyQuestHistoryParams = {},
 ) {
   const { apiClientFetch } = await import("../api/apiClient");
 
@@ -72,14 +74,22 @@ export async function fetchWeeklyQuestFriendsFeed(
     size: String(size),
   });
 
-  if (params.conceptPublicIds && params.conceptPublicIds.length > 0) {
-    params.conceptPublicIds.forEach((conceptPublicId) => {
-      searchParams.append("conceptPublicIds", conceptPublicId);
+  if (params.weekPublicIds && params.weekPublicIds.length > 0) {
+    params.weekPublicIds.forEach((weekPublicId) => {
+      searchParams.append("weekPublicIds", weekPublicId);
     });
   }
 
+  if (params.submittedFrom) {
+    searchParams.append("submittedFrom", params.submittedFrom);
+  }
+
+  if (params.submittedTo) {
+    searchParams.append("submittedTo", params.submittedTo);
+  }
+
   const response = await apiClientFetch<RawFeedResponse>(
-    `${WEEKLY_QUEST_FRIENDS_FEED_PATH}?${searchParams.toString()}`,
+    `${WEEKLY_QUEST_HISTORY_PATH}?${searchParams.toString()}`,
     accessToken,
     {
       method: "GET",
