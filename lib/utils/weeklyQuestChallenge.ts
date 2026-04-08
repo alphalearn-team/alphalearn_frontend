@@ -5,8 +5,8 @@ import type {
   SaveQuestChallengeSubmissionRequest,
 } from "@/interfaces/interfaces";
 
-const QUEST_CHALLENGE_UPLOAD_PATH = "/me/weekly-quest/current/quest-challenge/upload";
-const QUEST_CHALLENGE_SUBMISSION_PATH = "/me/weekly-quest/current/quest-challenge/submission";
+const QUEST_CHALLENGE_UPLOAD_PATH = "/me/weekly-quests/quest-challenge-uploads";
+const QUEST_CHALLENGE_SUBMISSION_PATH = "/me/weekly-quests/quest-challenge-submissions?scope=CURRENT";
 
 export type QuestChallengeMediaKind = "image" | "video" | "unknown";
 

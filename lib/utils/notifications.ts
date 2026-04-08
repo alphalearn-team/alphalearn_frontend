@@ -19,8 +19,12 @@ export async function getNotifications(): Promise<Notification[]> {
 
 export async function markNotificationRead(publicId: string): Promise<void> {
     try {
-        await apiFetch<void>(`/me/notifications/${publicId}/read`, {
+        await apiFetch<void>(`/me/notifications/${publicId}`, {
             method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "READ" }),
         });
     } catch {
 
@@ -29,8 +33,12 @@ export async function markNotificationRead(publicId: string): Promise<void> {
 
 export async function markAllNotificationsRead(): Promise<void> {
     try {
-        await apiFetch<void>("/me/notifications/read-all", {
-            method: "POST",
+        await apiFetch<void>("/me/notifications", {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "READ_ALL" }),
         });
     } catch {
         

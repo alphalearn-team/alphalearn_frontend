@@ -56,7 +56,7 @@ export default function QuizAttemptView({
     }
     const abortController = new AbortController();
     apiClientFetch<QuizAttemptSummary>(
-      `/me/quizzes/${quiz.quizPublicId}/attempts/best`,
+      `/me/quizzes/${quiz.quizPublicId}/attempts?view=BEST`,
       accessToken,
       { signal: abortController.signal }
     )
@@ -121,7 +121,7 @@ export default function QuizAttemptView({
       );
 
       const result = await apiClientFetch<QuizAttemptSummary>(
-        `/me/quizzes/${quiz.quizPublicId}/attempts/best`,
+        `/me/quizzes/${quiz.quizPublicId}/attempts?view=BEST`,
         accessToken
       );
       setSubmittedResult(result);

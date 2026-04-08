@@ -159,9 +159,10 @@ export async function createLessonWithSections(inputs: CreateLessonWithSectionsR
 }
 
 export async function submitLesson(id: string): Promise<LessonActionResult<Lesson>> {
-  const response = await handleRequest<Lesson>(`/lessons/${id}/submit`, {
-    method: "POST",
+  const response = await handleRequest<Lesson>(`/lessons/${id}`, {
+    method: "PATCH",
     headers,
+    body: JSON.stringify({ action: "SUBMIT" }),
   }, "Successfully submitted for review");
 
   if (response.success) {
@@ -191,9 +192,10 @@ export async function submitLesson(id: string): Promise<LessonActionResult<Lesso
 //   const successMessage = "Successfully submitted for review";
 
 //   try {
-//     await apiFetch<void>(`/lessons/${id}/submit`, {
-//       method: "POST",
+//     await apiFetch<void>(`/lessons/${id}`, {
+//       method: "PATCH",
 //       headers,
+//       body: JSON.stringify({ action: "SUBMIT" }),
 //     });
 //   } catch (error: unknown) {
 //     if (error instanceof ApiError && error.status === 409) {
@@ -241,9 +243,10 @@ export async function deleteLesson(id: string): Promise<LessonActionResult> {
 }
 
 export async function unpublishLesson(id: string): Promise<LessonActionResult<Lesson>> {
-  const response = await handleRequest<Lesson>(`/lessons/${id}/unpublish`, {
-    method: "POST",
+  const response = await handleRequest<Lesson>(`/lessons/${id}`, {
+    method: "PATCH",
     headers,
+    body: JSON.stringify({ action: "UNPUBLISH" }),
   }, "Lesson unpublished successfully");
 
   if (response.success) {
@@ -268,7 +271,7 @@ export async function unpublishLesson(id: string): Promise<LessonActionResult<Le
 }
 
 export async function fetchMyLessonsAction(): Promise<LessonActionResult<LessonSummary[]>> {
-  return handleRequest<LessonSummary[]>("/lessons/mine", {
+  return handleRequest<LessonSummary[]>("/me/lessons", {
     method: "GET",
     headers,
   }, "Lessons fetched successfully");

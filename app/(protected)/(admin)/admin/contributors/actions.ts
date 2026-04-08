@@ -8,12 +8,12 @@ import { revalidatePath } from "next/cache";
  */
 export async function promoteUser(learnerPublicId: string) {
   try {
-    await apiFetch(`/admin/contributors/promote`, {
-      method: "POST",
+    await apiFetch(`/admin/contributors`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ learnerPublicIds: [learnerPublicId] }),
+      body: JSON.stringify({ action: "PROMOTE", learnerPublicIds: [learnerPublicId] }),
     });
 
     revalidatePath("/admin/contributors");
@@ -32,12 +32,12 @@ export async function promoteUser(learnerPublicId: string) {
  */
 export async function demoteUser(contributorPublicId: string) {
   try {
-    await apiFetch(`/admin/contributors/demote`, {
-      method: "DELETE",
+    await apiFetch(`/admin/contributors`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ contributorPublicIds: [contributorPublicId] }),
+      body: JSON.stringify({ action: "DEMOTE", contributorPublicIds: [contributorPublicId] }),
     });
 
     revalidatePath("/admin/contributors");

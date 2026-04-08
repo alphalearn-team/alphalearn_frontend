@@ -4,7 +4,7 @@ import { resolveLessonModerationStatus } from "@/lib/utils/lessonModeration";
 
 export async function fetchOwnedLessons(): Promise<LessonSummary[] | null> {
   try {
-    return await apiFetch<LessonSummary[]>("/lessons/mine");
+    return await apiFetch<LessonSummary[]>("/me/lessons");
   } catch {
     return null;
   }

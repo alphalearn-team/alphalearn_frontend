@@ -73,7 +73,7 @@ export async function createPrivateImposterLobby(
   conceptPoolMode: ImposterConceptPoolMode,
 ): Promise<PrivateImposterLobby> {
   return apiClientFetch<PrivateImposterLobby>(
-    "/me/imposter/lobbies/private",
+    "/me/game-lobbies/private-lobbies",
     accessToken,
     {
       method: "POST",
@@ -92,7 +92,7 @@ export async function joinPrivateImposterLobby(
   lobbyCode: string,
 ): Promise<JoinedPrivateImposterLobby> {
   return apiClientFetch<JoinedPrivateImposterLobby>(
-    "/me/imposter/lobbies/private/join",
+    "/me/game-lobbies/private-memberships",
     accessToken,
     {
       method: "POST",
@@ -111,7 +111,7 @@ export async function getPrivateImposterLobbyState(
   lobbyPublicId: string,
 ): Promise<PrivateImposterLobbyState> {
   return apiClientFetch<PrivateImposterLobbyState>(
-    `/me/imposter/lobbies/private/${lobbyPublicId}/state`,
+    `/me/game-lobbies/private-lobbies/${lobbyPublicId}`,
     accessToken,
     {
       method: "GET",
@@ -124,10 +124,14 @@ export async function startPrivateImposterLobby(
   lobbyPublicId: string,
 ): Promise<PrivateImposterLobbyState> {
   return apiClientFetch<PrivateImposterLobbyState>(
-    `/me/imposter/lobbies/private/${lobbyPublicId}/start`,
+    `/me/game-lobbies/private-lobbies/${lobbyPublicId}`,
     accessToken,
     {
-      method: "POST",
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: "START" }),
     },
   );
 }
@@ -137,10 +141,14 @@ export async function leavePrivateImposterLobby(
   lobbyPublicId: string,
 ): Promise<LeavePrivateImposterLobbyResponse> {
   return apiClientFetch<LeavePrivateImposterLobbyResponse>(
-    `/me/imposter/lobbies/private/${lobbyPublicId}/leave`,
+    `/me/game-lobbies/private-lobbies/${lobbyPublicId}`,
     accessToken,
     {
-      method: "POST",
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: "LEAVE" }),
     },
   );
 }
@@ -164,7 +172,7 @@ export async function fetchNextGameConcept(
   };
 
   return apiClientFetch<AssignedGameConcept>(
-    "/games/imposter/concepts/next",
+    "/games/concepts/selections",
     accessToken,
     {
       method: "POST",

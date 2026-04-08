@@ -5,7 +5,7 @@ import type {
 import { ApiError } from "@/lib/api/apiErrors";
 import { apiClientFetch } from "@/lib/api/apiClient";
 
-const LEARNER_CURRENT_IMPOSTER_MONTHLY_PACK_ENDPOINT = "/me/imposter/monthly-pack/current";
+const LEARNER_CURRENT_IMPOSTER_MONTHLY_PACK_ENDPOINT = "/me/game-monthly-pack";
 const DEFAULT_WEEKLY_SLOTS = [1, 2, 3, 4] as const;
 
 function toSlotDefaults(slot: number): LearnerImposterMonthlyPackWeeklyFeaturedSlot {

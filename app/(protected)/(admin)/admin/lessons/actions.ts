@@ -13,9 +13,10 @@ const headers = {
  */
 export async function approveLesson(lessonPublicId: string) {
   try {
-    await apiFetch(`/admin/lessons/${lessonPublicId}/approve`, {
-      method: "PUT",
+    await apiFetch(`/admin/lessons/${lessonPublicId}`, {
+      method: "PATCH",
       headers,
+      body: JSON.stringify({ action: "APPROVE" }),
     });
 
     revalidatePath("/admin/lessons");
@@ -35,10 +36,10 @@ export async function approveLesson(lessonPublicId: string) {
  */
 export async function rejectLesson(lessonPublicId: string, reason: string) {
   try {
-    await apiFetch(`/admin/lessons/${lessonPublicId}/reject`, {
-      method: "PUT",
+    await apiFetch(`/admin/lessons/${lessonPublicId}`, {
+      method: "PATCH",
       headers,
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ action: "REJECT", reason }),
     });
 
     revalidatePath("/admin/lessons");
@@ -109,11 +110,11 @@ export async function dismissAllLessonReportsForLesson(lessonPublicId: string) {
 
 export async function unpublishLessonAndResolveReports(lessonPublicId: string) {
   try {
-    await apiFetch<null>(`/admin/lessons/${lessonPublicId}/moderation-status`, {
+    await apiFetch<null>(`/admin/lessons/${lessonPublicId}`, {
       method: "PATCH",
       headers,
       body: JSON.stringify({
-        status: "UNPUBLISHED",
+        action: "UNPUBLISH",
         resolvePendingReports: true,
       }),
     });

@@ -13,6 +13,6 @@ interface RoleResponse {
 }
 
 export const getUserRole = cache(async (): Promise<UserRole> => {
-  const data = await apiFetch<RoleResponse>("/me/role");
+  const data = await apiFetch<RoleResponse>("/me");
   return data.role;
 });

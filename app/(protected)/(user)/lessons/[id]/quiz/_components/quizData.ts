@@ -47,7 +47,7 @@ export async function fetchUserQuizAttempts(
     quizzes.map(async (quiz) => {
       const quizId = quiz.quizPublicId;
       try {
-        const summary = await apiFetch<QuizAttemptSummary>(`/me/quizzes/${quizId}/attempts/best`);
+        const summary = await apiFetch<QuizAttemptSummary>(`/me/quizzes/${quizId}/attempts?view=BEST`);
         bestAttempts[quizId] = { summary, error: null };
       } catch (error) {
         bestAttempts[quizId] = { summary: null, error: toFriendlyBestQuizAttemptError(error) };

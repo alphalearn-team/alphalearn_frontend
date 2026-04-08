@@ -11,7 +11,7 @@ import type { LessonProgress, LessonSummary } from "@/interfaces/interfaces";
 async function LessonsListRenderer({ role }: { role: string | null }) {
   const [lessons, progressList] = await Promise.all([
     apiFetch<LessonSummary[]>("/lessons").catch(() => null),
-    apiFetch<LessonProgress[]>("/lessonenrollments/me/progress").catch(() => [] as LessonProgress[]),
+    apiFetch<LessonProgress[]>("/me/lesson-enrollments?view=PROGRESS").catch(() => [] as LessonProgress[]),
   ]);
 
   if (!lessons) return <NotFound />;

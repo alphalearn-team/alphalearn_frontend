@@ -31,7 +31,7 @@ export async function fetchPendingContributorApplicationsAction(): Promise<
 > {
   try {
     const data = await apiFetch<AdminContributorApplication[]>(
-      "/admin/contributor-applications/pending",
+      "/admin/contributor-applications?status=PENDING",
     );
     return { success: true, data };
   } catch (error) {
@@ -71,10 +71,11 @@ export async function approveContributorApplicationAction(
 ): Promise<ContributorApplicationActionResult<ContributorApplication | null>> {
   try {
     const data = await apiFetch<ContributorApplication | null>(
-      `/admin/contributor-applications/${applicationPublicId}/approve`,
+      `/admin/contributor-applications/${applicationPublicId}`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: jsonHeaders,
+        body: JSON.stringify({ action: "APPROVE" }),
       },
     );
 
@@ -109,11 +110,11 @@ export async function rejectContributorApplicationAction(
 
   try {
     const data = await apiFetch<ContributorApplication | null>(
-      `/admin/contributor-applications/${applicationPublicId}/reject`,
+      `/admin/contributor-applications/${applicationPublicId}`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: jsonHeaders,
-        body: JSON.stringify({ reason: reason.trim() }),
+        body: JSON.stringify({ action: "REJECT", reason: reason.trim() }),
       },
     );
 

@@ -13,7 +13,7 @@ type DashboardSummaryResult =
 
 export async function fetchAdminDashboardSummaryAction(): Promise<DashboardSummaryResult> {
   try {
-    const data = await apiFetch<AdminDashboardSummary>("/admin/dashboard/summary");
+    const data = await apiFetch<AdminDashboardSummary>("/admin/dashboard?view=OVERVIEW");
 
     return {
       success: true,
@@ -37,8 +37,9 @@ export async function fetchAdminDashboardSummaryByQueryAction(
 ): Promise<DashboardSummaryResult> {
   try {
     const queryString = buildAdminDashboardSummaryQuery(query);
+    const normalizedQueryString = queryString ? `&${queryString.slice(1)}` : "";
     const data = await apiFetch<AdminDashboardSummary>(
-      `/admin/dashboard/summary${queryString}`,
+      `/admin/dashboard?view=OVERVIEW${normalizedQueryString}`,
     );
 
     return {
