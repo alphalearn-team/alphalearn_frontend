@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
@@ -29,9 +28,7 @@ import {
   type ProfilePictureErrorStage,
   type UserProfile,
 } from "@/lib/utils/profile";
-import ProfileSquadSection from "./ProfileSquadSection";
-
-const PROFILE_SQUAD_OPEN_STORAGE_KEY = "profile:squad-open";
+import ProfileSquadPreview from "./ProfileSquadPreview";
 
 function getProfileInitials(profile: UserProfile | null) {
   const source = profile?.username || profile?.email || "AL";
@@ -143,7 +140,7 @@ export default function ProfilePageClient() {
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isPasswordEditorOpen, setIsPasswordEditorOpen] = useState(false);
-  const [isSquadSectionOpen, setIsSquadSectionOpen] = useState(false);
+  const [isSquadPreviewOpen, setIsSquadPreviewOpen] = useState(false);
   const [squadMemberCount, setSquadMemberCount] = useState(0);
   const [profileReloadSeed, setProfileReloadSeed] = useState(0);
 
@@ -154,28 +151,6 @@ export default function ProfilePageClient() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const savedValue = window.localStorage.getItem(PROFILE_SQUAD_OPEN_STORAGE_KEY);
-    if (savedValue === "true") {
-      setIsSquadSectionOpen(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    window.localStorage.setItem(
-      PROFILE_SQUAD_OPEN_STORAGE_KEY,
-      isSquadSectionOpen ? "true" : "false",
-    );
-  }, [isSquadSectionOpen]);
 
   useEffect(() => {
     if (isLoading) {
@@ -634,17 +609,15 @@ export default function ProfilePageClient() {
                     {emailValue}
                   </p>
 
-                  <div className="mt-4">
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                      <button
-                        type="button"
-                        onClick={() => setIsSquadSectionOpen((current) => !current)}
-                        className="cursor-pointer bg-transparent p-0 text-inherit transition-colors hover:text-[var(--color-text)]"
-                      >
-                        {squadMemberCount} {squadMemberCount === 1 ? "Member" : "Members"} in My Squad
-                      </button>
-                    </p>
-                  </div>
+                  <p className="mt-2 break-words text-sm text-[var(--color-text-secondary)]">
+                    <button
+                      type="button"
+                      onClick={() => setIsSquadPreviewOpen((current) => !current)}
+                      className="cursor-pointer bg-transparent p-0 text-inherit transition-colors hover:text-[var(--color-text)]"
+                    >
+                      {squadMemberCount} {squadMemberCount === 1 ? "Member" : "Members"} in My Squad
+                    </button>
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -814,11 +787,9 @@ export default function ProfilePageClient() {
           </section>
         ) : null}
 
-        {accessToken && isSquadSectionOpen ? (
-          <ProfileSquadSection
+        {accessToken && isSquadPreviewOpen ? (
+          <ProfileSquadPreview
             accessToken={accessToken}
-            currentUserPublicId={profile.publicId}
-            currentUsername={profile.username}
             onFriendsCountChange={setSquadMemberCount}
           />
         ) : null}
