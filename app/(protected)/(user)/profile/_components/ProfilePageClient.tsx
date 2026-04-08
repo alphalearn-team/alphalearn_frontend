@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
@@ -14,6 +13,7 @@ import {
 import CommonButton from "@/components/CommonButton";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import { supabase } from "@/lib/supabase/client";
+import { fetchFriends, getFriendsLoadErrorMessage } from "@/lib/utils/friends";
 import { showError, showInfo, showSuccess } from "@/lib/utils/popUpNotifications";
 import {
   createProfilePictureUpload,
@@ -28,6 +28,7 @@ import {
   type ProfilePictureErrorStage,
   type UserProfile,
 } from "@/lib/utils/profile";
+import ProfileSquadPreview from "./ProfileSquadPreview";
 
 function getProfileInitials(profile: UserProfile | null) {
   const source = profile?.username || profile?.email || "AL";
@@ -139,6 +140,8 @@ export default function ProfilePageClient() {
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isPasswordEditorOpen, setIsPasswordEditorOpen] = useState(false);
+  const [isSquadPreviewOpen, setIsSquadPreviewOpen] = useState(false);
+  const [squadMemberCount, setSquadMemberCount] = useState(0);
   const [profileReloadSeed, setProfileReloadSeed] = useState(0);
 
   useEffect(() => {
@@ -200,7 +203,47 @@ export default function ProfilePageClient() {
     };
   }, [isLoading, profileReloadSeed, session?.access_token]);
 
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    const accessToken = session?.access_token;
+
+    if (!accessToken) {
+      setSquadMemberCount(0);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadSquadCount = async () => {
+      try {
+        const friends = await fetchFriends(accessToken);
+
+        if (isCancelled) {
+          return;
+        }
+
+        setSquadMemberCount(friends.length);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        console.error("Failed to load squad count:", getFriendsLoadErrorMessage(error));
+      }
+    };
+
+    void loadSquadCount();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLoading, session?.access_token]);
+
   const avatarUrl = selectedImagePreviewUrl || profile?.profilePictureUrl || null;
+  const accessToken = session?.access_token ?? null;
   const emailValue = profile?.email ?? "No email available";
   const isBusy = isSavingProfile || isUploadingPicture;
   const shouldShowEditorSection =
@@ -565,6 +608,16 @@ export default function ProfilePageClient() {
                   <p className="mt-2 break-words text-sm text-[var(--color-text-secondary)]">
                     {emailValue}
                   </p>
+
+                  <p className="mt-2 break-words text-sm text-[var(--color-text-secondary)]">
+                    <button
+                      type="button"
+                      onClick={() => setIsSquadPreviewOpen((current) => !current)}
+                      className="cursor-pointer bg-transparent p-0 text-inherit transition-colors hover:text-[var(--color-text)]"
+                    >
+                      {squadMemberCount} {squadMemberCount === 1 ? "Member" : "Members"} in My Squad
+                    </button>
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -732,6 +785,13 @@ export default function ProfilePageClient() {
               ) : null}
             </div>
           </section>
+        ) : null}
+
+        {accessToken && isSquadPreviewOpen ? (
+          <ProfileSquadPreview
+            accessToken={accessToken}
+            onFriendsCountChange={setSquadMemberCount}
+          />
         ) : null}
       </div>
     </Container>
