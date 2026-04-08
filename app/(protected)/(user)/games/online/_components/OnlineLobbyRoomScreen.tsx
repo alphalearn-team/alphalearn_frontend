@@ -76,6 +76,8 @@ const DEFAULT_SETTINGS_DRAFT: SettingsDraft = {
 };
 const DEFAULT_DRAW_COLOR = "#111111";
 const AUTO_DONE_LEAD_MS = 1500;
+const LIVE_DRAWING_FLAG_ENABLED =
+  process.env.NEXT_PUBLIC_IMPOSTER_DRAWING_LIVE_ENABLED === "true";
 
 export default function OnlineLobbyRoomScreen({
   lobbyPublicId,
@@ -107,6 +109,9 @@ export default function OnlineLobbyRoomScreen({
   const [drawingDoneBaseSharedVersion, setDrawingDoneBaseSharedVersion] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState(DEFAULT_DRAW_COLOR);
   const [serverClockOffsetMs, setServerClockOffsetMs] = useState(0);
+  const [isLiveDrawingEnabled, setIsLiveDrawingEnabled] = useState(
+    LIVE_DRAWING_FLAG_ENABLED,
+  );
   const now = useNow(1000, serverClockOffsetMs);
 
   const realtimeRef =
@@ -261,6 +266,17 @@ export default function OnlineLobbyRoomScreen({
           }
         },
         onError: (message) => {
+          if (isLiveDrawingDisabledMessage(message)) {
+            setIsLiveDrawingEnabled(false);
+            return;
+          }
+
+          if (isLiveDrawingVersionConflict(message)) {
+            setOptimisticStrokes(null);
+            void refreshLobbyState(true);
+            return;
+          }
+
           if (isSessionAbandonedError(message)) {
             setIsSubmittingDrawingDone(false);
             setDrawingDoneBaseSharedVersion(null);
@@ -466,6 +482,13 @@ export default function OnlineLobbyRoomScreen({
     Boolean(viewerCapabilities?.viewerIsCurrentDrawer) &&
     Boolean(viewerCapabilities?.canSubmitSnapshot) &&
     !isSubmittingDrawingDone;
+  const viewerDrawingHint = viewerCapabilities?.canSubmitSnapshot
+    ? isLiveDrawingEnabled
+      ? "You are the current drawer. Your strokes sync live, then press Done to advance the turn."
+      : "You are the current drawer. Draw locally, then press Done to submit."
+    : isLiveDrawingEnabled
+      ? "Watch live canvas updates as the current drawer draws."
+      : "You can only see canvas updates after the drawer presses Done.";
 
   const handleSaveSettings = async () => {
     if (!accessToken || !sharedState || !viewerCapabilities?.viewerIsHost) {
@@ -584,7 +607,16 @@ export default function OnlineLobbyRoomScreen({
 
     setOptimisticStrokes((currentOptimisticStrokes) => {
       const baseStrokes = currentOptimisticStrokes ?? authoritativeStrokes;
-      return [...baseStrokes, stroke];
+      const nextStrokes = [...baseStrokes, stroke];
+
+      if (isLiveDrawingEnabled && sharedState.currentPhase === "DRAWING") {
+        realtimeRef.current?.sendDrawingLive({
+          snapshot: stringifyDrawingSnapshot(nextStrokes),
+          baseVersion: sharedState.drawingVersion,
+        });
+      }
+
+      return nextStrokes;
     });
   };
 
@@ -1030,9 +1062,7 @@ export default function OnlineLobbyRoomScreen({
               </div>
 
               <Text size="sm" c="dimmed">
-                {viewerCapabilities?.canSubmitSnapshot
-                  ? "You are the current drawer. Draw locally, then press Done to submit."
-                  : "You can only see canvas updates after the drawer presses Done."}
+                {viewerDrawingHint}
               </Text>
 
               <Group>
@@ -1399,6 +1429,29 @@ function toDisplayTurnNumber(currentTurnIndex: number | null): number | "-" {
   }
 
   return currentTurnIndex + 1;
+}
+
+function isLiveDrawingDisabledMessage(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return normalized.includes("live drawing is disabled");
+}
+
+function isLiveDrawingVersionConflict(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("drawing version conflict") ||
+    (normalized.includes("409") &&
+      normalized.includes("drawing") &&
+      normalized.includes("conflict"))
+  );
 }
 
 function isDoneSubmitConflictOrPhaseError(message: string): boolean {
