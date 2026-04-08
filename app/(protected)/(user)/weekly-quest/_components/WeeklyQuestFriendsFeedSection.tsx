@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Avatar, Card, Modal, Skeleton, Stack, Text } from "@mantine/core";
+import CardSkeleton from "@/components/CardSkeleton";
 import type { LearnerWeeklyQuestFriendFeedItem } from "@/interfaces/interfaces";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import { formatDateTime } from "@/lib/utils/formatDate";
@@ -15,6 +16,7 @@ import {
 import { getQuestChallengeMediaKind } from "@/lib/utils/weeklyQuestChallenge";
 
 type FeedMediaFilter = "all" | "image" | "video";
+type FeedSortOrder = "newest" | "oldest";
 
 interface ExpandedMedia {
   url: string;
@@ -41,6 +43,8 @@ export default function WeeklyQuestFriendsFeedSection() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mediaFilter, setMediaFilter] = useState<FeedMediaFilter>("all");
+  const [sortOrder, setSortOrder] = useState<FeedSortOrder>("newest");
+  const [selectedConceptPublicId, setSelectedConceptPublicId] = useState<string>("all");
   const [expandedMedia, setExpandedMedia] = useState<ExpandedMedia | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
@@ -56,6 +60,17 @@ export default function WeeklyQuestFriendsFeedSection() {
 
   const accessToken = session?.access_token ?? null;
   const pageSize = useMemo(() => getDefaultWeeklyQuestFeedPageSize(), []);
+  const conceptOptions = useMemo(() => {
+    const conceptMap = new Map<string, string>();
+
+    items.forEach((item) => {
+      if (!conceptMap.has(item.conceptPublicId)) {
+        conceptMap.set(item.conceptPublicId, item.conceptTitle);
+      }
+    });
+
+    return Array.from(conceptMap.entries()).map(([publicId, title]) => ({ publicId, title }));
+  }, [items]);
   const filteredItems = useMemo(() => {
     if (mediaFilter === "all") {
       return items;
@@ -63,6 +78,13 @@ export default function WeeklyQuestFriendsFeedSection() {
 
     return items.filter((item) => getQuestChallengeMediaKind(item.mediaContentType) === mediaFilter);
   }, [items, mediaFilter]);
+  const displayItems = useMemo(() => {
+    if (sortOrder === "newest") {
+      return filteredItems;
+    }
+
+    return [...filteredItems].reverse();
+  }, [filteredItems, sortOrder]);
 
   const loadPage = useCallback(
     async (targetPage: number, mode: "replace" | "append") => {
@@ -82,6 +104,8 @@ export default function WeeklyQuestFriendsFeedSection() {
         const response = await fetchWeeklyQuestFriendsFeed(accessToken, {
           page: targetPage,
           size: pageSize,
+          conceptPublicIds:
+            selectedConceptPublicId === "all" ? undefined : [selectedConceptPublicId],
         });
 
         setItems((prev) => (mode === "append" ? [...prev, ...response.items] : response.items));
@@ -94,7 +118,7 @@ export default function WeeklyQuestFriendsFeedSection() {
         setIsLoadingMore(false);
       }
     },
-    [accessToken, pageSize],
+    [accessToken, pageSize, selectedConceptPublicId],
   );
 
   useEffect(() => {
@@ -202,37 +226,10 @@ export default function WeeklyQuestFriendsFeedSection() {
         video.pause();
       });
     };
-  }, [filteredItems, mediaFilter]);
+  }, [filteredItems, mediaFilter, sortOrder]);
 
-  if (!accessToken) {
-    return (
-      <Card radius="24px" padding="xl" className="border border-white/10 bg-black/20">
-        <Text size="sm" className="text-[var(--color-text-secondary)]">
-          Waiting for your session before loading friend submissions.
-        </Text>
-      </Card>
-    );
-  }
-
-  if (isInitialLoading) {
-    return (
-      <div className="space-y-6">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="space-y-4 py-6 border-t border-[#19f0c2]/20 first:border-t-0 first:py-0">
-            <div className="flex items-start gap-3">
-              <Skeleton height={40} width={40} radius="full" />
-              <div className="flex-1 space-y-2">
-                <Skeleton height={16} width="30%" radius="sm" />
-                <Skeleton height={12} width="20%" radius="sm" />
-              </div>
-            </div>
-            <Skeleton height={320} width="100%" radius="md" />
-            <Skeleton height={12} width="100%" radius="sm" />
-            <Skeleton height={12} width="80%" radius="sm" />
-          </div>
-        ))}
-      </div>
-    );
+  if (!accessToken || isInitialLoading) {
+    return <CardSkeleton count={3} cols={1} showBookmark={false} lines={2} />;
   }
 
   return (
@@ -270,25 +267,67 @@ export default function WeeklyQuestFriendsFeedSection() {
       </Modal>
 
       <Stack gap="lg">
-        {/* <Card radius="24px" padding="lg" className="border border-[#2f5f53] bg-[#16201d]"> */}
-
-            <div className="flex flex-wrap justify-end gap-1">
-              {(["all", "image", "video"] as const).map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setMediaFilter(filter)}
-                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
-                    mediaFilter === filter
-                      ? "border-[#19f0c2] bg-[#19f0c2] text-[#102019]"
-                      : "border-white/15 bg-black/20 text-[var(--color-text-muted)] hover:border-[#19f0c2]/40"
-                  }`}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
+              Concept
+            </label>
+            <select
+              value={selectedConceptPublicId}
+              onChange={(event) => setSelectedConceptPublicId(event.currentTarget.value)}
+              className="h-8 rounded-md border border-[#2b3c35] bg-[#101615] px-3 text-xs font-semibold text-[#d5dfda] outline-none transition focus:border-[#19f0c2]/50"
+            >
+              <option value="all" style={{ color: "#d5dfda", backgroundColor: "#101615" }}>
+                All concepts
+              </option>
+              {conceptOptions.map((concept) => (
+                <option
+                  key={concept.publicId}
+                  value={concept.publicId}
+                  style={{ color: "#d5dfda", backgroundColor: "#101615" }}
                 >
-                  {filter}
-                </button>
+                  {concept.title}
+                </option>
               ))}
-            </div>
-        {/* </Card> */}
+            </select>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-1">
+            {(["newest", "oldest"] as const).map((order) => (
+              <button
+                key={order}
+                type="button"
+                onClick={() => setSortOrder(order)}
+                title={order === "newest" ? "Sort newest first" : "Sort oldest first"}
+                aria-label={order === "newest" ? "Sort newest first" : "Sort oldest first"}
+                className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition ${
+                  sortOrder === order
+                    ? "border-[#19f0c2]/60 bg-[#19f0c2]/15 text-[#19f0c2]"
+                    : "border-white/15 bg-black/20 text-[var(--color-text-muted)] hover:border-[#19f0c2]/40 hover:text-[#19f0c2]"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base leading-none">
+                  {order === "newest" ? "arrow_downward" : "arrow_upward"}
+                </span>
+              </button>
+            ))}
+
+            {(["all", "image", "video"] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setMediaFilter(filter)}
+                className={`inline-flex h-8 items-center justify-center rounded-md border px-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] transition ${
+                  mediaFilter === filter
+                    ? "border-[#19f0c2] bg-[#19f0c2] text-[#102019]"
+                    : "border-white/15 bg-black/20 text-[var(--color-text-muted)] hover:border-[#19f0c2]/40"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        </div>
 
       {errorMessage ? (
         <Alert color="red" radius="lg" title="Could not load feed" variant="light">
@@ -319,9 +358,9 @@ export default function WeeklyQuestFriendsFeedSection() {
         </Card>
       ) : null}
 
-      {filteredItems.length > 0 ? (
+      {displayItems.length > 0 ? (
         <div className="space-y-6">
-          {filteredItems.map((item) => {
+          {displayItems.map((item) => {
             const mediaKind = getQuestChallengeMediaKind(item.mediaContentType);
             const tagNames = item.taggedFriends?.map((friend) => friend.learnerUsername) ?? [];
             const initials = getInitials(item.learnerUsername);
@@ -447,15 +486,15 @@ export default function WeeklyQuestFriendsFeedSection() {
           )}
           <div ref={sentinelRef} className="h-4" />
         </div>
-      ) : !errorMessage && items.length > 0 && mediaFilter !== "all" ? (
+      ) : !errorMessage && items.length > 0 && (mediaFilter !== "all" || selectedConceptPublicId !== "all") ? (
         <Card radius="24px" padding="xl" className="border border-[#19f0c2]/20 bg-black/30 flex flex-col items-center justify-center min-h-60 text-center">
           <Stack gap="md" align="center">
             <div className="text-5xl">🔍</div>
             <h2 className="text-xl font-semibold text-[var(--color-text)]">
-              No {mediaFilter} posts found
+              No matching posts found
             </h2>
             <Text size="sm" className="max-w-xl text-[var(--color-text-secondary)]">
-              Your friends have posts this week, but none include {mediaFilter} media yet. Try switching to &quot;all&quot;.
+              Try switching your concept or media filters to &quot;all&quot;.
             </Text>
           </Stack>
         </Card>
