@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Button, Stack, Text, Title } from "@mantine/core";
+import { Stack, Text, Title } from "@mantine/core";
+import CommonButton from "@/components/CommonButton";
 
 export default function MyLessonsEmptyState({
   canCreateLessons,
@@ -26,9 +27,7 @@ export default function MyLessonsEmptyState({
 
       {canCreateLessons && (
         <Link href="/lessons/create">
-          <Button variant="outline" radius="xl">
-            Create First Lesson
-          </Button>
+          <CommonButton>Create First Lesson</CommonButton>
         </Link>
       )}
     </Stack>
