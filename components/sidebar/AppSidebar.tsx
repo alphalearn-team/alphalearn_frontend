@@ -14,6 +14,7 @@ export interface SidebarNavItem {
   href: string;
   icon: string;
   exact?: boolean;
+  badgeCount?: number;
 }
 
 export interface SidebarNavSection {

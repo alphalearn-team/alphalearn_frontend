@@ -46,7 +46,24 @@ export function useNotifications(enabled: boolean) {
         setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     }, []);
 
+    const markSelectedRead = useCallback(async (publicIds: string[]) => {
+        const uniqueIds = Array.from(new Set(publicIds));
+        if (uniqueIds.length === 0) {
+            return;
+        }
+
+        await Promise.all(uniqueIds.map((publicId) => markNotificationRead(publicId)));
+        const selectedSet = new Set(uniqueIds);
+        setNotifications((prev) =>
+            prev.map((notification) =>
+                selectedSet.has(notification.publicId)
+                    ? { ...notification, isRead: true }
+                    : notification
+            )
+        );
+    }, []);
+
     const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-    return { notifications, unreadCount, markRead, markAllRead, refresh };
+    return { notifications, unreadCount, markRead, markAllRead, markSelectedRead, refresh };
 }

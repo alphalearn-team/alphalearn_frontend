@@ -39,6 +39,11 @@ function SidebarNavSectionBlock({
                   {item.icon}
                 </span>
                 <span className="sidebar-nav-text">{item.label}</span>
+                {item.badgeCount && item.badgeCount > 0 ? (
+                  <span className="sidebar-nav-badge" aria-label={`${item.badgeCount} pending`}>
+                    {item.badgeCount > 99 ? "99+" : item.badgeCount}
+                  </span>
+                ) : null}
                 {itemActive && <span className="sidebar-nav-indicator" />}
               </Link>
             </li>
