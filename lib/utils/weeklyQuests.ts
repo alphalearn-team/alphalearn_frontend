@@ -4,7 +4,7 @@ import type {
 import { apiFetch } from "@/lib/api/api";
 import { ApiError } from "@/lib/api/apiErrors";
 
-const LEARNER_WEEKLY_QUEST_PATH = "/me/weekly-quest/current";
+const LEARNER_WEEKLY_QUEST_PATH = "/me/weekly-quests";
 
 export interface FetchCurrentWeeklyQuestResult {
   data: LearnerCurrentWeeklyQuest | null;

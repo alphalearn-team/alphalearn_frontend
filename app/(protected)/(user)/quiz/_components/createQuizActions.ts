@@ -5,7 +5,7 @@ import { apiFetch, ApiError } from "@/lib/api/api";
 export async function createQuizAction(payload: unknown) {
   try {
     // console.log("general quiz structure:",payload);
-    await apiFetch("/quizzes/create", {
+    await apiFetch("/quizzes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

@@ -9,7 +9,7 @@ import type {
   UpdatePrivateImposterLobbySettingsRequest,
 } from "./types";
 
-const PRIVATE_LOBBY_BASE_PATH = "/me/imposter/lobbies/private";
+const PRIVATE_LOBBY_BASE_PATH = "/me/game-lobbies/private-lobbies";
 
 function toJsonRequest(body: unknown): RequestInit {
   return {
@@ -41,7 +41,7 @@ export async function joinPrivateLobby(
   request: JoinPrivateImposterLobbyRequest,
 ): Promise<JoinedPrivateImposterLobbyDto> {
   return apiClientFetch<JoinedPrivateImposterLobbyDto>(
-    `${PRIVATE_LOBBY_BASE_PATH}/join`,
+    "/me/game-lobbies/private-memberships",
     accessToken,
     toJsonRequest({
       lobbyCode: normalizeLobbyCode(request.lobbyCode),
@@ -54,10 +54,14 @@ export async function leavePrivateLobby(
   lobbyPublicId: string,
 ): Promise<LeavePrivateImposterLobbyResponse> {
   return apiClientFetch<LeavePrivateImposterLobbyResponse>(
-    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}/leave`,
+    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}`,
     accessToken,
     {
-      method: "POST",
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: "LEAVE" }),
     },
   );
 }
@@ -67,10 +71,14 @@ export async function startPrivateLobby(
   lobbyPublicId: string,
 ): Promise<PrivateImposterLobbyStateDto> {
   return apiClientFetch<PrivateImposterLobbyStateDto>(
-    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}/start`,
+    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}`,
     accessToken,
     {
-      method: "POST",
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: "START" }),
     },
   );
 }
@@ -98,7 +106,7 @@ export async function getPrivateLobbyState(
   lobbyPublicId: string,
 ): Promise<PrivateImposterLobbyStateDto> {
   return apiClientFetch<PrivateImposterLobbyStateDto>(
-    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}/state`,
+    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}`,
     accessToken,
     {
       method: "GET",

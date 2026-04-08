@@ -2,7 +2,7 @@ import { apiClientFetch } from "@/lib/api/apiClient";
 import { ApiError } from "@/lib/api/apiErrors";
 
 const PROFILE_PATH = "/me/profile";
-const PROFILE_PICTURE_UPLOAD_PATH = "/me/profile/picture/upload";
+const PROFILE_PICTURE_UPLOAD_PATH = "/me/profile/picture/uploads";
 const PROFILE_PICTURE_PATH = "/me/profile/picture";
 
 export interface UserProfile {

@@ -9,7 +9,7 @@ export type ContributorApplicationsResult = {
 export async function fetchMyContributorApplications(): Promise<ContributorApplicationsResult> {
   try {
     const data = await apiFetch<ContributorApplication[]>(
-      "/contributor-applications/mine",
+      "/me/contributor-applications",
     );
 
     return { data, error: null };

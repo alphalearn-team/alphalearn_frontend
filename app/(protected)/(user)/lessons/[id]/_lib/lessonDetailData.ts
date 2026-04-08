@@ -31,7 +31,7 @@ export async function checkLessonOwnership(
 ): Promise<boolean> {
 
   try {
-    const myLessons = await apiFetch<LessonSummary[]>("/lessons/mine");
+    const myLessons = await apiFetch<LessonSummary[]>("/me/lessons");
     return myLessons.some((lesson) => lesson.lessonPublicId === lessonPublicId);
   } catch {
     return false;
@@ -92,7 +92,7 @@ export async function getLessonDetailViewModel(
 ): Promise<LessonDetailViewModel | null> {
   const [lesson, progressList] = await Promise.all([
     fetchLessonContent(id),
-    apiFetch<LessonProgress[]>("/lessonenrollments/me/progress").catch(() => [] as LessonProgress[]),
+    apiFetch<LessonProgress[]>("/me/lesson-enrollments?view=PROGRESS").catch(() => [] as LessonProgress[]),
   ]);
 
   if (!lesson) {

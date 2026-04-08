@@ -1,6 +1,6 @@
 import type { LearnerWeeklyQuestFriendFeedResponse, TaggedFriend } from "@/interfaces/interfaces";
 
-const WEEKLY_QUEST_FRIENDS_FEED_PATH = "/me/weekly-quest/friends/feed";
+const WEEKLY_QUEST_FRIENDS_FEED_PATH = "/me/weekly-quests/entries";
 const DEFAULT_PAGE_SIZE = 20;
 
 interface WeeklyQuestFriendsFeedApiLikeError {
@@ -67,6 +67,7 @@ export async function fetchWeeklyQuestFriendsFeed(
   const size = Math.min(50, Math.max(1, params.size ?? DEFAULT_PAGE_SIZE));
 
   const searchParams = new URLSearchParams({
+    view: "FEED",
     page: String(page),
     size: String(size),
   });

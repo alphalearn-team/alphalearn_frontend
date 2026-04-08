@@ -4,7 +4,7 @@ import type {
 } from "@/interfaces/interfaces";
 import { apiFetch } from "@/lib/api/api";
 
-const ADMIN_IMPOSTER_MONTHLY_PACK_BASE_PATH = "/admin/imposter/monthly-packs";
+const ADMIN_IMPOSTER_MONTHLY_PACK_BASE_PATH = "/admin/games/monthly-packs";
 
 function normalizeMonthValue(yearMonth: string) {
   const normalizedYearMonth = yearMonth.trim();
@@ -31,7 +31,7 @@ export async function fetchAdminImposterMonthlyPack(
 ): Promise<AdminImposterMonthlyPack> {
   const normalizedYearMonth = normalizeMonthValue(yearMonth);
   const pack = await apiFetch<AdminImposterMonthlyPack>(
-    `${ADMIN_IMPOSTER_MONTHLY_PACK_BASE_PATH}/${encodeURIComponent(normalizedYearMonth)}`,
+    `${ADMIN_IMPOSTER_MONTHLY_PACK_BASE_PATH}?yearMonth=${encodeURIComponent(normalizedYearMonth)}`,
   );
 
   return normalizePack(pack);
@@ -39,7 +39,7 @@ export async function fetchAdminImposterMonthlyPack(
 
 export async function fetchCurrentAdminImposterMonthlyPack(): Promise<AdminImposterMonthlyPack> {
   const pack = await apiFetch<AdminImposterMonthlyPack>(
-    `${ADMIN_IMPOSTER_MONTHLY_PACK_BASE_PATH}/current`,
+    `${ADMIN_IMPOSTER_MONTHLY_PACK_BASE_PATH}?scope=CURRENT`,
   );
 
   return normalizePack(pack);

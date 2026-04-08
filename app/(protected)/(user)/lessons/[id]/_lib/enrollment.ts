@@ -9,17 +9,17 @@ export interface EnrolledLessonSummary {
 }
 
 export async function enrollInLesson(lessonId: string): Promise<void> {
-  await apiFetch(`/lessonenrollments/${lessonId}`, {
+  await apiFetch(`/lesson-enrollments/${lessonId}`, {
     method: "POST",
   });
 }
 
 export async function getMyEnrollments(): Promise<EnrolledLessonSummary[]> {
-  return apiFetch<EnrolledLessonSummary[]>("/lessonenrollments/me");
+  return apiFetch<EnrolledLessonSummary[]>("/me/lesson-enrollments");
 }
 
 export async function getEnrollmentStatus(lessonId: string): Promise<{ enrolled: boolean }> {
-  return apiFetch<{ enrolled: boolean }>(`/lessonenrollments/me/${lessonId}`);
+  return apiFetch<{ enrolled: boolean }>(`/me/lesson-enrollments/${lessonId}`);
 }
 
 export interface LessonProgressSummary {
@@ -33,7 +33,7 @@ export interface LessonProgressSummary {
 
 export async function getMyProgress(): Promise<LessonProgressSummary[]> {
   try {
-    return await apiFetch<LessonProgressSummary[]>("/lessonenrollments/me/progress");
+    return await apiFetch<LessonProgressSummary[]>("/me/lesson-enrollments?view=PROGRESS");
   } catch {
     try {
       const enrollments = await getMyEnrollments();
