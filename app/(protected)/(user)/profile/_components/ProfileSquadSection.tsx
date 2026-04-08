@@ -908,6 +908,7 @@ export default function ProfileSquadSection({
                   {addableLearners.map((learner) => (
                     <SquadRow
                       key={learner.publicId}
+                      publicId={learner.publicId}
                       username={learner.username}
                       profilePictureUrl={learner.profilePictureUrl}
                       actionLabel="Add friend"
