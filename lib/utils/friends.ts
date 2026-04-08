@@ -3,10 +3,9 @@
  * and weekly quest challenge tagging.
  */
 
-const PRIMARY_FRIENDS_API_PATH = "/friends";
-const FALLBACK_FRIENDS_API_PATH = "/me/friends";
+const FRIENDS_API_PATH = "/me/friends";
 const LEARNERS_API_PATH = "/learners";
-const FRIEND_REQUESTS_API_PATH = "/friend-requests";
+const FRIEND_REQUESTS_API_PATH = "/me/friend-requests";
 
 export type FriendRequestDirection = "INCOMING" | "OUTGOING";
 export type FriendRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -54,38 +53,14 @@ interface FriendApiLikeError {
 export async function fetchFriends(accessToken: string): Promise<Friend[]> {
   const { apiClientFetch } = await import("../api/apiClient");
 
-  try {
-    const response = await apiClientFetch<FriendListResponse>(PRIMARY_FRIENDS_API_PATH, accessToken, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  const response = await apiClientFetch<FriendListResponse>(FRIENDS_API_PATH, accessToken, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-    return normalizeFriendListResponse(response);
-  } catch (error) {
-    if (isFriendApiLikeError(error) && error.status === 404) {
-      try {
-        const fallbackResponse = await apiClientFetch<FriendListResponse>(
-          FALLBACK_FRIENDS_API_PATH,
-          accessToken,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        return normalizeFriendListResponse(fallbackResponse);
-      } catch (fallbackError) {
-        console.error("Failed to fetch friends list from fallback endpoint:", fallbackError);
-        throw fallbackError;
-      }
-    }
-
-    throw error;
-  }
+  return normalizeFriendListResponse(response);
 }
 
 export async function fetchFriendsList(accessToken: string): Promise<Friend[]> {
@@ -95,7 +70,7 @@ export async function fetchFriendsList(accessToken: string): Promise<Friend[]> {
 export async function unfriend(accessToken: string, friendPublicId: string): Promise<void> {
   const { apiClientFetch } = await import("../api/apiClient");
 
-  await apiClientFetch<null>(`${PRIMARY_FRIENDS_API_PATH}/${friendPublicId}`, accessToken, {
+  await apiClientFetch<null>(`${FRIENDS_API_PATH}/${friendPublicId}`, accessToken, {
     method: "DELETE",
   });
 }
