@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Center, Loader, Stack, Text, Group } from "@mantine/core";
+import { Card, Center, Loader, Stack, Text, Group, Badge } from "@mantine/core";
 import CommonButton from "@/components/CommonButton";
 import { formatDateTime } from "@/lib/utils/formatDate";
 import type { LessonQuiz, QuizAttemptSummary } from "@/interfaces/interfaces";
@@ -10,6 +10,7 @@ interface QuizOverviewPanelProps {
   bestAttempt: QuizAttemptSummary | null;
   isLoadingBest: boolean;
   onStart: () => void;
+  attemptHistory: QuizAttemptSummary[];
 }
 
 export default function QuizOverviewPanel({
@@ -17,6 +18,7 @@ export default function QuizOverviewPanel({
   bestAttempt,
   isLoadingBest,
   onStart,
+  attemptHistory,
 }: QuizOverviewPanelProps) {
   return (
     <div className="space-y-6">
@@ -43,6 +45,45 @@ export default function QuizOverviewPanel({
             <CommonButton mt="md" size="md" onClick={onStart} className="w-fit">
               Retake Quiz
             </CommonButton>
+
+            {attemptHistory.length > 0 && (
+              <div className="w-full mt-2 space-y-2">
+                <Text size="xs" fw={700} className="uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Attempt History · {attemptHistory.length}
+                </Text>
+                <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                  {attemptHistory.map((attempt, i) => {
+                    const isPerfect = attempt.score === attempt.totalQuestions;
+                    return (
+                      <div
+                        key={attempt.attemptedAt}
+                        className="flex items-center justify-between rounded-lg px-3 py-2 border border-[var(--color-border)]"
+                        style={{ background: "var(--color-overlay)" }}
+                      >
+                        <Text size="sm" fw={500} style={{ color: "var(--color-text)" }}>
+                          Attempt {attemptHistory.length - i}
+                        </Text>
+                        <Group gap="sm">
+                          <Badge
+                            size="sm"
+                            variant="light"
+                            color={isPerfect ? "green" : "gray"}
+                          >
+                            {attempt.score} / {attempt.totalQuestions}
+                          </Badge>
+                          <Text size="xs" className="text-[var(--color-text-muted)]">
+                            {new Date(attempt.attemptedAt).toLocaleString(undefined, {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </Text>
+                        </Group>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </Stack>
         ) : (
           <Stack align="center" gap="md" py="lg">
