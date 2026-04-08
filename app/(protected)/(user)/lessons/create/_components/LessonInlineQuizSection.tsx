@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useQuizState } from "@/app/(protected)/(user)/quiz/_components/quizbuilder/useQuizState";
 import Canvas from "@/app/(protected)/(user)/quiz/_components/quizbuilder/Canvas";
@@ -10,9 +10,11 @@ import type { Question, QuestionType } from "@/app/(protected)/(user)/quiz/_comp
 
 interface LessonInlineQuizSectionProps {
   onQuestionsChange: (questions: Question[]) => void;
+  quizLabel: string;
+  onRemove?: () => void;
 }
 
-export default function LessonInlineQuizSection({ onQuestionsChange }: LessonInlineQuizSectionProps) {
+export default function LessonInlineQuizSection({ onQuestionsChange, quizLabel, onRemove }: LessonInlineQuizSectionProps) {
   const {
     questions,
     addQuestion,
@@ -25,9 +27,14 @@ export default function LessonInlineQuizSection({ onQuestionsChange }: LessonInl
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Use a ref so the effect only re-runs when `questions` changes,
+  // not when the parent re-renders and passes a new inline function reference.
+  const onQuestionsChangeRef = useRef(onQuestionsChange);
+  onQuestionsChangeRef.current = onQuestionsChange;
+
   useEffect(() => {
-    onQuestionsChange(questions);
-  }, [questions, onQuestionsChange]);
+    onQuestionsChangeRef.current(questions);
+  }, [questions]);
 
   function handleAdd(type: QuestionType) {
     addQuestion(type);
@@ -39,13 +46,33 @@ export default function LessonInlineQuizSection({ onQuestionsChange }: LessonInl
       style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
     >
       {/* Header */}
-      <div>
-        <h2 className="text-base font-semibold" style={{ color: "var(--color-text)" }}>
-          Quiz
-        </h2>
-        <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
-          Add quiz questions for this lesson. At least one quiz is required before submitting for review.
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h2 className="text-base font-semibold" style={{ color: "var(--color-text)" }}>
+            {quizLabel}
+          </h2>
+          <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+            Add quiz questions for this lesson. At least one quiz is required before submitting for review.
+          </p>
+        </div>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm transition-colors"
+            style={{
+              border: "1px solid var(--color-error)",
+              color: "var(--color-error)",
+              background: "transparent",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+            aria-label={`Remove ${quizLabel}`}
+          >
+            <span className="material-symbols-outlined text-base">delete</span>
+            Remove
+          </button>
+        )}
       </div>
 
       {/* Add question buttons */}

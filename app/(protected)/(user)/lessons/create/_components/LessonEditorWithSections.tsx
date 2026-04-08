@@ -21,9 +21,18 @@ export default function LessonEditorWithSections({
   concepts,
   initialConceptPublicIds = [],
 }: LessonEditorWithSectionsProps) {
-  const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
-  const handleQuestionsChange = useCallback((questions: Question[]) => {
-    setQuizQuestions(questions);
+  const [quizzes, setQuizzes] = useState<Question[][]>([[]]);
+
+  const handleQuestionsChange = useCallback((index: number, questions: Question[]) => {
+    setQuizzes(prev => prev.map((q, i) => (i === index ? questions : q)));
+  }, []);
+
+  const handleAddQuiz = useCallback(() => {
+    setQuizzes(prev => [...prev, []]);
+  }, []);
+
+  const handleRemoveQuiz = useCallback((index: number) => {
+    setQuizzes(prev => prev.filter((_, i) => i !== index));
   }, []);
 
   const {
@@ -47,7 +56,7 @@ export default function LessonEditorWithSections({
     availableConcepts,
     concepts,
     initialConceptPublicIds,
-    quizQuestions,
+    quizzes,
   });
 
   return (
@@ -68,13 +77,37 @@ export default function LessonEditorWithSections({
         onRegisterSectionElement={registerSectionElement}
       />
 
-      <LessonInlineQuizSection onQuestionsChange={handleQuestionsChange} />
+      {quizzes.map((_, index) => (
+        <LessonInlineQuizSection
+          key={index}
+          quizLabel={`Quiz ${index + 1}`}
+          onQuestionsChange={(questions) => handleQuestionsChange(index, questions)}
+          onRemove={quizzes.length > 1 ? () => handleRemoveQuiz(index) : undefined}
+        />
+      ))}
+
+      <button
+        type="button"
+        onClick={handleAddQuiz}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        style={{
+          border: "1px dashed var(--color-border)",
+          background: "transparent",
+          color: "var(--color-primary)",
+          cursor: "pointer",
+          width: "100%",
+          justifyContent: "center",
+        }}
+      >
+        <span className="material-symbols-outlined text-base">add</span>
+        Add Another Quiz
+      </button>
 
       <LessonSubmissionError error={error} />
 
       <LessonCreateActionBar
         hasSections={sections.length > 0}
-        hasQuiz={quizQuestions.length > 0}
+        hasQuiz={quizzes.some(q => q.length > 0)}
         isSavingDraft={isSavingDraft}
         isSubmitting={isSubmitting}
         onCancel={handleCancel}

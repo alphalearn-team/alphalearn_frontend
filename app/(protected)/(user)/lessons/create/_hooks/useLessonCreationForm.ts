@@ -19,7 +19,7 @@ interface UseLessonCreationFormParams {
   availableConcepts?: Concept[];
   concepts?: Concept[];
   initialConceptPublicIds: string[];
-  quizQuestions?: Question[];
+  quizzes?: Question[][];
 }
 
 function mapQuestionsToPayload(questions: Question[]) {
@@ -73,7 +73,7 @@ export function useLessonCreationForm({
   availableConcepts,
   concepts,
   initialConceptPublicIds,
-  quizQuestions = [],
+  quizzes = [[]],
 }: UseLessonCreationFormParams) {
   const router = useRouter();
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -204,10 +204,11 @@ export function useLessonCreationForm({
     }
 
     // Validate quiz questions if any were added
-    if (quizQuestions.length > 0) {
-      const quizError = validateQuizQuestions(quizQuestions);
+    const nonEmptyQuizzesForDraft = quizzes.filter(q => q.length > 0);
+    for (let i = 0; i < nonEmptyQuizzesForDraft.length; i++) {
+      const quizError = validateQuizQuestions(nonEmptyQuizzesForDraft[i]);
       if (quizError) {
-        setError(`Quiz: ${quizError}`);
+        setError(`Quiz ${i + 1}: ${quizError}`);
         return;
       }
     }
@@ -237,18 +238,21 @@ export function useLessonCreationForm({
 
       const { lessonPublicId } = result.data;
 
-      // Create quiz if questions were added
-      if (quizQuestions.length > 0) {
+      // Create quizzes if any questions were added
+      const nonEmptyQuizzes = quizzes.filter(q => q.length > 0);
+      for (const quizQuestions of nonEmptyQuizzes) {
         const quizResult = await createQuizAction({
           lessonPublicId,
           questions: mapQuestionsToPayload(quizQuestions),
         });
         if (!quizResult.success) {
-          showError("Lesson saved but quiz could not be created. You can add it from the lesson editor.");
+          showError("Lesson saved but one or more quizzes could not be created. You can add them from the lesson editor.");
           router.push(`/lessons/${lessonPublicId}`);
           return;
         }
-        showSuccess("Lesson and quiz saved!");
+      }
+      if (nonEmptyQuizzes.length > 0) {
+        showSuccess(`Lesson and ${nonEmptyQuizzes.length === 1 ? "quiz" : `${nonEmptyQuizzes.length} quizzes`} saved!`);
       } else {
         showSuccess("Lesson saved! Add a quiz before submitting for review.");
       }
@@ -277,13 +281,16 @@ export function useLessonCreationForm({
     const sectionContentError = validateSectionContent();
     if (sectionContentError) { setError(sectionContentError); return; }
 
-    if (quizQuestions.length === 0) {
+    const nonEmptyQuizzesForSubmit = quizzes.filter(q => q.length > 0);
+    if (nonEmptyQuizzesForSubmit.length === 0) {
       setError("Please add at least one quiz question before submitting for review.");
       return;
     }
 
-    const quizError = validateQuizQuestions(quizQuestions);
-    if (quizError) { setError(`Quiz: ${quizError}`); return; }
+    for (let i = 0; i < nonEmptyQuizzesForSubmit.length; i++) {
+      const quizError = validateQuizQuestions(nonEmptyQuizzesForSubmit[i]);
+      if (quizError) { setError(`Quiz ${i + 1}: ${quizError}`); return; }
+    }
 
     setIsSubmitting(true);
 
@@ -304,16 +311,18 @@ export function useLessonCreationForm({
 
       const { lessonPublicId } = lessonResult.data;
 
-      // 2. Create quiz
-      const quizResult = await createQuizAction({
-        lessonPublicId,
-        questions: mapQuestionsToPayload(quizQuestions),
-      });
-
-      if (!quizResult.success) {
-        showError("Lesson saved but quiz could not be created. You can submit from the lesson editor.");
-        router.push(`/lessons/${lessonPublicId}`);
-        return;
+      // 2. Create quizzes
+      const nonEmptyQuizzes = quizzes.filter(q => q.length > 0);
+      for (const quizQuestions of nonEmptyQuizzes) {
+        const quizResult = await createQuizAction({
+          lessonPublicId,
+          questions: mapQuestionsToPayload(quizQuestions),
+        });
+        if (!quizResult.success) {
+          showError("Lesson saved but one or more quizzes could not be created. You can submit from the lesson editor.");
+          router.push(`/lessons/${lessonPublicId}`);
+          return;
+        }
       }
 
       // 3. Submit for review
