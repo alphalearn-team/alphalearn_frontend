@@ -446,6 +446,14 @@ export default function OnlineLobbyRoomScreen({
   const viewerIsReconnecting =
     viewerMemberPublicId !== null &&
     reconnectingLearnerPublicIds.includes(viewerMemberPublicId);
+  const viewerIdentityTokenSet = useMemo(
+    () =>
+      new Set(
+        getViewerIdentityCandidates(session).map((value) =>
+          normalizeIdentityToken(value)),
+      ),
+    [session],
+  );
   const reconnectingOthers = useMemo(
     () =>
       reconnectingMembers.filter(
@@ -507,12 +515,43 @@ export default function OnlineLobbyRoomScreen({
     }
   }, [selectedVoteTargetPublicId, viewerMemberPublicId]);
 
+  const isSelectedVoteTargetSelf = useMemo(() => {
+    if (!selectedVoteTargetPublicId) {
+      return false;
+    }
+
+    const selectedTargetMember = findMemberByPublicId(
+      sharedState?.activeMembers ?? [],
+      selectedVoteTargetPublicId,
+    );
+
+    return isViewerVoteTarget(
+      selectedVoteTargetPublicId,
+      selectedTargetMember,
+      viewerMemberPublicId,
+      viewerIdentityTokenSet,
+    );
+  }, [
+    selectedVoteTargetPublicId,
+    sharedState?.activeMembers,
+    viewerIdentityTokenSet,
+    viewerMemberPublicId,
+  ]);
+
+  useEffect(() => {
+    if (!isSelectedVoteTargetSelf) {
+      return;
+    }
+
+    setSelectedVoteTargetPublicId(null);
+  }, [isSelectedVoteTargetSelf]);
+
   const canSubmitVote =
     !isTerminalPhase &&
     sharedState?.currentPhase === "VOTING" &&
     !viewerState?.viewerVoteTargetPublicId &&
     Boolean(selectedVoteTargetPublicId) &&
-    selectedVoteTargetPublicId !== viewerMemberPublicId &&
+    !isSelectedVoteTargetSelf &&
     sharedState.eligibleVoteTargetPublicIds.includes(
       selectedVoteTargetPublicId ?? "",
     );
@@ -1520,8 +1559,12 @@ export default function OnlineLobbyRoomScreen({
                       targetPublicId,
                     );
                     const isSelfVoteTarget =
-                      viewerMemberPublicId !== null &&
-                      targetPublicId === viewerMemberPublicId;
+                      isViewerVoteTarget(
+                        targetPublicId,
+                        targetMember,
+                        viewerMemberPublicId,
+                        viewerIdentityTokenSet,
+                      );
                     return (
                       <Button
                         key={targetPublicId}
@@ -1784,6 +1827,24 @@ function getViewerIdentityCandidates(session: {
 
 function normalizeIdentityToken(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function isViewerVoteTarget(
+  targetPublicId: string,
+  targetMember: MemberState | null,
+  viewerMemberPublicId: string | null,
+  viewerIdentityTokenSet: Set<string>,
+): boolean {
+  if (viewerMemberPublicId && targetPublicId === viewerMemberPublicId) {
+    return true;
+  }
+
+  const targetUsername = targetMember?.username;
+  if (!targetUsername) {
+    return false;
+  }
+
+  return viewerIdentityTokenSet.has(normalizeIdentityToken(targetUsername));
 }
 
 function formatDeadline(deadlineAt: string | null, now: number): string {
