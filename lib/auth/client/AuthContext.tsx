@@ -175,7 +175,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        ...(callbackUrl ? { options: { redirectTo: callbackUrl } } : {}),
+        options: {
+            redirectTo: 'https://main.dri10xquta4qu.amplifyapp.com'
+        }
       })
 
       if (error) throw error;
