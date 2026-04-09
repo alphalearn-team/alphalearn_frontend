@@ -19,7 +19,9 @@ export default function MyLessonsHeader({
                 My <span className="text-[var(--color-primary)]">Lessons</span>
               </Title>
               <Text className="text-[var(--color-text-secondary)]">
-                Manage and track the lessons you&apos;ve created.
+                {canCreateLessons
+                  ? "Manage and track the lessons you've created."
+                  : "Become a contributor to start creating and sharing lessons."}
               </Text>
             </Stack>
 
