@@ -7,6 +7,7 @@ import AppSidebar, {
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import { fetchFriendRequests } from "@/lib/utils/friends";
+import { getIncomingPendingPrivateInvites } from "@/lib/utils/gameLobbyInvites";
 
 function getSections(unreadNotificationsCount: number, incomingRequestCount: number): SidebarNavSection[] {
   return [
@@ -62,8 +63,9 @@ function toRoleLabel(role: string | null) {
 export default function UserSidebar() {
   const { userRole, user, session } = useAuth();
   const accessToken = session?.access_token ?? null;
-  const { unreadCount } = useNotifications(Boolean(user));
+  const { notifications, unreadCount } = useNotifications(Boolean(user));
   const [incomingRequestCount, setIncomingRequestCount] = useState(0);
+  const [incomingPendingInviteCount, setIncomingPendingInviteCount] = useState(0);
 
   useEffect(() => {
     if (!accessToken) {
@@ -97,9 +99,68 @@ export default function UserSidebar() {
     };
   }, [accessToken]);
 
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadIncomingInviteCount = async () => {
+      try {
+        const incomingInvites = await getIncomingPendingPrivateInvites(accessToken);
+        if (isCancelled) {
+          return;
+        }
+        setIncomingPendingInviteCount(incomingInvites.length);
+      } catch {
+        if (!isCancelled) {
+          setIncomingPendingInviteCount(0);
+        }
+      }
+    };
+
+    void loadIncomingInviteCount();
+    const intervalId = window.setInterval(() => {
+      void loadIncomingInviteCount();
+    }, 15000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [accessToken]);
+
+  const unreadInviteNotificationIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    notifications.forEach((notification) => {
+      if (notification.isRead || notification.type !== "GAME_LOBBY_INVITE") {
+        return;
+      }
+
+      const metadata = notification.metadata;
+      if (!metadata || typeof metadata !== "object") {
+        return;
+      }
+
+      const invitePublicId = (metadata as { invitePublicId?: unknown }).invitePublicId;
+      if (typeof invitePublicId === "string" && invitePublicId.trim()) {
+        ids.add(invitePublicId);
+      }
+    });
+
+    return ids;
+  }, [notifications]);
+
+  const unreadInboxBadgeCount = useMemo(() => {
+    const fallbackInviteCount = Math.max(0, incomingPendingInviteCount - unreadInviteNotificationIds.size);
+    return unreadCount + fallbackInviteCount;
+  }, [incomingPendingInviteCount, unreadCount, unreadInviteNotificationIds.size]);
+
   const sections = useMemo(
-    () => getSections(unreadCount, accessToken ? incomingRequestCount : 0),
-    [accessToken, incomingRequestCount, unreadCount],
+    () => getSections(unreadInboxBadgeCount, accessToken ? incomingRequestCount : 0),
+    [accessToken, incomingRequestCount, unreadInboxBadgeCount],
   );
   const quickActionsSection = getQuickActionsSection(userRole);
 

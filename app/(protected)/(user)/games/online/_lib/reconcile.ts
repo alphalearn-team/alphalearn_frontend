@@ -113,7 +113,7 @@ export function onlineLobbyRuntimeReducer(
 
       return {
         ...state,
-        viewerState: action.payload.state,
+        viewerState: mergeViewerState(state.viewerState, action.payload.state),
         lastViewerVersion: nextVersion ?? state.lastViewerVersion,
         lastViewerReason: action.payload.reason,
       };
@@ -182,15 +182,40 @@ function mapSharedState(dto: PrivateImposterLobbyStateDto): SharedState {
     endReason: dto.endReason,
     endedAt: dto.endedAt,
     endedByPublicId: dto.endedByPublicId,
+    viewerWasKicked: Boolean(dto.viewerWasKicked),
+    viewerRemovedReason: dto.viewerRemovedReason ?? null,
     reconnectingLearners: dto.reconnectingLearners ?? [],
   };
 }
 
 function mapViewerState(dto: PrivateImposterLobbyStateDto): ViewerState {
   return {
-    viewerVoteTargetPublicId: dto.viewerVoteTargetPublicId,
-    viewerIsImposter: dto.viewerIsImposter,
-    viewerConceptTitle: dto.viewerConceptTitle,
+    viewerVoteTargetPublicId: dto.viewerVoteTargetPublicId ?? null,
+    viewerIsImposter: Boolean(dto.viewerIsImposter),
+    viewerConceptTitle: dto.viewerConceptTitle ?? null,
+  };
+}
+
+function mergeViewerState(
+  previous: ViewerState | null,
+  incoming: ViewerState,
+): ViewerState {
+  const incomingVoteTarget = incoming.viewerVoteTargetPublicId;
+  const incomingConceptTitle = incoming.viewerConceptTitle;
+
+  return {
+    viewerVoteTargetPublicId:
+      typeof incomingVoteTarget === "string" || incomingVoteTarget === null
+        ? incomingVoteTarget
+        : previous?.viewerVoteTargetPublicId ?? null,
+    viewerIsImposter:
+      typeof incoming.viewerIsImposter === "boolean"
+        ? incoming.viewerIsImposter
+        : previous?.viewerIsImposter ?? false,
+    viewerConceptTitle:
+      typeof incomingConceptTitle === "string" || incomingConceptTitle === null
+        ? incomingConceptTitle
+        : previous?.viewerConceptTitle ?? null,
   };
 }
 

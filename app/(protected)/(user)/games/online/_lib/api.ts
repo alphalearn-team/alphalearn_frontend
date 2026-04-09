@@ -1,8 +1,10 @@
 import { apiClientFetch } from "@/lib/api/apiClient";
 import type {
   CreatePrivateImposterLobbyRequest,
+  InvitePrivateImposterLobbyFriendsRequest,
   JoinedPrivateImposterLobbyDto,
   JoinPrivateImposterLobbyRequest,
+  KickPrivateImposterLobbyMemberRequest,
   LeavePrivateImposterLobbyResponse,
   PrivateImposterLobbyDto,
   PrivateImposterLobbyStateDto,
@@ -110,6 +112,42 @@ export async function getPrivateLobbyState(
     accessToken,
     {
       method: "GET",
+    },
+  );
+}
+
+export async function sendPrivateLobbyInvites(
+  accessToken: string,
+  lobbyPublicId: string,
+  request: InvitePrivateImposterLobbyFriendsRequest,
+): Promise<void> {
+  await apiClientFetch<void>(
+    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}/invites`,
+    accessToken,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+}
+
+export async function kickPrivateLobbyMember(
+  accessToken: string,
+  lobbyPublicId: string,
+  request: KickPrivateImposterLobbyMemberRequest,
+): Promise<void> {
+  await apiClientFetch<void>(
+    `${PRIVATE_LOBBY_BASE_PATH}/${lobbyPublicId}/members`,
+    accessToken,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
     },
   );
 }

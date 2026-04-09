@@ -129,6 +129,8 @@ export interface SharedState {
   endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
+  viewerWasKicked: boolean;
+  viewerRemovedReason: string | null;
   reconnectingLearners: ReconnectingLearnerState[];
 }
 
@@ -201,6 +203,8 @@ export interface PrivateImposterLobbyStateDto {
   endReason: LobbyEndReason | null;
   endedAt: string | null;
   endedByPublicId: string | null;
+  viewerWasKicked?: boolean;
+  viewerRemovedReason?: string | null;
   reconnectingLearners: ReconnectingLearnerState[];
 }
 
@@ -235,6 +239,14 @@ export interface CreatePrivateImposterLobbyRequest {
 
 export interface JoinPrivateImposterLobbyRequest {
   lobbyCode: string;
+}
+
+export interface InvitePrivateImposterLobbyFriendsRequest {
+  friendPublicIds: string[];
+}
+
+export interface KickPrivateImposterLobbyMemberRequest {
+  memberPublicId: string;
 }
 
 export interface UpdatePrivateImposterLobbySettingsRequest {
