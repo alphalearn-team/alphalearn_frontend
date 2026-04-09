@@ -324,7 +324,7 @@ export default function QuestChallengeSubmissionSection({
 
               <div className="mt-8 rounded-[24px] border border-dashed border-[#313530] bg-[#131313] px-6 py-12">
                 <p className="text-lg text-[var(--color-text)]">
-                  Read a lesson or concept to learn more about this week's topic!
+                  Read a lesson or concept to learn more about this week&apos;s topic!
                 </p>
               </div>
 
