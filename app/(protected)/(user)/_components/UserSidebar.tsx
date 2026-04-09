@@ -39,7 +39,7 @@ function getQuickActionsSection(
       items: [
         { label: "Submit Quest", href: "/weekly-quest", icon: "gallery_thumbnail" },
         { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
-        { label: "Create Quiz", href: "/quiz/edit", icon: "add_circle" },
+        { label: "Create Quiz", href: "/quiz", icon: "add_circle" },
       ],
     };
   }
