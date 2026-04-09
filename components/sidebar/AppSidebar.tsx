@@ -2,7 +2,7 @@
 
 import "./sidebar-shell.css";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHotkeys } from "@mantine/hooks";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import SidebarFooter from "./SidebarFooter";
@@ -55,6 +55,22 @@ export default function AppSidebar({
     || user?.user_metadata?.picture
     || user?.user_metadata?.avatar_url;
   const mobileOpen = mobileOpenPath === pathname;
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("touch-action");
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+
+    return () => {
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("touch-action");
+    };
+  }, [mobileOpen]);
 
   const closeMobileSidebar = () => {
     setMobileOpenPath(null);
