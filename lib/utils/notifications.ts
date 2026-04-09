@@ -5,6 +5,8 @@ import { apiFetch } from "@/lib/api/api";
 export interface Notification {
     publicId: string;
     message: string;
+    type?: string | null;
+    metadata?: Record<string, unknown> | null;
     isRead: boolean;
     createdAt: string;
 }

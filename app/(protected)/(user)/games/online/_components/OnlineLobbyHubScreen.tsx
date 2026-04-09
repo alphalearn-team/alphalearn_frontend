@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import type { LearnerCurrentImposterMonthlyPack } from "@/interfaces/interfaces";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
   Alert,
+  Badge,
   Button,
   Card,
   Container,
+  Group,
+  Modal,
   Radio,
   Stack,
   Text,
@@ -20,6 +25,10 @@ import {
   joinPrivateLobby,
   normalizeLobbyCode,
 } from "../_lib/api";
+import {
+  fetchLearnerCurrentImposterMonthlyPack,
+  toFriendlyLearnerCurrentMonthlyPackError,
+} from "../../_lib/monthlyPackProvider";
 import type { LobbyConceptPoolMode } from "../_lib/types";
 
 const sectionCardClassName =
@@ -36,8 +45,92 @@ export default function OnlineLobbyHubScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [monthlyPack, setMonthlyPack] =
+    useState<LearnerCurrentImposterMonthlyPack | null>(null);
+  const [isMonthlyPackLoading, setIsMonthlyPackLoading] = useState(false);
+  const [monthlyPackError, setMonthlyPackError] = useState<string | null>(null);
+  const [isConceptsModalOpen, setIsConceptsModalOpen] = useState(false);
 
   const accessToken = session?.access_token ?? null;
+  const featuredWeekSlotByConceptId = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!monthlyPack) {
+      return map;
+    }
+
+    for (const slot of monthlyPack.weeklyFeaturedSlots) {
+      if (!slot.conceptPublicId) {
+        continue;
+      }
+      map.set(slot.conceptPublicId, slot.weekSlot);
+    }
+
+    return map;
+  }, [monthlyPack]);
+
+  const sortedVisibleConcepts = useMemo(() => {
+    const concepts = monthlyPack?.visibleConcepts ?? [];
+
+    return [...concepts].sort((left, right) => {
+      const leftWeekSlot =
+        left.weekSlot ?? featuredWeekSlotByConceptId.get(left.conceptPublicId) ?? Number.POSITIVE_INFINITY;
+      const rightWeekSlot =
+        right.weekSlot ?? featuredWeekSlotByConceptId.get(right.conceptPublicId) ?? Number.POSITIVE_INFINITY;
+
+      if (left.weeklyFeatured && !right.weeklyFeatured) {
+        return -1;
+      }
+
+      if (!left.weeklyFeatured && right.weeklyFeatured) {
+        return 1;
+      }
+
+      if (left.weeklyFeatured && right.weeklyFeatured && leftWeekSlot !== rightWeekSlot) {
+        return leftWeekSlot - rightWeekSlot;
+      }
+
+      return left.title.localeCompare(right.title);
+    });
+  }, [featuredWeekSlotByConceptId, monthlyPack?.visibleConcepts]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setMonthlyPack(null);
+      setMonthlyPackError(null);
+      setIsMonthlyPackLoading(false);
+      return;
+    }
+
+    let active = true;
+    setIsMonthlyPackLoading(true);
+    setMonthlyPackError(null);
+
+    void fetchLearnerCurrentImposterMonthlyPack(accessToken)
+      .then((pack) => {
+        if (!active) {
+          return;
+        }
+        setMonthlyPack(pack);
+      })
+      .catch((error: unknown) => {
+        if (!active) {
+          return;
+        }
+
+        setMonthlyPack(null);
+        setMonthlyPackError(toFriendlyLearnerCurrentMonthlyPackError(error));
+      })
+      .finally(() => {
+        if (!active) {
+          return;
+        }
+        setIsMonthlyPackLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
 
   const handleCreate = async () => {
     if (!accessToken || isCreating) {
@@ -177,6 +270,28 @@ export default function OnlineLobbyHubScreen() {
               </Stack>
             </Radio.Group>
 
+            <Group justify="space-between" align="center">
+              <Text size="sm" className="text-[var(--color-text-secondary)]">
+                Preview the current month pack before creating.
+              </Text>
+              <Button
+                type="button"
+                variant="default"
+                radius="xl"
+                size="sm"
+                onClick={() => setIsConceptsModalOpen(true)}
+                styles={{
+                  root: {
+                    borderColor: "color-mix(in srgb, var(--color-primary) 45%, transparent)",
+                    color: "var(--color-primary)",
+                    backgroundColor: "color-mix(in srgb, var(--color-primary) 10%, transparent)",
+                  },
+                }}
+              >
+                View monthly concepts
+              </Button>
+            </Group>
+
             <Button
               radius="xl"
               size="lg"
@@ -195,6 +310,95 @@ export default function OnlineLobbyHubScreen() {
             </Button>
           </Stack>
         </Card>
+
+        <Modal
+          opened={isConceptsModalOpen}
+          onClose={() => setIsConceptsModalOpen(false)}
+          title="Current month concepts"
+          centered
+          size="lg"
+          styles={{
+            content: {
+              backgroundColor: "var(--color-surface)",
+              color: "var(--color-text)",
+            },
+            header: {
+              backgroundColor: "var(--color-surface)",
+            },
+            title: {
+              fontWeight: 700,
+            },
+          }}
+        >
+          <Stack gap="sm">
+            {monthlyPack?.yearMonth ? (
+              <Badge color="lime" radius="sm" variant="light" className="w-max">
+                {formatYearMonthLabel(monthlyPack.yearMonth)}
+              </Badge>
+            ) : null}
+
+            {isMonthlyPackLoading ? (
+              <Text size="sm" className="text-[var(--color-text-secondary)]">
+                Loading current month concepts...
+              </Text>
+            ) : null}
+
+            {!isMonthlyPackLoading && monthlyPackError ? (
+              <Alert color="red" radius="md" variant="light" title="Could not load monthly pack">
+                {monthlyPackError}
+              </Alert>
+            ) : null}
+
+            {!isMonthlyPackLoading && !monthlyPackError && !monthlyPack?.exists ? (
+              <Alert color="yellow" radius="md" variant="light" title="Monthly pack unavailable">
+                No monthly concept pack is available right now.
+              </Alert>
+            ) : null}
+
+            {!isMonthlyPackLoading
+            && !monthlyPackError
+            && monthlyPack?.exists
+            && sortedVisibleConcepts.length === 0 ? (
+              <Text size="sm" className="text-[var(--color-text-secondary)]">
+                No visible concepts have been published for this monthly pack yet.
+              </Text>
+            ) : null}
+
+            {!isMonthlyPackLoading
+            && !monthlyPackError
+            && monthlyPack?.exists
+            && sortedVisibleConcepts.length > 0 ? (
+              <Stack gap="xs" className="max-h-[60vh] overflow-y-auto pr-1">
+                {sortedVisibleConcepts.map((concept) => {
+                  const weekSlot =
+                    concept.weekSlot
+                    ?? featuredWeekSlotByConceptId.get(concept.conceptPublicId)
+                    ?? null;
+
+                  return (
+                    <Link
+                      key={concept.conceptPublicId}
+                      href={`/concepts/${concept.conceptPublicId}`}
+                      className="block rounded-xl border border-white/10 bg-black/20 px-3 py-2 transition-colors hover:border-[var(--color-primary)] hover:bg-black/30"
+                      onClick={() => setIsConceptsModalOpen(false)}
+                    >
+                      <Group justify="space-between" align="center" className="gap-2">
+                        <Text size="sm" className="font-medium text-[var(--color-text)]">
+                          {concept.title}
+                        </Text>
+                        {concept.weeklyFeatured ? (
+                          <Badge color="lime" radius="sm" variant="light">
+                            {weekSlot ? `Featured in Week ${weekSlot}` : "Featured"}
+                          </Badge>
+                        ) : null}
+                      </Group>
+                    </Link>
+                  );
+                })}
+              </Stack>
+            ) : null}
+          </Stack>
+        </Modal>
 
         <Card radius="32px" padding="xl" className={sectionCardClassName}>
           <form onSubmit={handleJoin}>
@@ -247,6 +451,22 @@ export default function OnlineLobbyHubScreen() {
       </Stack>
     </Container>
   );
+}
+
+function formatYearMonthLabel(yearMonth: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(yearMonth);
+  if (!match) {
+    return yearMonth;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    return yearMonth;
+  }
+
+  const parsedDate = new Date(Date.UTC(year, month - 1, 1));
+  return parsedDate.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
 async function hydrateJoinedLobbyState(

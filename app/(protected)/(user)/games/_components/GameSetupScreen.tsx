@@ -8,6 +8,7 @@ import {
   Card,
   Container,
   NumberInput,
+  Radio,
   SimpleGrid,
   Stack,
   Text,
@@ -33,6 +34,7 @@ import {
   trimPlayerName,
   validateGameSetupForm,
   type GameSetupFormValues,
+  type ImposterConceptPoolMode,
   type OfflineInitializedMatch,
 } from "../_lib/gameSetup";
 import { fetchNextGameConcept, isEmptyConceptBankError } from "../_lib/conceptProvider";
@@ -112,7 +114,13 @@ export default function GameSetupScreen() {
             setIsContinuingMatch(true);
 
             try {
-              const concept = await fetchNextGameConcept(accessToken, matchConfig.usedConceptPublicIds);
+              const concept = await fetchNextGameConcept(
+                accessToken,
+                matchConfig.usedConceptPublicIds,
+                undefined,
+                undefined,
+                matchConfig.conceptPoolMode,
+              );
               const assignment = assignImposter(matchConfig.players);
 
               setMatchConfig(
@@ -225,6 +233,17 @@ export default function GameSetupScreen() {
       settings: {
         ...currentValues.settings,
         [key]: nextValue,
+      },
+    }));
+    setStartError(null);
+  };
+
+  const updateConceptPoolMode = (mode: ImposterConceptPoolMode) => {
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      settings: {
+        ...currentValues.settings,
+        conceptPoolMode: mode,
       },
     }));
     setStartError(null);
@@ -463,6 +482,25 @@ export default function GameSetupScreen() {
                       styles={textInputStyles}
                     />
                   </SimpleGrid>
+
+                  <Radio.Group
+                    value={formValues.settings.conceptPoolMode}
+                    onChange={(value) => updateConceptPoolMode(value as ImposterConceptPoolMode)}
+                    label="Concept source"
+                    styles={{
+                      label: {
+                        color: "var(--color-text)",
+                        marginBottom: "10px",
+                        fontWeight: 600,
+                        fontSize: "0.875rem",
+                      },
+                    }}
+                  >
+                    <Stack gap="xs">
+                      <Radio value="CURRENT_MONTH_PACK" label="Current month pack" color="lime" />
+                      <Radio value="FULL_CONCEPT_POOL" label="Full concept pool" color="lime" />
+                    </Stack>
+                  </Radio.Group>
                 </Stack>
               </Card>
 
@@ -489,7 +527,11 @@ export default function GameSetupScreen() {
                       {" "}
                       {formValues.settings.discussionTimerSeconds}s discussion,
                       {" "}
-                      {formValues.settings.imposterGuessTimerSeconds}s guess timer.
+                      {formValues.settings.imposterGuessTimerSeconds}s guess timer,
+                      {" "}
+                      {formValues.settings.conceptPoolMode === "CURRENT_MONTH_PACK"
+                        ? "current month pack concepts"
+                        : "full concept pool"}.
                     </p>
                   </div>
 

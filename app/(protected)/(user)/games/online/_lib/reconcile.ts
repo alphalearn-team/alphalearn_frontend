@@ -182,6 +182,8 @@ function mapSharedState(dto: PrivateImposterLobbyStateDto): SharedState {
     endReason: dto.endReason,
     endedAt: dto.endedAt,
     endedByPublicId: dto.endedByPublicId,
+    viewerWasKicked: Boolean(dto.viewerWasKicked),
+    viewerRemovedReason: dto.viewerRemovedReason ?? null,
     reconnectingLearners: dto.reconnectingLearners ?? [],
   };
 }

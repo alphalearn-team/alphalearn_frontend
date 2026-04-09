@@ -13,10 +13,21 @@ import {
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import {
+  fetchFriends,
+  getFriendsLoadErrorMessage,
+  type Friend,
+} from "@/lib/utils/friends";
+import {
+  cancelPrivateInvite,
+  getPrivateInvites,
+  type PrivateLobbyInviteStatus,
+} from "@/lib/utils/gameLobbyInvites";
+import {
   Alert,
   Badge,
   Button,
   Card,
+  Checkbox,
   Container,
   Divider,
   Group,
@@ -31,7 +42,9 @@ import SharedCanvas from "../../_components/SharedCanvas";
 import type { CanvasStroke } from "../../_lib/gameSetup";
 import {
   getPrivateLobbyState,
+  kickPrivateLobbyMember,
   leavePrivateLobby,
+  sendPrivateLobbyInvites,
   startPrivateLobby,
   updatePrivateLobbySettings,
 } from "../_lib/api";
@@ -102,6 +115,18 @@ export default function OnlineLobbyRoomScreen({
   const [isLeaving, setIsLeaving] = useState(false);
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isKickedModalOpen, setIsKickedModalOpen] = useState(false);
+  const [kickingMemberPublicId, setKickingMemberPublicId] = useState<string | null>(null);
+  const [isCodeCopied, setIsCodeCopied] = useState(false);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [isFriendsLoading, setIsFriendsLoading] = useState(false);
+  const [friendsErrorMessage, setFriendsErrorMessage] = useState<string | null>(null);
+  const [outgoingInviteStatusByFriendId, setOutgoingInviteStatusByFriendId] =
+    useState<Record<string, PrivateLobbyInviteStatus>>({});
+  const [isOutgoingInvitesLoading, setIsOutgoingInvitesLoading] = useState(false);
+  const [selectedFriendIds, setSelectedFriendIds] = useState<Set<string>>(new Set());
+  const [isSendingInvites, setIsSendingInvites] = useState(false);
+  const [inviteFeedbackMessage, setInviteFeedbackMessage] = useState<string | null>(null);
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
     null,
   );
@@ -428,6 +453,27 @@ export default function OnlineLobbyRoomScreen({
       ),
     [reconnectingMembers, viewerMemberPublicId],
   );
+  const activeLobbyMemberPublicIds = useMemo(
+    () =>
+      new Set(
+        (sharedState?.activeMembers ?? [])
+          .map((member) => member.learnerPublicId)
+          .filter((publicId): publicId is string => Boolean(publicId)),
+      ),
+    [sharedState?.activeMembers],
+  );
+  const invitableFriends = useMemo(
+    () =>
+      friends.filter((friend) => !activeLobbyMemberPublicIds.has(friend.publicId)),
+    [activeLobbyMemberPublicIds, friends],
+  );
+  const selectableInvitableFriends = useMemo(
+    () =>
+      invitableFriends.filter(
+        (friend) => outgoingInviteStatusByFriendId[friend.publicId] !== "PENDING",
+      ),
+    [invitableFriends, outgoingInviteStatusByFriendId],
+  );
   const viewerReconnectEntry = useMemo(
     () =>
       viewerMemberPublicId
@@ -596,6 +642,115 @@ export default function OnlineLobbyRoomScreen({
     void executeLeave();
   };
 
+  const handleCopyLobbyCode = async () => {
+    if (!sharedState?.lobbyCode) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(sharedState.lobbyCode);
+      setIsCodeCopied(true);
+      window.setTimeout(() => {
+        setIsCodeCopied(false);
+      }, 1500);
+    } catch {
+      setErrorMessage("Could not copy lobby code. Please copy it manually.");
+    }
+  };
+
+  const handleKickMember = async (memberPublicId: string) => {
+    if (!accessToken || !viewerCapabilities?.viewerIsHost || kickingMemberPublicId) {
+      return;
+    }
+
+    setKickingMemberPublicId(memberPublicId);
+    setErrorMessage(null);
+
+    try {
+      await kickPrivateLobbyMember(accessToken, lobbyPublicId, { memberPublicId });
+      const outgoingInvites = await getPrivateInvites(accessToken, "outgoing");
+      const pendingInviteIdsToCancel = outgoingInvites
+        .filter((invite) =>
+          invite.lobbyPublicId === lobbyPublicId
+          && invite.receiverPublicId === memberPublicId
+          && invite.status === "PENDING")
+        .map((invite) => invite.invitePublicId);
+
+      if (pendingInviteIdsToCancel.length > 0) {
+        await Promise.allSettled(
+          pendingInviteIdsToCancel.map((invitePublicId) =>
+            cancelPrivateInvite(accessToken, invitePublicId)),
+        );
+      }
+
+      await refreshOutgoingInvites();
+      await refreshLobbyState(true);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : "Could not remove member right now.",
+      );
+    } finally {
+      setKickingMemberPublicId(null);
+    }
+  };
+
+  const toggleInviteFriend = (friendPublicId: string, checked: boolean) => {
+    if (outgoingInviteStatusByFriendId[friendPublicId] === "PENDING") {
+      return;
+    }
+
+    setSelectedFriendIds((previous) => {
+      const next = new Set(previous);
+      if (checked) {
+        next.add(friendPublicId);
+      } else {
+        next.delete(friendPublicId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllInvitableFriends = () => {
+    setSelectedFriendIds(new Set(selectableInvitableFriends.map((friend) => friend.publicId)));
+  };
+
+  const handleClearInvitableFriendsSelection = () => {
+    setSelectedFriendIds(new Set());
+  };
+
+  const handleSendInvites = async () => {
+    if (!accessToken || !viewerCapabilities?.viewerIsHost || selectedFriendIds.size === 0) {
+      return;
+    }
+
+    setIsSendingInvites(true);
+    setInviteFeedbackMessage(null);
+
+    const friendPublicIds = Array.from(selectedFriendIds);
+
+    try {
+      await sendPrivateLobbyInvites(accessToken, lobbyPublicId, { friendPublicIds });
+      await refreshOutgoingInvites();
+      setSelectedFriendIds(new Set());
+      setInviteFeedbackMessage(
+        friendPublicIds.length === 1
+          ? "Invite sent."
+          : `Invites sent to ${friendPublicIds.length} friends.`,
+      );
+    } catch (error) {
+      await refreshOutgoingInvites();
+      setInviteFeedbackMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : "Could not send invites right now.",
+      );
+    } finally {
+      setIsSendingInvites(false);
+    }
+  };
+
   const handleStrokeCommit = (stroke: CanvasStroke) => {
     if (
       !sharedState ||
@@ -729,6 +884,113 @@ export default function OnlineLobbyRoomScreen({
     sharedState?.turnEndsAt,
   ]);
 
+  const refreshOutgoingInvites = useCallback(async () => {
+    if (!accessToken || !viewerCapabilities?.viewerIsHost) {
+      setOutgoingInviteStatusByFriendId({});
+      setIsOutgoingInvitesLoading(false);
+      return;
+    }
+
+    setIsOutgoingInvitesLoading(true);
+    try {
+      const outgoingInvites = await getPrivateInvites(accessToken, "outgoing");
+      const latestInviteByReceiver = new Map<string, { createdAt: number; status: PrivateLobbyInviteStatus }>();
+
+      outgoingInvites
+        .filter((invite) => invite.lobbyPublicId === lobbyPublicId)
+        .forEach((invite) => {
+          const createdAtMs = Date.parse(invite.createdAt);
+          const current = latestInviteByReceiver.get(invite.receiverPublicId);
+          if (!current || createdAtMs > current.createdAt) {
+            latestInviteByReceiver.set(invite.receiverPublicId, {
+              createdAt: createdAtMs,
+              status: invite.status,
+            });
+          }
+        });
+
+      const nextStatusByFriendId: Record<string, PrivateLobbyInviteStatus> = {};
+      latestInviteByReceiver.forEach((entry, receiverPublicId) => {
+        nextStatusByFriendId[receiverPublicId] = entry.status;
+      });
+
+      setOutgoingInviteStatusByFriendId(nextStatusByFriendId);
+    } catch {
+      setOutgoingInviteStatusByFriendId({});
+    } finally {
+      setIsOutgoingInvitesLoading(false);
+    }
+  }, [accessToken, lobbyPublicId, viewerCapabilities?.viewerIsHost]);
+
+  useEffect(() => {
+    void refreshOutgoingInvites();
+  }, [refreshOutgoingInvites]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setFriends([]);
+      setIsFriendsLoading(false);
+      setFriendsErrorMessage(null);
+      return;
+    }
+
+    let active = true;
+    setIsFriendsLoading(true);
+    setFriendsErrorMessage(null);
+
+    void fetchFriends(accessToken)
+      .then((loadedFriends) => {
+        if (!active) {
+          return;
+        }
+        setFriends(loadedFriends);
+      })
+      .catch((error: unknown) => {
+        if (!active) {
+          return;
+        }
+        setFriendsErrorMessage(getFriendsLoadErrorMessage(error));
+      })
+      .finally(() => {
+        if (!active) {
+          return;
+        }
+        setIsFriendsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
+
+  useEffect(() => {
+    setSelectedFriendIds((previous) => {
+      if (previous.size === 0) {
+        return previous;
+      }
+
+      const availableFriendIds = new Set(selectableInvitableFriends.map((friend) => friend.publicId));
+      const next = new Set<string>();
+
+      previous.forEach((publicId) => {
+        if (availableFriendIds.has(publicId)) {
+          next.add(publicId);
+        }
+      });
+
+      return next;
+    });
+  }, [selectableInvitableFriends]);
+
+  useEffect(() => {
+    if (
+      sharedState?.viewerWasKicked
+      || sharedState?.viewerRemovedReason === "KICKED_BY_HOST"
+    ) {
+      setIsKickedModalOpen(true);
+    }
+  }, [sharedState?.viewerRemovedReason, sharedState?.viewerWasKicked]);
+
   if (!accessToken) {
     return (
       <Container size="md" className="py-6 lg:py-8">
@@ -769,6 +1031,30 @@ export default function OnlineLobbyRoomScreen({
   return (
     <Container size="md" className="py-6 lg:py-8">
       <Stack gap="lg">
+        <Modal
+          opened={isKickedModalOpen}
+          onClose={() => {
+            // Keep modal open until user chooses where to go.
+          }}
+          withCloseButton={false}
+          closeOnEscape={false}
+          closeOnClickOutside={false}
+          title="You were removed from this lobby"
+          centered
+          radius="lg"
+        >
+          <Stack gap="md">
+            <Text size="sm">
+              The host removed you from this lobby.
+            </Text>
+            <Group justify="flex-end">
+              <Button radius="xl" color="lime" onClick={() => router.push("/")}>
+                Go Home
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+
         <Modal
           opened={isLeaveConfirmOpen}
           onClose={() => setIsLeaveConfirmOpen(false)}
@@ -813,9 +1099,20 @@ export default function OnlineLobbyRoomScreen({
                   Code {sharedState.lobbyCode}
                 </Title>
               </div>
-              <Badge color={state.connected ? "green" : "orange"} variant="light">
-                {state.connected ? "Connected" : "Reconnecting"}
-              </Badge>
+              <Group gap="xs">
+                <Button
+                  radius="xl"
+                  size="xs"
+                  variant={isCodeCopied ? "light" : "default"}
+                  color={isCodeCopied ? "lime" : undefined}
+                  onClick={() => void handleCopyLobbyCode()}
+                >
+                  {isCodeCopied ? "Copied" : "Copy code"}
+                </Button>
+                <Badge color={state.connected ? "green" : "orange"} variant="light">
+                  {state.connected ? "Connected" : "Reconnecting"}
+                </Badge>
+              </Group>
             </Group>
 
             <Text size="sm" c="dimmed">
@@ -919,13 +1216,132 @@ export default function OnlineLobbyRoomScreen({
                   {sharedState.activeMembers.map((member) => (
                     <Group key={member.learnerPublicId ?? member.joinedAt} justify="space-between">
                       <Text>{toMemberLabel(member)}</Text>
-                      {member.host ? <Badge color="lime">Host</Badge> : null}
+                      <Group gap="xs">
+                        {member.host ? <Badge color="lime">Host</Badge> : null}
+                        {viewerCapabilities?.viewerIsHost
+                        && !member.host
+                        && Boolean(member.learnerPublicId) ? (
+                          <Button
+                            size="xs"
+                            radius="xl"
+                            color="red"
+                            variant="light"
+                            loading={kickingMemberPublicId === member.learnerPublicId}
+                            disabled={Boolean(kickingMemberPublicId)}
+                            onClick={() => void handleKickMember(member.learnerPublicId!)}
+                          >
+                            Kick
+                          </Button>
+                          ) : null}
+                      </Group>
                     </Group>
                   ))}
                 </Stack>
               </div>
 
               <Divider />
+
+              {viewerCapabilities?.viewerIsHost ? (
+                <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
+                  <Stack gap="sm">
+                    <Group justify="space-between" align="center">
+                      <Text fw={600}>Invite friends</Text>
+                    </Group>
+
+                    {friendsErrorMessage ? (
+                      <Alert color="red" radius="md" variant="light" title="Could not load friends">
+                        {friendsErrorMessage}
+                      </Alert>
+                    ) : null}
+
+                    {isFriendsLoading ? (
+                      <Text size="sm" c="dimmed">
+                        Loading friends...
+                      </Text>
+                    ) : null}
+
+                    {!isFriendsLoading && isOutgoingInvitesLoading ? (
+                      <Text size="xs" c="dimmed">
+                        Loading invite statuses...
+                      </Text>
+                    ) : null}
+
+                    {!isFriendsLoading && !friendsErrorMessage && invitableFriends.length === 0 ? (
+                      <Text size="sm" c="dimmed">
+                        No available friends to invite right now.
+                      </Text>
+                    ) : null}
+
+                    {!isFriendsLoading && !friendsErrorMessage && invitableFriends.length > 0 ? (
+                      <>
+                        <Group gap="xs">
+                          <Button
+                            size="xs"
+                            variant="default"
+                            onClick={handleSelectAllInvitableFriends}
+                          >
+                            Select all
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="subtle"
+                            onClick={handleClearInvitableFriendsSelection}
+                          >
+                            Clear
+                          </Button>
+                        </Group>
+
+                        <Stack gap="xs" className="max-h-52 overflow-y-auto pr-1">
+                          {invitableFriends.map((friend) => {
+                            const inviteStatus = outgoingInviteStatusByFriendId[friend.publicId];
+                            const isPending = inviteStatus === "PENDING";
+
+                            return (
+                              <Group key={friend.publicId} justify="space-between" align="center" wrap="nowrap">
+                                <Checkbox
+                                  checked={selectedFriendIds.has(friend.publicId)}
+                                  onChange={(event) =>
+                                    toggleInviteFriend(friend.publicId, event.currentTarget.checked)
+                                  }
+                                  disabled={isPending}
+                                  label={friend.username}
+                                />
+                                {inviteStatus ? (
+                                  <Badge color={toInviteStatusColor(inviteStatus)} variant="light">
+                                    {inviteStatus}
+                                  </Badge>
+                                ) : null}
+                              </Group>
+                            );
+                          })}
+                        </Stack>
+
+                        <Group justify="space-between" align="center">
+                          <Text size="xs" c="dimmed">
+                            {selectedFriendIds.size} selected
+                          </Text>
+                          <Button
+                            radius="xl"
+                            size="sm"
+                            color="lime"
+                            loading={isSendingInvites}
+                            disabled={selectedFriendIds.size === 0}
+                            onClick={handleSendInvites}
+                          >
+                            Send invites
+                          </Button>
+                        </Group>
+                      </>
+                    ) : null}
+
+                    {inviteFeedbackMessage ? (
+                      <Text size="xs" c="dimmed">
+                        {inviteFeedbackMessage}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                </div>
+              ) : null}
 
               <Stack gap="sm">
                 <NumberInput
@@ -1405,6 +1821,22 @@ function toSecondsLeft(deadlineAt: string | null, now: number): number | null {
   }
 
   return Math.max(0, Math.ceil((deadlineMs - now) / 1000));
+}
+
+function toInviteStatusColor(status: PrivateLobbyInviteStatus): string {
+  if (status === "ACCEPTED") {
+    return "green";
+  }
+
+  if (status === "REJECTED" || status === "CANCELED") {
+    return "red";
+  }
+
+  if (status === "EXPIRED") {
+    return "orange";
+  }
+
+  return "blue";
 }
 
 function toReconnectingMembersLabel(members: MemberState[]): string {
