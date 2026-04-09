@@ -33,7 +33,7 @@ export default function LessonsHeroSection() {
                 View All Lessons
               </GlowButton>
               <GlowButton href="/lessons/mine" className="!w-[248px] justify-center">
-                View My Lessons
+                View My Creations
               </GlowButton>
               <GlowButton href="/my-enrollments" className="!w-[248px] justify-center">
                 My Enrollments

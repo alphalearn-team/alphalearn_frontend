@@ -28,7 +28,7 @@ export default function LessonQuizManageSection({ lessonId, quizzes }: LessonQui
             <Text size="sm" ta="center" style={{ color: "var(--color-text-muted)" }}>
               Add at least one quiz before submitting this lesson for review.
             </Text>
-            <GlowButton href={`/quiz/edit?lessonId=${lessonId}`} size="sm" icon="add">
+            <GlowButton href={`/quiz?lessonId=${lessonId}`} size="sm" icon="add">
               Create Quiz
             </GlowButton>
           </Stack>
@@ -50,7 +50,7 @@ export default function LessonQuizManageSection({ lessonId, quizzes }: LessonQui
                   </Text>
                 </div>
                 <GlowButton
-                  href={`/quiz/edit?quizId=${quiz.quizPublicId}&lessonId=${lessonId}`}
+                  href={`/quiz?quizId=${quiz.quizPublicId}&lessonId=${lessonId}`}
                   size="sm"
                   icon="edit"
                 >

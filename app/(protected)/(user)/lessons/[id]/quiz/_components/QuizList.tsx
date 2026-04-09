@@ -88,7 +88,7 @@ export default function QuizList({
 
               <Group justify="flex-end" mt="md">
                 {!quiz.canAttempt ? (
-                  <GlowButton href={`/quiz/edit?quizId=${quiz.quizPublicId}&lessonId=${lessonId}`} icon="edit">
+                  <GlowButton href={`/quiz?quizId=${quiz.quizPublicId}&lessonId=${lessonId}`} icon="edit">
                     Edit Quiz
                   </GlowButton>
                 ) : (

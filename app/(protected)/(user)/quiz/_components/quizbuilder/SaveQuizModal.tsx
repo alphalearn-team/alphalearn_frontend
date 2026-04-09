@@ -178,7 +178,7 @@ export default function SaveQuizModal({ opened, onClose, questions, quizPublicId
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <p style={{ color: "var(--color-text-dimmed)", fontSize: "0.95rem", margin: 0 }}>
                     {isEditMode
-                        ? "Save your changes. This will replace all existing questions in the quiz."
+                        ? "Saving your changes?"
                         : "Select the lesson you want to attach this quiz to."}
                 </p>
 

@@ -125,7 +125,7 @@ export default function ContributorNavPanel({ lessonId, quizzes }: ContributorNa
             {quizzes.map((quiz, idx) => (
               <Link
                 key={quiz.quizPublicId}
-                href={`/quiz/edit?quizId=${quiz.quizPublicId}&lessonId=${lessonId}`}
+                href={`/quiz?quizId=${quiz.quizPublicId}&lessonId=${lessonId}`}
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-between px-2 py-1.5 rounded-lg text-sm font-medium transition-colors"
                 style={{ color: "var(--color-text)" }}
@@ -141,7 +141,7 @@ export default function ContributorNavPanel({ lessonId, quizzes }: ContributorNa
             ))}
 
             <Link
-              href={`/quiz/edit?lessonId=${lessonId}`}
+              href={`/quiz?lessonId=${lessonId}`}
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium transition-colors"
               style={{ color: "var(--color-primary)" }}

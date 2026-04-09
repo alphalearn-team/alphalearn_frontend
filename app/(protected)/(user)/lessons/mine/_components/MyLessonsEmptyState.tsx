@@ -19,16 +19,24 @@ export default function MyLessonsEmptyState({
         No lessons yet
       </Title>
 
-      <Text className="text-[var(--color-text-muted)]">
-        {canCreateLessons
-          ? "Start your journey by creating your first lesson!"
-          : "You have not authored any lessons yet."}
-      </Text>
-
-      {canCreateLessons && (
-        <Link href="/lessons/create">
-          <CommonButton>Create First Lesson</CommonButton>
-        </Link>
+      {canCreateLessons ? (
+        <>
+          <Text className="text-[var(--color-text-muted)]">
+            Start your journey by creating your first lesson!
+          </Text>
+          <Link href="/lessons/create">
+            <CommonButton>Create First Lesson</CommonButton>
+          </Link>
+        </>
+      ) : (
+        <>
+          <Text className="text-[var(--color-text-muted)] text-center max-w-sm">
+            Only contributors can create lessons. Apply for contributor access to start building and sharing your own lessons.
+          </Text>
+          <Link href="/contributor-application">
+            <CommonButton>Become a Contributor</CommonButton>
+          </Link>
+        </>
       )}
     </Stack>
   );
