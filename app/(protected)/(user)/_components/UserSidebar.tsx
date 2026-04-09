@@ -21,7 +21,6 @@ function getSections(unreadNotificationsCount: number, incomingRequestCount: num
         { label: "Feed", href: "/friends-feed", icon: "dynamic_feed" },
         { label: "Concepts", href: "/concepts", icon: "library_books" },
         { label: "Lessons", href: "/lessons", icon: "menu_book" },
-        { label: "My Enrolled Lessons", href: "/my-enrollments", icon: "bookmark" },
       ],
     },
   ];

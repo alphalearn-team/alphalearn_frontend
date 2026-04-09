@@ -83,24 +83,6 @@ export default function AuthFormPanel({
           </div>
         </label>
 
-        {!isSignUp && (
-          <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer group">
-              <input
-                type="checkbox"
-                className="rounded border-none bg-[var(--color-input)] text-[var(--color-primary)] focus:ring-offset-[var(--color-background)] focus:ring-[var(--color-primary)] size-4 group-hover:bg-[var(--color-overlay)] transition-colors"
-              />
-              <span className="text-[var(--color-text)] text-sm">Stay logged in</span>
-            </label>
-            <a
-              href="#"
-              className="text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] text-sm font-medium transition-colors"
-            >
-              Forgot password?
-            </a>
-          </div>
-        )}
-
         <button
           type="submit"
           disabled={isLoading}
