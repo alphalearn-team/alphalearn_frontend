@@ -1496,7 +1496,7 @@ export default function OnlineLobbyRoomScreen({
                 <Text fw={600}>
                   {viewerState?.viewerIsImposter
                     ? "You are the imposter"
-                    : viewerState?.viewerConceptTitle ?? "Concept unavailable"}
+                    : viewerState?.viewerConceptTitle ?? "You are the imposter"}
                 </Text>
               </div>
 
