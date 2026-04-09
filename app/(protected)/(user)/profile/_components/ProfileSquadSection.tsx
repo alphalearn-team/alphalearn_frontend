@@ -291,8 +291,9 @@ export default function ProfileSquadSection({
   const [learnersError, setLearnersError] = useState<string | null>(null);
   const [requestsError, setRequestsError] = useState<string | null>(null);
   const [isFriendsLoading, setIsFriendsLoading] = useState(true);
-  const [isLearnersLoading, setIsLearnersLoading] = useState(true);
+  const [isLearnersLoading, setIsLearnersLoading] = useState(false);
   const [isRequestsLoading, setIsRequestsLoading] = useState(true);
+  const [hasLoadedLearners, setHasLoadedLearners] = useState(false);
   const [isFindFriendsOpen, setIsFindFriendsOpen] = useState(false);
   const [friendPendingRemoval, setFriendPendingRemoval] = useState<Friend | null>(null);
   const [unfriendingFriendIds, setUnfriendingFriendIds] = useState<string[]>([]);
@@ -309,6 +310,13 @@ export default function ProfileSquadSection({
 
     onFriendsCountChange?.(friends.length);
   }, [friends.length, friendsError, isFriendsLoading, onFriendsCountChange]);
+
+  useEffect(() => {
+    setLearners([]);
+    setLearnersError(null);
+    setIsLearnersLoading(false);
+    setHasLoadedLearners(false);
+  }, [accessToken]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -349,6 +357,14 @@ export default function ProfileSquadSection({
   useEffect(() => {
     let isCancelled = false;
 
+    const shouldLoadLearners = isFindFriendsOpen && learnerSearchQuery.trim().length > 0 && !hasLoadedLearners;
+
+    if (!shouldLoadLearners) {
+      return () => {
+        isCancelled = true;
+      };
+    }
+
     const loadLearners = async () => {
       setIsLearnersLoading(true);
       setLearnersError(null);
@@ -361,6 +377,7 @@ export default function ProfileSquadSection({
         }
 
         setLearners(nextLearners);
+        setHasLoadedLearners(true);
       } catch (error) {
         if (isCancelled) {
           return;
@@ -380,7 +397,7 @@ export default function ProfileSquadSection({
     return () => {
       isCancelled = true;
     };
-  }, [accessToken]);
+  }, [accessToken, hasLoadedLearners, isFindFriendsOpen, learnerSearchQuery]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -501,6 +518,7 @@ export default function ProfileSquadSection({
 
     try {
       setLearners(await fetchLearners(accessToken));
+      setHasLoadedLearners(true);
     } catch (error) {
       const message = getLearnersLoadErrorMessage(error);
       setLearnersError(message);
@@ -880,7 +898,7 @@ export default function ProfileSquadSection({
                 size="md"
               />
 
-              {learnersError ? (
+              {hasLearnerSearch && learnersError ? (
                 <Alert color="red" radius="lg" variant="light" title="Learners load failed">
                   <div className="space-y-3">
                     <p>{learnersError}</p>
@@ -891,7 +909,7 @@ export default function ProfileSquadSection({
                 </Alert>
               ) : null}
 
-              {isLearnersLoading ? (
+              {hasLearnerSearch && isLearnersLoading ? (
                 <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6">
                   <Loader size={20} />
                   <span className="ml-3 text-sm text-[var(--color-text-secondary)]">
@@ -900,19 +918,17 @@ export default function ProfileSquadSection({
                 </div>
               ) : null}
 
-              {!isLearnersLoading && !learnersError && addableLearners.length === 0 ? (
+              {!isLearnersLoading && !learnersError && hasLearnerSearch && addableLearners.length === 0 ? (
                 <EmptyState
-                  title={hasLearnerSearch ? "No learners found" : "No learners available"}
-                  message={hasLearnerSearch
-                    ? "Try a different username. Matching learners will appear here."
-                    : "There are no eligible learners to add right now."}
+                  title="No learners found"
+                  message="Try a different username. Matching learners will appear here."
                 />
               ) : null}
 
-              {!isLearnersLoading && !learnersError && addableLearners.length > 0 ? (
+              {!isLearnersLoading && !learnersError && hasLearnerSearch && addableLearners.length > 0 ? (
                 <div className="space-y-3">
                   <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                    {hasLearnerSearch ? "Matching learners" : "Suggested learners"}
+                    Matching learners
                   </p>
 
                   {addableLearners.map((learner) => (
