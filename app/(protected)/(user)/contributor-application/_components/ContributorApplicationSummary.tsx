@@ -1,6 +1,7 @@
 "use client";
 
-import { Badge, Button, Card, Group, Stack, Text, Title } from "@mantine/core";
+import { Badge, Card, Group, Stack, Text, Title } from "@mantine/core";
+import CommonButton from "@/components/CommonButton";
 import type { ContributorApplication } from "@/interfaces/interfaces";
 import {
   getApplicationTimelineLabel,
@@ -60,15 +61,13 @@ export default function ContributorApplicationSummary({
           </div>
 
           {viewState.canApply && (
-            <Button
+            <CommonButton
               onClick={onSubmit}
               loading={isSubmitting}
               disabled={isSubmitting}
-              radius="xl"
-              className="md:self-start"
             >
-              Apply to Become a Contributor
-            </Button>
+              Apply
+            </CommonButton>
           )}
         </div>
 

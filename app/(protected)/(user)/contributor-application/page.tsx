@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { Container, Stack, Text, Title } from "@mantine/core";
+import { Container, Divider, Stack, Text, Title } from "@mantine/core";
 import ContributorApplicationPanel from "./_components/ContributorApplicationPanel";
+import ContributorPerksSection from "./_components/ContributorPerksSection";
 import { getUserRole } from "@/lib/auth/server/rbac";
 import { fetchMyContributorApplications } from "./data";
 
@@ -19,9 +20,13 @@ export default async function ContributorApplicationPage() {
           <div className="space-y-3">
             <Title order={1}>Contributor Access</Title>
             <Text className="max-w-3xl text-[var(--color-text-secondary)]">
-              Check your latest contributor application and request contributor access when eligible.
+              Become a contributor to unlock lesson and quiz creation tools.
             </Text>
           </div>
+
+          <ContributorPerksSection />
+
+          <Divider />
 
           <ContributorApplicationPanel
             initialApplications={data}

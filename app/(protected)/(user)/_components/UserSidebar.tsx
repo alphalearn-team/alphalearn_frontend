@@ -48,8 +48,7 @@ function getQuickActionsSection(
     label: "Quick Actions",
     items: [
       { label: "Submit Quest", href: "/weekly-quest", icon: "gallery_thumbnail" },
-      { label: "Contributor Access", href: "/contributor-application", icon: "group_add" },
-      { label: "Create Lesson", href: "/lessons/create", icon: "add_circle" },
+      { label: "Become a Contributor", href: "/contributor-application", icon: "workspace_premium" },
     ],
   };
 }
