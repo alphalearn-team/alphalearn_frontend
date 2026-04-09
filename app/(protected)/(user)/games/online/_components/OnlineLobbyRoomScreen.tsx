@@ -132,6 +132,7 @@ export default function OnlineLobbyRoomScreen({
     useState<Record<string, PrivateLobbyInviteStatus>>({});
   const [isOutgoingInvitesLoading, setIsOutgoingInvitesLoading] = useState(false);
   const [selectedFriendIds, setSelectedFriendIds] = useState<Set<string>>(new Set());
+  const [friendSearchQuery, setFriendSearchQuery] = useState("");
   const [isSendingInvites, setIsSendingInvites] = useState(false);
   const [inviteFeedbackMessage, setInviteFeedbackMessage] = useState<string | null>(null);
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
@@ -498,6 +499,15 @@ export default function OnlineLobbyRoomScreen({
       ),
     [invitableFriends, outgoingInviteStatusByFriendId],
   );
+  const filteredInvitableFriends = useMemo(() => {
+    const normalizedQuery = friendSearchQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return invitableFriends;
+    }
+
+    return invitableFriends.filter((friend) =>
+      friend.username.toLowerCase().includes(normalizedQuery));
+  }, [friendSearchQuery, invitableFriends]);
   const viewerReconnectEntry = useMemo(
     () =>
       viewerMemberPublicId
@@ -875,14 +885,6 @@ export default function OnlineLobbyRoomScreen({
       }
       return next;
     });
-  };
-
-  const handleSelectAllInvitableFriends = () => {
-    setSelectedFriendIds(new Set(selectableInvitableFriends.map((friend) => friend.publicId)));
-  };
-
-  const handleClearInvitableFriendsSelection = () => {
-    setSelectedFriendIds(new Set());
   };
 
   const handleSendInvites = async () => {
@@ -1470,25 +1472,14 @@ export default function OnlineLobbyRoomScreen({
 
                     {!isFriendsLoading && !friendsErrorMessage && invitableFriends.length > 0 ? (
                       <>
-                        <Group gap="xs">
-                          <Button
-                            size="xs"
-                            variant="default"
-                            onClick={handleSelectAllInvitableFriends}
-                          >
-                            Select all
-                          </Button>
-                          <Button
-                            size="xs"
-                            variant="subtle"
-                            onClick={handleClearInvitableFriendsSelection}
-                          >
-                            Clear
-                          </Button>
-                        </Group>
+                        <TextInput
+                          value={friendSearchQuery}
+                          onChange={(event) => setFriendSearchQuery(event.currentTarget.value)}
+                          placeholder="Search friends by username"
+                        />
 
                         <Stack gap="xs" className="max-h-52 overflow-y-auto pr-1">
-                          {invitableFriends.map((friend) => {
+                          {filteredInvitableFriends.map((friend) => {
                             const inviteStatus = outgoingInviteStatusByFriendId[friend.publicId];
                             const isPending = inviteStatus === "PENDING";
 
@@ -1510,6 +1501,11 @@ export default function OnlineLobbyRoomScreen({
                               </Group>
                             );
                           })}
+                          {filteredInvitableFriends.length === 0 ? (
+                            <Text size="sm" c="dimmed">
+                              No friends match your search.
+                            </Text>
+                          ) : null}
                         </Stack>
 
                         <Group justify="space-between" align="center">
