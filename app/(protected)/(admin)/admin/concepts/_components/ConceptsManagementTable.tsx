@@ -182,12 +182,12 @@ export default function ConceptsManagementTable({
                     </td>
                     <td className="p-3">
                       <div className="flex items-center justify-end gap-2">
-                        <Link
+                        {/* <Link
                           href={`/concepts/${concept.publicId}`}
                           className="inline-flex h-8 items-center rounded-md border border-blue-500/20 bg-blue-500/10 px-3 text-xs font-semibold text-blue-500 transition-colors hover:bg-blue-500/20"
                         >
                           View
-                        </Link>
+                        </Link> */}
                         <ActionIcon
                           variant="light"
                           color="red"
