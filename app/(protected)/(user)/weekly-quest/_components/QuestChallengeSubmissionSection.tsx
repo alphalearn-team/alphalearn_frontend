@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button, Card, Stack, Text, Textarea } from "@mantine/core";
+import { Alert, Card, Stack, Text, Textarea } from "@mantine/core";
 import type { LearnerCurrentWeeklyQuest } from "@/interfaces/interfaces";
 import { useAuth } from "@/lib/auth/client/AuthContext";
 import { showSuccess } from "@/lib/utils/popUpNotifications";
 import { formatDateTime } from "@/lib/utils/formatDate";
 import {
   createQuestChallengeUpload,
+  getQuestChallengeMediaKind,
   isSupportedQuestChallengeFile,
   saveQuestChallengeSubmission,
   toFriendlyQuestChallengeError,
 } from "@/lib/utils/weeklyQuestChallenge";
+import CommonButton from "@/components/CommonButton";
+import GlowIconButton from "@/components/GlowIconButton";
 import FriendTagger from "./FriendTagger";
 
 type UploadState = "idle" | "uploading" | "uploadFailed" | "uploaded";
@@ -330,6 +333,28 @@ export default function QuestChallengeSubmissionSection({
 
               {savedSubmission ? (
                 <div className="mt-6 rounded-[22px] border border-white/10 bg-black/25 p-4">
+                  <div className="overflow-hidden rounded-[14px] border border-white/10 bg-black/35">
+                    {getQuestChallengeMediaKind(savedSubmission.contentType) === "image" ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={savedSubmission.publicUrl}
+                        alt={savedSubmission.originalFilename}
+                        className="max-h-72 w-full object-cover"
+                      />
+                    ) : getQuestChallengeMediaKind(savedSubmission.contentType) === "video" ? (
+                      <video
+                        controls
+                        preload="metadata"
+                        src={savedSubmission.publicUrl}
+                        className="max-h-72 w-full bg-black"
+                      />
+                    ) : (
+                      <div className="flex h-36 items-center justify-center text-sm text-[var(--color-text-muted)]">
+                        Preview unavailable
+                      </div>
+                    )}
+                  </div>
+
                   <Text size="sm" className="text-[var(--color-text)]">
                     Current saved submission: {savedSubmission.originalFilename}
                   </Text>
@@ -363,7 +388,12 @@ export default function QuestChallengeSubmissionSection({
             </div>
 
             <div className="mt-6 flex justify-end">
-              <Button onClick={handleStepAdvance}>Next</Button>
+              <GlowIconButton
+                icon="arrow_forward"
+                onClick={handleStepAdvance}
+                ariaLabel="Go to upload step"
+                size="sm"
+              />
             </div>
           </div>
         ) : null}
@@ -432,6 +462,26 @@ export default function QuestChallengeSubmissionSection({
 
               {(selectedFile || savedSubmission) ? (
                 <div className="mt-6 rounded-[18px] border border-white/10 bg-[#2a2a2a] p-4">
+                  {!selectedFile ? (
+                    <div className="mb-4 overflow-hidden rounded-[12px] border border-white/10 bg-black/35">
+                      {getQuestChallengeMediaKind(savedSubmission?.contentType) === "image" ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={savedSubmission?.publicUrl}
+                          alt={savedSubmission?.originalFilename ?? "Saved submission"}
+                          className="max-h-56 w-full object-cover"
+                        />
+                      ) : getQuestChallengeMediaKind(savedSubmission?.contentType) === "video" ? (
+                        <video
+                          controls
+                          preload="metadata"
+                          src={savedSubmission?.publicUrl}
+                          className="max-h-56 w-full bg-black"
+                        />
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex min-w-0 gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-[var(--color-text-muted)]">
@@ -488,17 +538,22 @@ export default function QuestChallengeSubmissionSection({
                 </div>
               ) : null}
 
-              <div className="mt-8 flex flex-wrap justify-end gap-3">
-                <Button variant="default" onClick={() => setCurrentStep(1)} disabled={isBusy}>
-                  Back
-                </Button>
-                <Button
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+                <GlowIconButton
+                  icon="arrow_back"
+                  onClick={() => setCurrentStep(1)}
+                  ariaLabel="Go back to the previous step"
+                  size="sm"
+                  disabled={isBusy}
+                />
+                <CommonButton
                   disabled={!canSubmit}
                   loading={isBusy}
                   onClick={handleSubmit}
+                  className="min-w-[180px] justify-center"
                 >
                   {isSubmitted ? "Save changes" : "Publish submission"}
-                </Button>
+                </CommonButton>
               </div>
 
               {!session?.access_token ? (

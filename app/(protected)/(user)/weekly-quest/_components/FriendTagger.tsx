@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader, Stack, TextInput } from "@mantine/core";
 import type { Friend } from "@/lib/utils/friends";
 import { fetchFriendsList, searchFriends } from "@/lib/utils/friends";
@@ -58,6 +58,8 @@ export default function FriendTagger({
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredFriends, setFilteredFriends] = useState<Friend[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const blurTimeoutRef = useRef<number | null>(null);
 
   // Load friends on mount
   useEffect(() => {
@@ -84,15 +86,40 @@ export default function FriendTagger({
     setFilteredFriends(searchFriends(friends, searchQuery));
   }, [searchQuery, friends]);
 
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        window.clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleSelectFriend = (friendId: string) => {
     if (!selectedFriendIds.includes(friendId)) {
       onSelectedFriendsChange([...selectedFriendIds, friendId]);
     }
     setSearchQuery("");
+    setIsDropdownOpen(false);
   };
 
   const handleRemoveFriend = (friendId: string) => {
     onSelectedFriendsChange(selectedFriendIds.filter((id) => id !== friendId));
+  };
+
+  const handleInputFocus = () => {
+    if (!disabled && !isLoading && friends.length > 0) {
+      setIsDropdownOpen(true);
+    }
+  };
+
+  const handleInputBlur = () => {
+    if (blurTimeoutRef.current) {
+      window.clearTimeout(blurTimeoutRef.current);
+    }
+
+    blurTimeoutRef.current = window.setTimeout(() => {
+      setIsDropdownOpen(false);
+    }, 120);
   };
 
   // Get selected friend objects for display
@@ -120,13 +147,15 @@ export default function FriendTagger({
             placeholder={placeholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.currentTarget.value)}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             disabled={disabled || isLoading || friends.length === 0}
             rightSection={isLoading && <Loader size={16} />}
             className="mb-4"
           />
 
           {/* Dropdown with available friends */}
-          {searchQuery.trim() && !disabled && !isLoading && (
+          {isDropdownOpen && !disabled && !isLoading && friends.length > 0 && (
             <div className="absolute z-10 w-full mt-1 rounded-lg border border-white/10 bg-[#171717] shadow-lg max-h-64 overflow-y-auto">
               {availableFriends.length > 0 ? (
                 <div className="divide-y divide-white/10">
@@ -134,13 +163,11 @@ export default function FriendTagger({
                     <button
                       key={friend.publicId}
                       type="button"
+                      onMouseDown={(event) => event.preventDefault()}
                       onClick={() => handleSelectFriend(friend.publicId)}
                       className="w-full px-4 py-3 text-left hover:bg-white/5 transition text-sm text-[var(--color-text)] flex items-center justify-between"
                     >
                       <span>{friend.username}</span>
-                      <span className="text-xs text-[var(--color-text-muted)]">
-                        {friend.publicId.substring(0, 8)}...
-                      </span>
                     </button>
                   ))}
                 </div>
