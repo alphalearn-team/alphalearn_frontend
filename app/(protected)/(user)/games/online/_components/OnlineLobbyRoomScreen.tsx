@@ -80,6 +80,10 @@ interface SettingsDraft {
   turnDurationSeconds: number | "";
 }
 
+type PendingExitNavigation =
+  | { kind: "href"; href: string }
+  | { kind: "history-back" };
+
 const DEFAULT_SETTINGS_DRAFT: SettingsDraft = {
   conceptCount: 3,
   roundsPerConcept: 3,
@@ -114,6 +118,9 @@ export default function OnlineLobbyRoomScreen({
   const [isStarting, setIsStarting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
+  const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
+  const [pendingExitNavigation, setPendingExitNavigation] =
+    useState<PendingExitNavigation | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isKickedModalOpen, setIsKickedModalOpen] = useState(false);
   const [kickingMemberPublicId, setKickingMemberPublicId] = useState<string | null>(null);
@@ -125,6 +132,7 @@ export default function OnlineLobbyRoomScreen({
     useState<Record<string, PrivateLobbyInviteStatus>>({});
   const [isOutgoingInvitesLoading, setIsOutgoingInvitesLoading] = useState(false);
   const [selectedFriendIds, setSelectedFriendIds] = useState<Set<string>>(new Set());
+  const [friendSearchQuery, setFriendSearchQuery] = useState("");
   const [isSendingInvites, setIsSendingInvites] = useState(false);
   const [inviteFeedbackMessage, setInviteFeedbackMessage] = useState<string | null>(null);
   const [optimisticStrokes, setOptimisticStrokes] = useState<CanvasStroke[] | null>(
@@ -145,6 +153,8 @@ export default function OnlineLobbyRoomScreen({
   const previousPhaseRef = useRef<LobbyPhase>(null);
   const isSubmittingDrawingDoneRef = useRef(isSubmittingDrawingDone);
   const autoDoneTurnKeyRef = useRef<string | null>(null);
+  const skipExitGuardRef = useRef(false);
+  const hasPushedExitGuardStateRef = useRef(false);
 
   const sharedState = state.sharedState;
   const currentPhase = sharedState?.currentPhase ?? null;
@@ -156,6 +166,13 @@ export default function OnlineLobbyRoomScreen({
     [sharedState?.currentDrawingSnapshot],
   );
   const renderedStrokes = optimisticStrokes ?? authoritativeStrokes;
+  const shouldConfirmExit = useMemo(() => {
+    if (!sharedState || isKickedModalOpen) {
+      return false;
+    }
+
+    return !isTerminalLobbyPhase(sharedState.currentPhase);
+  }, [isKickedModalOpen, sharedState]);
 
   const refreshLobbyState = useCallback(
     async (silent = false) => {
@@ -482,6 +499,15 @@ export default function OnlineLobbyRoomScreen({
       ),
     [invitableFriends, outgoingInviteStatusByFriendId],
   );
+  const filteredInvitableFriends = useMemo(() => {
+    const normalizedQuery = friendSearchQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return invitableFriends;
+    }
+
+    return invitableFriends.filter((friend) =>
+      friend.username.toLowerCase().includes(normalizedQuery));
+  }, [friendSearchQuery, invitableFriends]);
   const viewerReconnectEntry = useMemo(
     () =>
       viewerMemberPublicId
@@ -664,13 +690,8 @@ export default function OnlineLobbyRoomScreen({
   };
 
   const shouldConfirmLeave = useMemo(() => {
-    if (!sharedState) {
-      return false;
-    }
-
-    const hasStartedGame = sharedState.currentPhase !== null;
-    return hasStartedGame && !isTerminalLobbyPhase(sharedState.currentPhase);
-  }, [sharedState]);
+    return shouldConfirmExit;
+  }, [shouldConfirmExit]);
 
   const handleLeave = () => {
     if (shouldConfirmLeave) {
@@ -680,6 +701,121 @@ export default function OnlineLobbyRoomScreen({
 
     void executeLeave();
   };
+
+  const executePendingExitNavigation = useCallback(() => {
+    if (!pendingExitNavigation) {
+      return;
+    }
+
+    skipExitGuardRef.current = true;
+    setIsExitConfirmOpen(false);
+
+    if (pendingExitNavigation.kind === "history-back") {
+      setPendingExitNavigation(null);
+      window.history.back();
+      return;
+    }
+
+    const targetUrl = new URL(pendingExitNavigation.href, window.location.href);
+    setPendingExitNavigation(null);
+
+    if (targetUrl.origin === window.location.origin) {
+      router.push(`${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`);
+      return;
+    }
+
+    window.location.assign(targetUrl.toString());
+  }, [pendingExitNavigation, router]);
+
+  useEffect(() => {
+    if (!shouldConfirmExit) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (skipExitGuardRef.current || isLeaving) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        skipExitGuardRef.current ||
+        isLeaving ||
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const clickedNode = event.target as Element | null;
+      const anchor = clickedNode?.closest("a[href]");
+      if (!anchor) {
+        return;
+      }
+
+      const href = anchor.getAttribute("href");
+      if (!href || href.startsWith("#")) {
+        return;
+      }
+
+      const nextUrl = new URL(href, window.location.href);
+      const currentUrl = new URL(window.location.href);
+      const isSameDestination =
+        nextUrl.origin === currentUrl.origin &&
+        nextUrl.pathname === currentUrl.pathname &&
+        nextUrl.search === currentUrl.search &&
+        nextUrl.hash === currentUrl.hash;
+
+      if (isSameDestination) {
+        return;
+      }
+
+      event.preventDefault();
+      setPendingExitNavigation({ kind: "href", href: nextUrl.toString() });
+      setIsExitConfirmOpen(true);
+    };
+
+    if (!hasPushedExitGuardStateRef.current) {
+      window.history.pushState(
+        { imposterLobbyExitGuard: true },
+        "",
+        window.location.href,
+      );
+      hasPushedExitGuardStateRef.current = true;
+    }
+
+    const handlePopState = () => {
+      if (skipExitGuardRef.current || isLeaving) {
+        return;
+      }
+
+      setPendingExitNavigation({ kind: "history-back" });
+      setIsExitConfirmOpen(true);
+      window.history.pushState(
+        { imposterLobbyExitGuard: true },
+        "",
+        window.location.href,
+      );
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+    document.addEventListener("click", handleDocumentClick, true);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener("click", handleDocumentClick, true);
+    };
+  }, [isLeaving, shouldConfirmExit]);
 
   const handleCopyLobbyCode = async () => {
     if (!sharedState?.lobbyCode) {
@@ -749,14 +885,6 @@ export default function OnlineLobbyRoomScreen({
       }
       return next;
     });
-  };
-
-  const handleSelectAllInvitableFriends = () => {
-    setSelectedFriendIds(new Set(selectableInvitableFriends.map((friend) => friend.publicId)));
-  };
-
-  const handleClearInvitableFriendsSelection = () => {
-    setSelectedFriendIds(new Set());
   };
 
   const handleSendInvites = async () => {
@@ -1097,13 +1225,13 @@ export default function OnlineLobbyRoomScreen({
         <Modal
           opened={isLeaveConfirmOpen}
           onClose={() => setIsLeaveConfirmOpen(false)}
-          title="Leave and end game for everyone?"
+          title="Quit lobby?"
           centered
           radius="lg"
         >
           <Stack gap="md">
             <Text size="sm">
-              Leaving now will end this game for all players in this lobby.
+              This will quit the lobby. Are you sure?
             </Text>
             <Group justify="flex-end">
               <Button
@@ -1121,7 +1249,38 @@ export default function OnlineLobbyRoomScreen({
                 }}
                 loading={isLeaving}
               >
-                Yes, leave game
+                Yes, quit lobby
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+
+        <Modal
+          opened={isExitConfirmOpen}
+          onClose={() => {
+            setIsExitConfirmOpen(false);
+            setPendingExitNavigation(null);
+          }}
+          title="Quit lobby?"
+          centered
+          radius="lg"
+        >
+          <Stack gap="md">
+            <Text size="sm">
+              This will quit the lobby. Are you sure?
+            </Text>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => {
+                  setIsExitConfirmOpen(false);
+                  setPendingExitNavigation(null);
+                }}
+              >
+                No, stay
+              </Button>
+              <Button color="red" onClick={executePendingExitNavigation}>
+                Yes, leave page
               </Button>
             </Group>
           </Stack>
@@ -1313,25 +1472,14 @@ export default function OnlineLobbyRoomScreen({
 
                     {!isFriendsLoading && !friendsErrorMessage && invitableFriends.length > 0 ? (
                       <>
-                        <Group gap="xs">
-                          <Button
-                            size="xs"
-                            variant="default"
-                            onClick={handleSelectAllInvitableFriends}
-                          >
-                            Select all
-                          </Button>
-                          <Button
-                            size="xs"
-                            variant="subtle"
-                            onClick={handleClearInvitableFriendsSelection}
-                          >
-                            Clear
-                          </Button>
-                        </Group>
+                        <TextInput
+                          value={friendSearchQuery}
+                          onChange={(event) => setFriendSearchQuery(event.currentTarget.value)}
+                          placeholder="Search friends by username"
+                        />
 
                         <Stack gap="xs" className="max-h-52 overflow-y-auto pr-1">
-                          {invitableFriends.map((friend) => {
+                          {filteredInvitableFriends.map((friend) => {
                             const inviteStatus = outgoingInviteStatusByFriendId[friend.publicId];
                             const isPending = inviteStatus === "PENDING";
 
@@ -1353,6 +1501,11 @@ export default function OnlineLobbyRoomScreen({
                               </Group>
                             );
                           })}
+                          {filteredInvitableFriends.length === 0 ? (
+                            <Text size="sm" c="dimmed">
+                              No friends match your search.
+                            </Text>
+                          ) : null}
                         </Stack>
 
                         <Group justify="space-between" align="center">
@@ -1565,28 +1718,36 @@ export default function OnlineLobbyRoomScreen({
                         viewerMemberPublicId,
                         viewerIdentityTokenSet,
                       );
+                    const isVoteOptionDisabled =
+                      Boolean(viewerState?.viewerVoteTargetPublicId) || isSelfVoteTarget;
                     return (
                       <Button
                         key={targetPublicId}
                         variant={
-                          selectedVoteTargetPublicId === targetPublicId
+                          !isVoteOptionDisabled && selectedVoteTargetPublicId === targetPublicId
                             ? "filled"
                             : "default"
                         }
-                        color="lime"
+                        color={isSelfVoteTarget ? "gray" : "lime"}
                         onClick={() => {
-                          if (isSelfVoteTarget) {
+                          if (isVoteOptionDisabled) {
                             return;
                           }
                           setSelectedVoteTargetPublicId(targetPublicId);
                         }}
-                        disabled={Boolean(viewerState?.viewerVoteTargetPublicId) || isSelfVoteTarget}
+                        disabled={isVoteOptionDisabled}
                         styles={
                           isSelfVoteTarget
                             ? {
                                 root: {
-                                  opacity: 0.45,
+                                  opacity: 1,
+                                  backgroundColor: "rgba(148, 163, 184, 0.2)",
+                                  borderColor: "rgba(148, 163, 184, 0.55)",
+                                  color: "#9ca3af",
                                   cursor: "not-allowed",
+                                },
+                                label: {
+                                  color: "#9ca3af",
                                 },
                               }
                             : undefined
@@ -1836,6 +1997,14 @@ function isViewerVoteTarget(
   viewerIdentityTokenSet: Set<string>,
 ): boolean {
   if (viewerMemberPublicId && targetPublicId === viewerMemberPublicId) {
+    return true;
+  }
+
+  if (
+    viewerMemberPublicId &&
+    targetMember?.learnerPublicId &&
+    targetMember.learnerPublicId === viewerMemberPublicId
+  ) {
     return true;
   }
 
