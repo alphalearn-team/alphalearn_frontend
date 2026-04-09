@@ -35,6 +35,9 @@ export default function LessonsHeroSection() {
               <GlowButton href="/lessons/mine" className="!w-[248px] justify-center">
                 View My Lessons
               </GlowButton>
+              <GlowButton href="/my-enrollments" className="!w-[248px] justify-center">
+                My Enrollments
+              </GlowButton>
             </Stack>
 
         </Stack>

@@ -323,11 +323,8 @@ export default function QuestChallengeSubmissionSection({
               </Text>
 
               <div className="mt-8 rounded-[24px] border border-dashed border-[#313530] bg-[#131313] px-6 py-12">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Placeholder
-                </p>
-                <p className="mt-3 text-lg text-[var(--color-text)]">
-                  Lesson prompt, checklist, or inspiration can live here later.
+                <p className="text-lg text-[var(--color-text)]">
+                  Read a lesson or concept to learn more about this week&apos;s topic!
                 </p>
               </div>
 
